@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "on-error-container": "#93000a",
+          "on-tertiary-fixed": "#00201d",
+          "surface-container-highest": "#d3e4fe",
+          "surface-container-lowest": "#ffffff",
+          "primary-container": "#131b2e",
+          "error": "#ba1a1a",
+          "tertiary-fixed": "#89f5e7",
+          "on-primary-container": "#7c839b",
+          "on-tertiary-fixed-variant": "#005049",
+          "secondary-container": "#7bc2ff",
+          "surface-bright": "#f8f9ff",
+          "surface-tint": "#565e74",
+          "surface-dim": "#cbdbf5",
+          "inverse-surface": "#213145",
+          "surface": "#f8f9ff",
+          "on-tertiary-container": "#0c9488",
+          "surface-variant": "#d3e4fe",
+          "background": "#f8f9ff",
+          "on-tertiary": "#ffffff",
+          "inverse-primary": "#bec6e0",
+          "surface-container": "#e5eeff",
+          "tertiary-container": "#00201d",
+          "surface-container-low": "#eff4ff",
+          "outline-variant": "#c6c6cd",
+          "tertiary-fixed-dim": "#6bd8cb",
+          "on-background": "#0b1c30",
+          "error-container": "#ffdad6",
+          "on-error": "#ffffff",
+          "on-secondary-fixed": "#001d32",
+          "on-primary-fixed-variant": "#3f465c",
+          "on-secondary-fixed-variant": "#004b74",
+          "on-secondary": "#ffffff",
+          "tertiary": "#000000",
+          "primary-fixed": "#dae2fd",
+          "surface-container-high": "#dce9ff",
+          "outline": "#76777d",
+          "primary": "#000000",
+          "on-primary": "#ffffff",
+          "on-surface-variant": "#45464d",
+          "inverse-on-surface": "#eaf1ff",
+          "secondary-fixed-dim": "#94ccff",
+          "on-surface": "#0b1c30",
+          "primary-fixed-dim": "#bec6e0",
+          "on-secondary-container": "#004f7b",
+          "secondary": "#006399",
+          "secondary-fixed": "#cde5ff",
+          "on-primary-fixed": "#131b2e"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "margin": "1rem",
+          "space-xl": "1.5rem",
+          "space-md": "0.75rem",
+          "space-sm": "0.5rem",
+          "space-lg": "1rem",
+          "space-xs": "0.25rem",
+          "gutter": "0.75rem",
+          "margin-mobile": "0.75rem",
+          "gutter-mobile": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg-mobile": [
+            "Inter"
+          ],
+          "headline-xl-mobile": [
+            "Inter"
+          ],
+          "body-lg": [
+            "Inter"
+          ],
+          "label-md": [
+            "JetBrains Mono"
+          ],
+          "body-sm": [
+            "Inter"
+          ],
+          "label-sm": [
+            "JetBrains Mono"
+          ],
+          "headline-md": [
+            "Inter"
+          ],
+          "label-lg": [
+            "JetBrains Mono"
+          ],
+          "headline-lg": [
+            "Inter"
+          ],
+          "headline-xl": [
+            "Inter"
+          ],
+          "body-md": [
+            "Inter"
+          ]
+        },
+        "fontSize": {
+          "headline-lg-mobile": [
+            "16px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-xl-mobile": [
+            "20px",
+            {
+              "lineHeight": "28px",
+              "fontWeight": "600"
+            }
+          ],
+          "body-lg": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-md": [
+            "11px",
+            {
+              "lineHeight": "14px",
+              "letterSpacing": "0.04em",
+              "fontWeight": "500"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.05em",
+              "fontWeight": "500"
+            }
+          ],
+          "headline-md": [
+            "15px",
+            {
+              "lineHeight": "22px",
+              "letterSpacing": "-0.005em",
+              "fontWeight": "600"
+            }
+          ],
+          "label-lg": [
+            "13px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.02em",
+              "fontWeight": "500"
+            }
+          ],
+          "headline-lg": [
+            "18px",
+            {
+              "lineHeight": "26px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-xl": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  };</script><script src="js/api-client.js"></script></head><body class="bg-surface font-body-md text-body-md text-on-surface"><aside class="fixed left-0 top-0 h-full w-80 bg-surface-container-lowest z-50 flex flex-col shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="p-space-lg bg-surface-container-low"><div class="flex items-center gap-space-sm"><img alt="BhuDrishti Cadastral Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XAESHsrZYb18NEf2utCtorT-r_MWimEWE4l5_VFsu9_OClcLQmSCNe5F9Q_Dw2vUPrxSHubCUDqlN-Vv76cS32HSQKTF0plkT2s9lR0tucO0IttwQlyJDN6DgSEtyPjdX0pacePWDLnyagQ0otL7ZUTvZcRETpjrF6SQW23EEpGQkovnlAfUV3pNhs9YjjBOUi0ggynIaC_GZnTnrQ2Zlm8QIYVXk2B4xJMn8FtqLapAEhHTUb7xOrFHXv"/><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">BhuDrishti</span><span class="px-space-xs py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-secondary font-semibold">v2.4</span></div><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Urban Cadastral AI</span></div></div><div class="mt-space-sm pt-space-xs flex items-center justify-between"><span class="inline-flex items-center px-space-sm py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm tracking-wider font-semibold uppercase">DoLR • MoRD, Govt. of India</span><span class="w-2 h-2 rounded-full bg-secondary-container animate-pulse"></span></div></div><div class="px-space-lg py-space-sm bg-surface-container-low"><div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"><span class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[14px] text-secondary">layers</span>Cadastral Hierarchy</span><span class="text-on-surface font-semibold">9 Stages</span></div></div><nav class="flex-1 px-space-md py-space-sm space-y-0.5 overflow-y-auto" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded-lg"><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="dashboard" href="dashboard.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">grid_view</span><span class="font-body-md text-body-md">Dashboard</span></div><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container font-semibold">KPI</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="survey-projects" href="survey-projects.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">inventory_2</span><span class="font-body-md text-body-md">Survey Projects</span></div><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">12 Active</span></a><a aria-current="page" class="flex items-center justify-between px-space-md py-2 transition-all bg-primary-container text-on-primary-container font-semibold rounded-lg" data-path="gis-cadastral-map" href="gis-cadastral-map.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">map</span><span class="font-body-md text-body-md">GIS Cadastral Map</span></div><span class="w-2 h-2 rounded-full bg-secondary"></span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="ai-feature-extraction" href="ai-feature-extraction.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">neurology</span><span class="font-body-md text-body-md">AI Feature Extraction</span></div><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-secondary font-semibold">Prototype CV</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="topology-validation" href="topology-validation.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">polyline</span><span class="font-body-md text-body-md">Topology Validation</span></div><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-semibold" id="sidebar-topology-badge" data-topology-badge="true">-- Issues</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="elevation-analysis" href="elevation-analysis.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">landscape</span><span class="font-body-md text-body-md">Elevation Analysis</span></div><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">DSM/DTM</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="survey-priority" href="survey-priority.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">rule</span><span class="font-body-md text-body-md">Survey Priority</span></div><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Risk Score</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="field-verification" href="field-verification.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">edit_location_alt</span><span class="font-body-md text-body-md">Field Verification</span></div><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-semibold">HITL</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="export-cadastre" href="export-cadastre.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">output</span><span class="font-body-md text-body-md">Export Cadastre</span></div><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">SHP/GeoJSON</span></a></nav><div class="p-space-md bg-surface-container-low font-label-sm text-label-sm text-on-surface-variant"><div class="flex items-center justify-between mb-1"><span class="flex items-center gap-space-xs font-semibold text-on-surface"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>System Operational</span><span class="text-secondary font-mono">v2.4.1</span></div><div class="truncate text-on-surface-variant">EPSG:32643 (WGS84 UTM 43N)</div><div class="mt-0.5 text-on-surface-variant flex items-center gap-space-xs"><span class="material-symbols-outlined text-[12px] text-secondary">memory</span>Prototype CV Engine (on-demand, no active AI core)</div></div></aside><div class="pl-80"><header class="fixed top-0 left-80 right-0 h-16 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs px-space-md py-1.5 rounded bg-surface-container text-on-surface font-body-md text-body-md font-semibold cursor-pointer"><span class="material-symbols-outlined text-[18px] text-secondary">location_on</span><span>Indore Urban Zone 04</span><span class="font-label-sm text-label-sm text-on-surface-variant font-normal">(SIH-2026-IND-U04)</span><span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span></div><div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container text-on-surface font-label-md text-label-md font-medium"><span class="w-2 h-2 rounded-full bg-secondary"></span><span>Analysis Complete • Preliminary Cadastre</span></div><div class="hidden xl:flex items-center gap-space-sm text-on-surface-variant font-label-sm text-label-sm"><span class="px-space-sm py-1 rounded bg-surface-container-low" title="Illustrative Stitch mockup value -- not backend data">Area: <strong class="text-on-surface">48.2 Ha</strong> <span class="text-on-surface-variant">(Demo)</span></span><span class="px-space-sm py-1 rounded bg-surface-container-low" title="Illustrative Stitch mockup value -- not backend data, no real GSD/georeferencing in this prototype">GSD: <strong class="text-on-surface">2.5 cm/px</strong> <span class="text-on-surface-variant">(Demo)</span></span></div></div><div class="flex items-center gap-space-md"><div class="hidden lg:flex items-center gap-space-xs px-space-md py-1.5 rounded bg-surface-container font-label-md text-label-md text-on-surface font-semibold tracking-wide"><span class="material-symbols-outlined text-[16px] text-secondary">navigation</span><span title="Illustrative Stitch mockup value -- not backend data">22°43'18.4"N 75°51'44.2"E (Demo)</span><span class="text-outline">|</span><span class="text-on-surface-variant font-normal" title="Illustrative Stitch mockup value -- not backend data">Elev: 553.4m (Demo)</span></div><div class="flex items-center gap-space-xs px-space-sm py-1.5 rounded bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-secondary animate-ping"></span><span class="font-medium text-on-surface">Sync Live</span></div><button class="relative p-1.5 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-error text-on-error font-label-sm text-label-sm font-bold leading-none">17</span></button><div class="flex items-center gap-space-sm pl-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden md:flex flex-col text-left"><div class="flex items-center gap-space-xs"><span class="font-body-sm text-body-sm font-semibold text-on-surface leading-tight">Er. Rajesh Varma</span><span class="px-1.5 py-0.2 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm font-semibold">SoI</span></div><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Senior Cadastral Surveyor</span></div></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full"><div class="flex flex-col w-full">
+<div class="flex flex-col xl:flex-row w-full h-[calc(100vh-4rem)] overflow-hidden bg-surface">
+<!-- 70% Cartographic Viewport -->
+<div class="relative flex-1 h-full min-w-0 flex flex-col bg-inverse-surface overflow-hidden select-none">
+<!-- Spatial Viewport Visual / Aerial Imagery Mock with SVG Vector Cadastre -->
+<div class="relative w-full h-full cursor-crosshair overflow-hidden" id="gis-canvas-root">
+<!-- High-res Orthophoto Drone Base Layer with simulated terrain texture -->
+<div id="gis-demo-map-background" class="absolute inset-0 bg-cover bg-center brightness-[0.78] contrast-[1.12]" data-alt="Illustrative Stitch demo map shown when no user extraction image is available." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDkpbS0r2xzwv9XgX1OqCw2StX7eld3MGmAOR2vAylb0OYSM5wd6mOrX4Qo5dqojxaCgaDEDIijb9phVo3E0nBeEJl4hFA2wLgf9B2DhnEL7s8MbzPQZpZENwaQBYizJ8zu6BDK-vHgAF9d4uN7C9mlQ0FcxK2buv-03EEuRbTMwxazDz6nlnuSmyyhvC6DsEfWbxx53Mqr2pgI0ISk2nGqn1v589JKj1sC2V1rtN8d6SJ2udT_WbT9sQ')"></div>
+<img id="gis-uploaded-orthophoto" class="absolute inset-0 w-full h-full object-contain hidden" alt="User uploaded orthophoto used as the GIS background" />
+<div id="gis-user-image-badge" class="hidden absolute top-space-md left-space-md z-20 bg-surface-container-lowest/95 backdrop-blur shadow-sm px-space-sm py-1 rounded font-label-sm text-label-sm font-semibold text-secondary">USER ORTHOPHOTO — ACTIVE</div>
+<!-- Analytical Vector Canvas (SVG Layer) -->
+<svg id="gis-vector-layer" class="absolute inset-0 w-full h-full pointer-events-none" preserveaspectratio="xMidYMid meet" viewbox="0 0 1200 800">
+<defs>
+<!-- Conflict Hatch Pattern -->
+<pattern height="8" id="red-hatch" patterntransform="rotate(45 0 0)" patternunits="userSpaceOnUse" width="8">
+<line stroke="#ba1a1a" stroke-width="2.5" x1="0" x2="0" y1="0" y2="8"></line>
+</pattern>
+<!-- Elevation Discrepancy Radial Glow -->
+<radialgradient cx="50%" cy="50%" id="pulse-glow" r="50%">
+<stop offset="0%" stop-color="#ba1a1a" stop-opacity="0.6"></stop>
+<stop offset="100%" stop-color="#ba1a1a" stop-opacity="0"></stop>
+</radialgradient>
+</defs>
+<!-- Step 1: real EXT-* geometry layer, driven entirely by GET /api/extraction/{id}.
+     Hidden by default; shown (and the illustrative seeded layer below dimmed)
+     only when the page is opened with ?extraction=EXT-xxxx. See the script
+     near the end of this file for the fetch + coordinate transform. -->
+<g id="extraction-layer" style="display:none;">
+<polygon fill="#0c9488" fill-opacity="0.30" id="extraction-polygon" points="" stroke="#0c9488" stroke-dasharray="8,4" stroke-width="3"></polygon>
+<g id="extraction-label-group" transform="translate(600, 400)">
+<rect fill="#0c9488" height="22" rx="4" width="120" x="-60" y="-14"></rect>
+<text dominant-baseline="middle" fill="#ffffff" font-family="JetBrains Mono" font-size="11" font-weight="700" id="extraction-label-text" text-anchor="middle" x="0" y="1">EXT-????</text>
+</g>
+</g>
+<g id="seeded-demo-layer">
+<!-- Road Corridors with Dashed Centerlines -->
+<path d="M 0 320 L 1200 340" stroke="#f8f9ff" stroke-opacity="0.12" stroke-width="38"></path>
+<path d="M 0 320 L 1200 340" stroke="#ffd23f" stroke-dasharray="10,8" stroke-opacity="0.8" stroke-width="2"></path>
+<path d="M 520 0 L 530 800" stroke="#f8f9ff" stroke-opacity="0.12" stroke-width="32"></path>
+<path d="M 520 0 L 530 800" stroke="#ffd23f" stroke-dasharray="10,8" stroke-opacity="0.8" stroke-width="2"></path>
+<!-- Cadastral Parcel BD-001 (Verified) -->
+<polygon class="cursor-pointer" fill="none" onclick="window.location.href='gis-cadastral-map.html?parcel=BD-001'" points="120,80 340,75 330,280 110,270" stroke="#22c55e" stroke-dasharray="0" stroke-width="2.2"></polygon>
+<!-- Cadastral Parcel BD-002 (Verified) -->
+<polygon fill="none" points="360,75 500,70 490,280 350,280" stroke="#22c55e" stroke-width="2.2"></polygon>
+<!-- Cadastral Parcel BD-046 (Verified) -->
+<polygon fill="none" points="130,380 340,390 330,680 120,660" stroke="#22c55e" stroke-width="2.2"></polygon>
+<!-- Cadastral Parcel BD-082 (Verified) -->
+<polygon class="cursor-pointer" fill="none" onclick="window.location.href='gis-cadastral-map.html?parcel=BD-082'" points="860,90 1140,95 1130,310 850,300" stroke="#22c55e" stroke-width="2.2"></polygon>
+<!-- Cadastral Parcel BD-103 (Verified) -->
+<polygon class="cursor-pointer" fill="none" onclick="window.location.href='gis-cadastral-map.html?parcel=BD-103'" points="860,370 1120,380 1100,710 840,690" stroke="#22c55e" stroke-width="2.2"></polygon>
+<!-- Cadastral Parcel BD-048 (Adjoining Dispute) -->
+<polygon class="cursor-pointer" fill="none" onclick="window.location.href='gis-cadastral-map.html?parcel=BD-048'" points="730,410 840,415 820,700 700,690" stroke="#22c55e" stroke-width="2.2"></polygon>
+<!-- Extracted Building Footprints (Amber / Slate-blue fill) -->
+<polygon fill="#006399" fill-opacity="0.32" points="150,110 300,105 290,240 140,235" stroke="#7bc2ff" stroke-width="1.5"></polygon>
+<polygon fill="#006399" fill-opacity="0.32" points="380,100 470,98 465,240 375,240" stroke="#7bc2ff" stroke-width="1.5"></polygon>
+<polygon fill="#006399" fill-opacity="0.32" points="160,420 300,425 295,620 155,615" stroke="#7bc2ff" stroke-width="1.5"></polygon>
+<polygon fill="#006399" fill-opacity="0.32" points="880,120 1100,125 1090,270 870,265" stroke="#7bc2ff" stroke-width="1.5"></polygon>
+<polygon fill="#006399" fill-opacity="0.32" points="880,410 1080,420 1065,660 865,650" stroke="#7bc2ff" stroke-width="1.5"></polygon>
+<polygon fill="#006399" fill-opacity="0.32" points="735,440 815,445 805,650 725,645" stroke="#7bc2ff" stroke-width="1.5"></polygon>
+<!-- TARGET DISPUTED PARCEL BD-047 (HIGHLIGHTED) -->
+<!-- Disputed Overlap Area with BD-048 -->
+<polygon class="animate-pulse" fill="url(#red-hatch)" points="710,430 740,432 735,680 705,675"></polygon>
+<circle class="animate-ping" cx="725" cy="550" fill="url(#pulse-glow)" r="42"></circle>
+<!-- Parcel BD-047 Boundary - Red Warning Outline -->
+<polygon class="cursor-pointer" fill="#ffdad6" fill-opacity="0.22" id="target-polygon" onclick="window.location.href='gis-cadastral-map.html?parcel=BD-047'" points="560,400 735,410 725,710 550,695" stroke="#ba1a1a" stroke-dasharray="8,4" stroke-width="3"></polygon>
+<!-- Extracted Roof Print Inside BD-047 with Eaves Overhang Projection -->
+<polygon fill="#0c9488" fill-opacity="0.35" points="575,425 745,435 738,675 568,665" stroke="#89f5e7" stroke-width="2"></polygon>
+<!-- Roofline Extrusion Vector Arrows -->
+<line marker-end="url(#arrow)" stroke="#ba1a1a" stroke-width="2" x1="735" x2="746" y1="520" y2="520"></line>
+<line stroke="#ba1a1a" stroke-width="2" x1="735" x2="745" y1="580" y2="580"></line>
+<!-- Active Vertex Edit Nodes (Draggable handles look) on BD-047 -->
+<circle cx="560" cy="400" fill="#ffffff" r="5" stroke="#ba1a1a" stroke-width="2.5"></circle>
+<circle cx="735" cy="410" fill="#ffffff" r="5" stroke="#ba1a1a" stroke-width="2.5"></circle>
+<circle cx="725" cy="710" fill="#ffffff" r="5" stroke="#ba1a1a" stroke-width="2.5"></circle>
+<circle cx="550" cy="695" fill="#ffffff" r="5" stroke="#ba1a1a" stroke-width="2.5"></circle>
+<circle cx="647" cy="405" fill="#ba1a1a" r="3.5" stroke="#ffffff" stroke-width="1.5"></circle>
+<circle cx="730" cy="560" fill="#ba1a1a" r="4" stroke="#ffffff" stroke-width="1.5"></circle>
+<!-- GCPs / Ground Truth GNSS Survey Marks (Cyan Triangles) -->
+<g transform="translate(190, 70)">
+<polygon fill="#89f5e7" points="0,-10 9,6 -9,6" stroke="#00201d" stroke-width="1.5"></polygon>
+<circle cx="0" cy="0" fill="#00201d" r="1.5"></circle>
+</g>
+<g transform="translate(480, 290)">
+<polygon fill="#89f5e7" points="0,-10 9,6 -9,6" stroke="#00201d" stroke-width="1.5"></polygon>
+<circle cx="0" cy="0" fill="#00201d" r="1.5"></circle>
+</g>
+<g transform="translate(850, 360)">
+<polygon fill="#89f5e7" points="0,-10 9,6 -9,6" stroke="#00201d" stroke-width="1.5"></polygon>
+<circle cx="0" cy="0" fill="#00201d" r="1.5"></circle>
+</g>
+<g transform="translate(540, 720)">
+<polygon fill="#89f5e7" points="0,-10 9,6 -9,6" stroke="#00201d" stroke-width="1.5"></polygon>
+<circle cx="0" cy="0" fill="#00201d" r="1.5"></circle>
+</g>
+<!-- Monospace Parcel Identity Callouts in Cartographic Space -->
+<text fill="#ffffff" font-family="JetBrains Mono" font-size="11" font-weight="600" opacity="0.9" x="210" y="180">BD-001</text>
+<text fill="#ffffff" font-family="JetBrains Mono" font-size="11" font-weight="600" opacity="0.9" x="410" y="170">BD-002</text>
+<text fill="#ffffff" font-family="JetBrains Mono" font-size="11" font-weight="600" opacity="0.9" x="210" y="530">BD-046</text>
+<text fill="#ffffff" font-family="JetBrains Mono" font-size="11" font-weight="600" opacity="0.9" x="960" y="200">BD-082</text>
+<text fill="#ffffff" font-family="JetBrains Mono" font-size="11" font-weight="600" opacity="0.9" x="960" y="540">BD-103</text>
+<text fill="#ffffff" font-family="JetBrains Mono" font-size="11" font-weight="600" opacity="0.9" x="760" y="530">BD-048</text>
+<!-- Disputed Parcel Indicator Pill -->
+<g transform="translate(610, 500)">
+<rect fill="#ba1a1a" height="22" rx="4" width="84" x="-42" y="-14"></rect>
+<text dominant-baseline="middle" fill="#ffffff" font-family="JetBrains Mono" font-size="11" font-weight="700" text-anchor="middle" x="0" y="1">BD-047 ⚠</text>
+</g>
+</g>
+</svg>
+<!-- Dynamic Crosshair / Mouse Coordinates Indicator Floating Marker -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+<div class="w-8 h-8 flex items-center justify-center">
+<span class="material-symbols-outlined text-surface-bright text-[28px]">add</span>
+</div>
+</div>
+<!-- FLOATING CONTROLS: Analysis Layer Selector (Upper Left) -->
+<div class="absolute top-4 left-4 z-20 flex flex-col gap-1.5 max-w-sm">
+<div class="bg-surface-container-lowest/95 backdrop-blur-md p-1.5 rounded shadow-lg">
+<div class="flex items-center justify-between px-2 py-1 mb-1 bg-surface-container-low rounded">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-secondary">layers</span>
+                Analysis Layer Stack
+              </span>
+<span class="font-label-sm text-label-sm text-secondary font-mono">6 Toggled</span>
+</div>
+<div class="grid grid-cols-2 gap-1 font-label-sm text-label-sm">
+<button class="flex items-center gap-1.5 px-2 py-1.5 rounded bg-primary-container text-on-primary font-medium text-left transition-all">
+<span class="material-symbols-outlined text-[14px] text-secondary-container">check_box</span>
+<span class="truncate">Drone Mosaic RGB</span>
+</button>
+<button class="flex items-center gap-1.5 px-2 py-1.5 rounded bg-surface-container text-on-surface hover:bg-surface-container-high transition-all text-left">
+<span class="material-symbols-outlined text-[14px] text-secondary">check_box</span>
+<span class="truncate">AI Feature Mask</span>
+</button>
+<button class="flex items-center gap-1.5 px-2 py-1.5 rounded bg-surface-container text-on-surface hover:bg-surface-container-high transition-all text-left">
+<span class="material-symbols-outlined text-[14px] text-secondary">check_box</span>
+<span class="truncate">Parcel Vectors</span>
+</button>
+<button class="flex items-center gap-1.5 px-2 py-1.5 rounded bg-surface-container text-on-surface hover:bg-surface-container-high transition-all text-left">
+<span class="material-symbols-outlined text-[14px] text-outline">check_box_outline_blank</span>
+<span class="truncate">Confidence Heat</span>
+</button>
+<button class="flex items-center gap-1.5 px-2 py-1.5 rounded bg-surface-container text-on-surface hover:bg-surface-container-high transition-all text-left">
+<span class="material-symbols-outlined text-[14px] text-outline">check_box_outline_blank</span>
+<span class="truncate">DSM / DTM Terrain</span>
+</button>
+<button class="flex items-center gap-1.5 px-2 py-1.5 rounded bg-error-container text-on-error-container font-semibold transition-all text-left">
+<span class="material-symbols-outlined text-[14px] text-error">warning</span>
+<span class="truncate">Topology Gaps (4)</span>
+</button>
+</div>
+</div>
+</div>
+<!-- FLOATING CONTROLS: Spatial Navigation & Measurement Toolbar (Upper Right) -->
+<div class="absolute top-4 right-4 z-20 flex flex-col gap-1.5">
+<div class="bg-surface-container-lowest/95 backdrop-blur-md rounded shadow-lg p-1 flex flex-col gap-1">
+<button class="w-8 h-8 rounded bg-surface-container-low hover:bg-surface-container flex items-center justify-center text-on-surface transition-colors" title="Zoom In">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+<button class="w-8 h-8 rounded bg-surface-container-low hover:bg-surface-container flex items-center justify-center text-on-surface transition-colors" title="Zoom Out">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+<button class="w-8 h-8 rounded bg-surface-container-low hover:bg-surface-container flex items-center justify-center text-secondary transition-colors" title="Recenter Indore U04">
+<span class="material-symbols-outlined text-[18px]">my_location</span>
+</button>
+<div class="h-px w-6 mx-auto bg-surface-container-highest my-0.5"></div>
+<button class="w-8 h-8 rounded bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-on-surface transition-colors" title="Distance &amp; Polygon Ruler">
+<span class="material-symbols-outlined text-[18px]">straighten</span>
+</button>
+<button class="w-8 h-8 rounded bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-on-surface transition-colors" title="Split Swipe Ortho/Cadastre">
+<span class="material-symbols-outlined text-[18px]">compare</span>
+</button>
+<button class="w-8 h-8 rounded bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-on-surface transition-colors" title="Toggle Fullscreen Canvas">
+<span class="material-symbols-outlined text-[18px]">fullscreen</span>
+</button>
+</div>
+</div>
+<!-- FLOATING MAP LEGEND (Bottom Left) -->
+<div class="absolute bottom-10 left-4 z-20 bg-surface-container-lowest/95 backdrop-blur-md px-3 py-2.5 rounded shadow-lg max-w-xs">
+<div class="font-label-sm text-label-sm text-on-surface font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-secondary">tune</span>
+            Cadastral Symbology
+          </div>
+<div class="space-y-1.5 font-label-sm text-label-sm">
+<div class="flex items-center gap-2 text-on-surface">
+<span class="w-4 h-0.5 bg-green-500 rounded-full inline-block"></span>
+<span>Verified Parcel (Legal Edge)</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface">
+<span class="w-4 h-0.5 bg-error border-b border-dashed border-error rounded-full inline-block"></span>
+<span>Verification Required (Warning)</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface">
+<span class="w-3.5 h-3 bg-secondary/40 rounded-sm inline-block"></span>
+<span>Building Roof Footprint</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface">
+<span class="inline-flex items-center justify-center w-3 h-3 text-secondary-container">▲</span>
+<span>Ground Truth GNSS GCP</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface font-medium">
+<span class="w-3.5 h-3 bg-error-container rounded-sm inline-block"></span>
+<span class="text-error">Topology Conflict Overlap</span>
+</div>
+</div>
+</div>
+<!-- Minimap Compass Heading Dial (Bottom Right Above Status Bar) -->
+<div class="absolute bottom-10 right-4 z-20 flex flex-col items-center bg-surface-container-lowest/90 backdrop-blur-md p-1.5 rounded shadow-md">
+<div class="w-8 h-8 rounded-full flex items-center justify-center bg-surface-container text-on-surface font-label-sm text-label-sm font-bold">
+<span class="text-error">N</span>
+</div>
+</div>
+</div>
+<!-- STATUS BAR (Bottom 28px GIS Geodetic Metrics) -->
+<div class="h-8 bg-surface-container-lowest px-4 flex items-center justify-between font-label-sm text-label-sm text-on-surface shadow-sm select-none z-30">
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1">
+<span class="text-on-surface-variant">SCALE:</span>
+<strong class="font-mono text-on-surface">1 : 500</strong>
+</span>
+<span class="text-surface-container-highest">|</span>
+<span class="flex items-center gap-1">
+<span class="text-on-surface-variant">CRS:</span>
+<strong class="font-mono text-secondary font-semibold">EPSG:32643 (UTM 43N)</strong>
+</span>
+<span class="hidden md:inline-flex text-surface-container-highest">|</span>
+<span class="hidden md:flex items-center gap-1">
+<span class="text-on-surface-variant">COORDS:</span>
+<strong class="font-mono text-on-surface">22°43'19.2"N 75°51'42.1"E</strong>
+</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1">
+<span class="text-on-surface-variant">DRONE GSD:</span>
+<strong class="font-mono text-on-surface">2.5 cm/px</strong>
+</span>
+<span class="text-surface-container-highest">|</span>
+<span class="inline-flex items-center gap-1 text-on-surface font-semibold">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span>LIVE RTK FIXED</span>
+</span>
+</div>
+</div>
+</div>
+<!-- 30% Collapsible Parcel Intelligence Side Panel -->
+<div class="w-full xl:w-[440px] h-full flex flex-col bg-surface-container-lowest shadow-xl z-20 overflow-y-auto">
+<!-- Panel Header & Status Strip -->
+<div class="p-space-lg bg-surface-container-low">
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-xl text-headline-xl font-bold tracking-tight text-on-surface" id="panel-parcel-id">BD-047</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-secondary font-label-sm text-label-sm font-bold" id="panel-ward">R-ZONE 04</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5" id="panel-owner">Scheme 54, Sector C, Indore Urban Tehsil</p>
+</div>
+<button class="p-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant transition-colors" title="Collapse Panel">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+<!-- Badges Tier -->
+<div class="mt-space-md flex flex-wrap gap-2">
+<div class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold" id="panel-status-badge">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+<span id="panel-status-text">VERIFICATION REQUIRED</span>
+</div>
+<div class="inline-flex items-center gap-1 px-2 py-1 rounded bg-surface-container text-error font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">priority_high</span>
+<span id="panel-priority-text">PRIORITY: HIGH</span>
+</div>
+</div>
+</div>
+<div class="p-space-lg space-y-space-lg flex-1">
+<!-- Key Spatial Attributes Grid -->
+<div class="grid grid-cols-3 gap-2">
+<div class="p-2.5 rounded bg-surface-container-low flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Parcel Area</span>
+<span class="font-headline-md text-headline-md font-bold text-on-surface mt-1" id="panel-area">-- <span class="text-body-sm font-normal text-on-surface-variant">m²</span></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5" id="panel-area-sqft">-- sq.ft</span>
+</div>
+<div class="p-2.5 rounded bg-surface-container-low flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Land Use</span>
+<span class="font-body-md text-body-md font-bold text-on-surface mt-1 leading-tight" id="panel-land-use">--</span>
+<span class="font-label-sm text-label-sm text-secondary mt-0.5" id="panel-geometry-valid">--</span>
+</div>
+<div class="p-2.5 rounded bg-error-container/40 flex flex-col" id="panel-confidence-box">
+<span class="font-label-sm text-label-sm text-on-error-container uppercase">AI Confidence</span>
+<span class="font-headline-md text-headline-md font-bold text-error mt-1" id="panel-confidence">--%</span>
+<span class="font-label-sm text-label-sm text-error font-medium" id="panel-confidence-label">--</span>
+</div>
+</div>
+<!-- Visual AI Confidence Breakdown Card -->
+<div class="p-space-md rounded bg-surface-container-low">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-sm text-label-sm font-bold uppercase tracking-wider text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-secondary">psychology</span>
+              Algorithmic Confidence Scores
+            </span>
+<span class="font-label-sm text-label-sm font-mono text-error font-semibold" id="panel-agg-confidence">Aggregate --%</span>
+</div>
+<div class="space-y-2.5">
+<div>
+<div class="flex justify-between font-label-sm text-label-sm mb-1">
+<span class="text-on-surface-variant">Topology (overlap/gap/validity)</span>
+<span class="font-mono font-semibold text-on-surface" id="panel-factor-topology-pct">--%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container-highest overflow-hidden">
+<div class="h-full bg-error rounded-full" id="panel-factor-topology-bar" style="width: 0%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-sm text-label-sm mb-1">
+<span class="text-on-surface-variant">Geometric Regularity (Orthogonality)</span>
+<span class="font-mono font-semibold text-on-surface" id="panel-factor-geom-pct">--%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container-highest overflow-hidden">
+<div class="h-full bg-error rounded-full" id="panel-factor-geom-bar" style="width: 0%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-sm text-label-sm mb-1">
+<span class="text-on-surface-variant">Elevation DSM/DTM Disagreement</span>
+<span class="font-mono font-semibold text-on-surface" id="panel-factor-elev-pct">--%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container-highest overflow-hidden">
+<div class="h-full bg-error rounded-full" id="panel-factor-elev-bar" style="width: 0%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 1: AI Analysis Findings -->
+<div class="space-y-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-secondary">analytics</span>
+<h3 class="font-label-sm text-label-sm font-bold text-on-surface uppercase tracking-wider">1. AI Confidence Reasons</h3>
+</div>
+<div class="p-space-md rounded bg-surface-container-low space-y-2 font-body-sm text-body-sm" id="panel-ai-reasons">
+<div class="text-on-surface-variant">Loading…</div>
+</div>
+</div>
+<!-- Section 2: Topology Validation -->
+<div class="space-y-2">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-error">polyline</span>
+<h3 class="font-label-sm text-label-sm font-bold text-on-surface uppercase tracking-wider">2. Spatial Topology Conflicts</h3>
+</div>
+<div class="p-space-md rounded bg-error-container/30 space-y-2 font-body-sm text-body-sm" id="panel-topology-issues">
+<div class="text-on-error-container">Loading…</div>
+</div>
+</div>
+<!-- Section 3: Elevation & Height Analysis -->
+<div class="space-y-2" id="panel-elevation-section">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-secondary">landscape</span>
+<h3 class="font-label-sm text-label-sm font-bold text-on-surface uppercase tracking-wider">3. Elevation &amp; Height Profile</h3>
+</div>
+<div class="p-space-md rounded bg-surface-container-low space-y-2 font-body-sm text-body-sm">
+<div class="grid grid-cols-2 gap-2">
+<div class="p-2 rounded bg-surface-container-lowest">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Roof Peak (DSM)</span>
+<div class="font-mono font-bold text-on-surface text-headline-sm" id="panel-elev-dsm">-- m</div>
+</div>
+<div class="p-2 rounded bg-surface-container-lowest">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Ground Base (DTM)</span>
+<div class="font-mono font-bold text-on-surface text-headline-sm" id="panel-elev-dtm">-- m</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="text-on-surface-variant">Estimated Structure Height:</span>
+<span class="font-mono font-bold text-on-surface" id="panel-elev-height">-- m</span>
+</div>
+<div class="flex items-center justify-between text-error font-medium">
+<span>Overhang Discrepancy:</span>
+<span class="font-mono font-bold" id="panel-elev-overhang">-- m past ground footing</span>
+</div>
+</div>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant italic">DSM/DTM values are synthetic demo rasters (prototype), not live drone imagery.</p>
+<!-- Multi-Spectral Imagery Thumbnail Inspection -->
+<div class="p-space-md rounded bg-surface-container-low">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant font-semibold">Drone Ortho vs Extracted Mesh</span>
+<span class="font-label-sm text-label-sm text-secondary font-mono">Zoom 20x</span>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<div class="relative rounded overflow-hidden h-24 bg-surface-container-high">
+<div class="w-full h-full bg-cover bg-center" data-alt="Close-up photogrammetry drone aerial zoom crop of residential parcel roof corner showing concrete eaves, cast shadow, and boundary wall line in daylight" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDpFoIkSX25TvGGEKN_hGgE2hunkdbVrBP2c9o5vJuhPXiJM7PD84_oXL1ls7jNSYKfpMfHr93EM8D3GmNWWY4s1ZJglw_zlw3qkB_jsHHj7gAcUzbhuyeN4JEuQZmXGB5ose9-hTopW8zhUeKHbStBK7N90gowYODkmanGqy9rBcdTAuenf8OHs9XjC1iqXVhPMwWyF1yizJqu-_rZWB--aTHt9Pt8ZDhp_1vEz7EBRTMDtDJZTWY00w')"></div>
+<div class="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-inverse-surface/80 text-surface-bright font-label-sm text-label-sm font-mono">RGB Drone</div>
+</div>
+<div class="relative rounded overflow-hidden h-24 bg-surface-container-high">
+<div class="w-full h-full bg-cover bg-center" data-alt="Technical digital surface model DSM elevation height heat map visualization crop of Indian building roof with false color gradient showing structure elevation contours" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDAa0pFUdOZo2m9ngdu1jx3j298RTd4vkMZq-29Zya3ZJR595EamE_BtYTFIaojtMU7brsmBmVj7nGvOJyGGm5b18jBphKZim0OOM14TE3GmP4Y2XHBcKjlAJ6aKTdRVV2UOchrxSougHVC-jUZJ8hblsOtmYIFyJIHA_RGteWnOz52TJMiV0lN4ETUCW5_j3F7aqZFpduG3vP8kX1NqFGw2aX_AMq0cgovSH4cmeuCXdLbP5VutuCWyQ')"></div>
+<div class="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-inverse-surface/80 text-surface-bright font-label-sm text-label-sm font-mono">DSM Heatmap</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Primary Surveyor Legal Action Footer (Fixed Action Bar) -->
+<div class="p-space-lg bg-surface-container-low shadow-inner space-y-2">
+<button class="w-full py-2 px-3 rounded bg-primary text-on-primary font-headline-md text-headline-md flex items-center justify-center gap-2 hover:bg-on-surface-variant transition-colors shadow-sm" id="panel-edit-boundary-btn">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+<span>Edit Boundary Vertices (Field Verification)</span>
+</button>
+<div class="grid grid-cols-2 gap-2">
+<button class="w-full py-2 px-2.5 rounded bg-error-container text-on-error-container hover:bg-error hover:text-on-error font-body-md text-body-md font-semibold flex items-center justify-center gap-1.5 transition-colors" id="panel-gnss-btn">
+<span class="material-symbols-outlined text-[16px]">pin_drop</span>
+<span class="truncate">Flag GNSS Field Survey</span>
+</button>
+<button class="w-full py-2 px-2.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-body-md text-body-md font-semibold flex items-center justify-center gap-1.5 transition-colors" id="panel-accept-btn">
+<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+<span class="truncate">Accept Preliminary</span>
+</button>
+</div>
+<div class="text-center pt-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Audited under Section 24, M.P. Land Revenue Code</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function initCadastralInteractions() {
+    const polygon = document.getElementById('target-polygon');
+    if (polygon) {
+      polygon.addEventListener('click', () => {
+        polygon.classList.toggle('stroke-error');
+      });
+    }
+  })();
+
+  (async function loadParcelPanel() {
+    const extractionId = getExtractionIdFromQuery();
+    if (extractionId) {
+      await loadExtractionPanel(extractionId);
+      return;
+    }
+
+    const parcelId = getParcelIdFromQuery("BD-047");
+    document.getElementById("panel-edit-boundary-btn").onclick = () =>
+      window.location.href = linkWithParcel("field-verification.html", parcelId);
+    document.getElementById("panel-gnss-btn").onclick = () =>
+      window.location.href = linkWithParcel("field-verification.html", parcelId);
+
+    try {
+      const p = await BhuDrishtiAPI.getParcel(parcelId);
+
+      document.getElementById("panel-parcel-id").textContent = p.parcel_id;
+      document.getElementById("panel-ward").textContent = p.ward || "--";
+      document.getElementById("panel-owner").textContent = p.owner || "--";
+      document.getElementById("panel-area").innerHTML =
+        `${p.area_m2.toFixed(1)} <span class="text-body-sm font-normal text-on-surface-variant">m²</span>`;
+      document.getElementById("panel-area-sqft").textContent =
+        `~${(p.area_m2 * 10.7639).toFixed(0)} sq.ft`;
+      document.getElementById("panel-land-use").textContent = p.land_use || "--";
+      document.getElementById("panel-geometry-valid").textContent = p.valid_geometry
+        ? "Geometry valid"
+        : `Invalid: ${p.validity_reason || "see topology"}`;
+
+      const conf = p.confidence;
+      document.getElementById("panel-confidence").textContent = `${conf.confidence.toFixed(0)}%`;
+      document.getElementById("panel-agg-confidence").textContent = `Aggregate ${conf.confidence.toFixed(0)}%`;
+      document.getElementById("panel-confidence-label").textContent =
+        conf.priority === "high" ? "Low Conf." : conf.priority === "medium" ? "Medium Conf." : "High Conf.";
+      document.getElementById("panel-status-text").textContent =
+        p.verification && p.verification.status === "verified"
+          ? "SURVEYOR CERTIFIED"
+          : p.verification && p.verification.status === "in_review"
+          ? "IN REVIEW"
+          : "VERIFICATION REQUIRED";
+      document.getElementById("panel-priority-text").textContent = `PRIORITY: ${conf.priority.toUpperCase()}`;
+
+      document.getElementById("panel-factor-topology-pct").textContent = `${conf.factors.topology.toFixed(0)}%`;
+      document.getElementById("panel-factor-topology-bar").style.width = `${conf.factors.topology}%`;
+      document.getElementById("panel-factor-geom-pct").textContent = `${conf.factors.geometric_irregularity.toFixed(0)}%`;
+      document.getElementById("panel-factor-geom-bar").style.width = `${conf.factors.geometric_irregularity}%`;
+      document.getElementById("panel-factor-elev-pct").textContent = `${conf.factors.elevation_disagreement.toFixed(0)}%`;
+      document.getElementById("panel-factor-elev-bar").style.width = `${conf.factors.elevation_disagreement}%`;
+
+      const reasonsEl = document.getElementById("panel-ai-reasons");
+      reasonsEl.innerHTML = "";
+      for (const r of conf.reasons) {
+        const div = document.createElement("div");
+        div.className = "flex items-start gap-2";
+        div.innerHTML = `<span class="material-symbols-outlined text-[16px] text-secondary shrink-0">arrow_right</span><span>${r}</span>`;
+        reasonsEl.appendChild(div);
+      }
+
+      const topoEl = document.getElementById("panel-topology-issues");
+      topoEl.innerHTML = "";
+      if (!p.topology_issues.length) {
+        topoEl.innerHTML = '<div class="text-on-surface-variant">No topology issues detected for this parcel.</div>';
+      } else {
+        for (const issue of p.topology_issues) {
+          const div = document.createElement("div");
+          div.className = "flex items-start gap-2 text-on-error-container";
+          div.innerHTML = `<span class="material-symbols-outlined text-[18px] text-error shrink-0">error</span>
+            <div class="flex-1"><div class="font-semibold">${issue.description}</div>
+            <div class="font-label-sm text-label-sm text-on-error-container/90 mt-0.5">Recommended: ${issue.recommended_action}</div></div>`;
+          topoEl.appendChild(div);
+        }
+      }
+
+      if (p.elevation) {
+        document.getElementById("panel-elev-dsm").textContent = `${p.elevation.dsm_peak_m.toFixed(1)} m`;
+        document.getElementById("panel-elev-dtm").textContent = `${p.elevation.dtm_ground_m.toFixed(1)} m`;
+        document.getElementById("panel-elev-height").textContent = `${p.elevation.structure_height_m.toFixed(1)} m`;
+        document.getElementById("panel-elev-overhang").textContent =
+          `${p.elevation.overhang_offset_m >= 0 ? "+" : ""}${p.elevation.overhang_offset_m.toFixed(2)} m past ground footing`;
+      } else {
+        document.getElementById("panel-elevation-section").innerHTML =
+          '<p class="font-body-sm text-body-sm text-on-surface-variant">No elevation dataset available for this parcel.</p>';
+      }
+    } catch (err) {
+      showApiError(err);
+    }
+  })();
+
+  // Step 1: EXT-* extraction rendering. Fetches the real backend record via
+  // GET /api/extraction/{id} (BhuDrishtiAPI.getExtraction, already existed
+  // in api-client.js -- reused, not duplicated) and draws the ACTUAL
+  // returned polygon on the existing SVG cadastral canvas by normalizing
+  // its coordinate bounding box into SVG space -- the same kind of
+  // min/max-bbox transform already used for vertex editing in
+  // field-verification.html. No fake/hardcoded polygon is ever drawn.
+  async function loadExtractionPanel(extractionId) {
+    const editBtn = document.getElementById("panel-edit-boundary-btn");
+    const gnssBtn = document.getElementById("panel-gnss-btn");
+    // Field Verification / HITL for AI extractions is Step 2+ -- not
+    // implemented here. Disable rather than link into an unimplemented flow.
+    [editBtn, gnssBtn].forEach((btn) => {
+      if (!btn) return;
+      btn.disabled = true;
+      btn.classList.add("opacity-50", "cursor-not-allowed");
+      btn.title = "Field Verification for AI extractions is a later checkpoint (Step 2), not implemented yet.";
+    });
+
+    let record;
+    try {
+      record = await BhuDrishtiAPI.getExtraction(extractionId);
+    } catch (err) {
+      // Distinguish "not found" (backend 404) from a real request failure,
+      // per the "Extraction not found" vs generic-error requirement.
+      if (/API 404/.test(err.message)) {
+        document.getElementById("panel-parcel-id").textContent = "Extraction not found";
+        document.getElementById("panel-ward").textContent = extractionId;
+        document.getElementById("panel-owner").textContent = "--";
+        document.getElementById("panel-land-use").textContent =
+          `No extraction record exists for "${extractionId}" (it may have been created in a session the backend has since restarted).`;
+      } else {
+        showApiError(err);
+      }
+      return;
+    }
+
+    // --- Panel metadata: all values below come straight from `record`,
+    // the exact GET /api/extraction/{id} response -- never recalculated
+    // or substituted with a seeded parcel's data.
+    document.getElementById("panel-parcel-id").textContent = record.extraction_id;
+    document.getElementById("panel-ward").textContent = "AI Extraction (no ward -- unlabeled upload)";
+    document.getElementById("panel-owner").textContent = "--";
+    document.getElementById("panel-area").innerHTML =
+      `${record.area_m2.toFixed(1)} <span class="text-body-sm font-normal text-on-surface-variant">m²</span>`;
+    document.getElementById("panel-area-sqft").textContent =
+      `~${(record.area_m2 * 10.7639).toFixed(0)} sq.ft (prototype local coordinates, not real-world georeferenced)`;
+    document.getElementById("panel-land-use").textContent = "AI Preliminary — not certified";
+    document.getElementById("panel-geometry-valid").textContent = "Geometry valid (generated by classical CV contour detection)";
+
+    const conf = record.confidence;
+    document.getElementById("panel-confidence").textContent = `${conf.confidence.toFixed(0)}%`;
+    document.getElementById("panel-agg-confidence").textContent = `Aggregate ${conf.confidence.toFixed(0)}%`;
+    document.getElementById("panel-confidence-label").textContent =
+      conf.priority === "high" ? "Low Conf." : conf.priority === "medium" ? "Medium Conf." : "High Conf.";
+    document.getElementById("panel-status-text").textContent =
+      `AI PRELIMINARY — ${(record.status || "ai_preliminary").toUpperCase()}`;
+    document.getElementById("panel-priority-text").textContent = `PRIORITY: ${conf.priority.toUpperCase()}`;
+
+    document.getElementById("panel-factor-topology-pct").textContent = `${conf.factors.topology.toFixed(0)}%`;
+    document.getElementById("panel-factor-topology-bar").style.width = `${conf.factors.topology}%`;
+    document.getElementById("panel-factor-geom-pct").textContent = `${conf.factors.geometric_irregularity.toFixed(0)}%`;
+    document.getElementById("panel-factor-geom-bar").style.width = `${conf.factors.geometric_irregularity}%`;
+    document.getElementById("panel-factor-elev-pct").textContent = `${conf.factors.elevation_disagreement.toFixed(0)}%`;
+    document.getElementById("panel-factor-elev-bar").style.width = `${conf.factors.elevation_disagreement}%`;
+
+    const reasonsEl = document.getElementById("panel-ai-reasons");
+    reasonsEl.innerHTML = "";
+    for (const r of conf.reasons) {
+      const div = document.createElement("div");
+      div.className = "flex items-start gap-2";
+      div.innerHTML = `<span class="material-symbols-outlined text-[16px] text-secondary shrink-0">arrow_right</span><span>${r}</span>`;
+      reasonsEl.appendChild(div);
+    }
+
+    const topoEl = document.getElementById("panel-topology-issues");
+    topoEl.innerHTML = "";
+    if (!record.topology_issues || !record.topology_issues.length) {
+      topoEl.innerHTML = '<div class="text-on-surface-variant">No topology issues detected for this extraction.</div>';
+    } else {
+      for (const issue of record.topology_issues) {
+        const div = document.createElement("div");
+        div.className = "flex items-start gap-2 text-on-error-container";
+        div.innerHTML = `<span class="material-symbols-outlined text-[18px] text-error shrink-0">error</span>
+          <div class="flex-1"><div class="font-semibold">${issue.description}</div>
+          <div class="font-label-sm text-label-sm text-on-error-container/90 mt-0.5">Recommended: ${issue.recommended_action}</div></div>`;
+        topoEl.appendChild(div);
+      }
+    }
+
+    document.getElementById("panel-elevation-section").innerHTML =
+      '<p class="font-body-sm text-body-sm text-on-surface-variant">' +
+      (record.elevation_note || "No elevation dataset exists for ad-hoc image uploads in this prototype.") +
+      '</p>';
+
+    // --- Real geometry rendering on the uploaded orthophoto -------------
+    // The backend now exposes the original pixel-space contour as
+    // `pixel_polygon`. This is the correct coordinate space for overlaying
+    // the extraction on the exact image the user uploaded. The local-metre
+    // GeoJSON geometry remains the backend's prototype geospatial record.
+    try {
+      const image = await getExtractionImage(extractionId);
+      const imageEl = document.getElementById("gis-uploaded-orthophoto");
+      const demoBg = document.getElementById("gis-demo-map-background");
+      const badge = document.getElementById("gis-user-image-badge");
+      const svg = document.getElementById("gis-vector-layer");
+
+      if (!image) {
+        if (demoBg) demoBg.classList.remove("hidden");
+        document.getElementById("panel-topology-issues").insertAdjacentHTML(
+          "afterbegin",
+          '<div class="mb-2 text-on-surface-variant">Uploaded orthophoto is unavailable in this browser session. The extraction record still loaded from the backend.</div>'
+        );
+        return;
+      }
+
+      const objectUrl = URL.createObjectURL(image);
+      window.__bhudrishtiGisObjectUrl = objectUrl;
+      imageEl.src = objectUrl;
+      imageEl.classList.remove("hidden");
+      if (demoBg) demoBg.classList.add("hidden");
+      if (badge) badge.classList.remove("hidden");
+
+      const imageW = Number(record.image_width) || image.naturalWidth || 1200;
+      const imageH = Number(record.image_height) || image.naturalHeight || 800;
+      svg.setAttribute("viewBox", `0 0 ${imageW} ${imageH}`);
+      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+      let pts = Array.isArray(record.pixel_polygon) && record.pixel_polygon.length >= 3
+        ? record.pixel_polygon.map(p => [Number(p[0]), Number(p[1])])
+        : null;
+
+      // Backward-compatible fallback for records created before pixel_polygon
+      // was added. New records always use the exact image-space contour above.
+      if (!pts) {
+        const ring = record.geometry.coordinates[0];
+        const localPts = ring.slice(0, ring.length - 1);
+        const xs = localPts.map(c => c[0]);
+        const ys = localPts.map(c => c[1]);
+        const minX = Math.min(...xs), maxX = Math.max(...xs);
+        const minY = Math.min(...ys), maxY = Math.max(...ys);
+        const spanX = (maxX - minX) || 1;
+        const spanY = (maxY - minY) || 1;
+        pts = localPts.map(([x, y]) => [
+          ((x - minX) / spanX) * imageW,
+          imageH - ((y - minY) / spanY) * imageH
+        ]);
+      }
+
+      const svgPoints = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+      document.getElementById("extraction-polygon").setAttribute("points", svgPoints);
+      document.getElementById("extraction-label-text").textContent = record.extraction_id;
+      const cx = pts.reduce((sum, p) => sum + p[0], 0) / pts.length;
+      const minYpx = Math.min(...pts.map(p => p[1]));
+      const labelY = Math.max(28, minYpx - 18);
+      document.getElementById("extraction-label-group").setAttribute(
+        "transform", `translate(${cx.toFixed(0)}, ${labelY.toFixed(0)})`
+      );
+
+      document.getElementById("extraction-layer").style.display = "";
+      const seededLayer = document.getElementById("seeded-demo-layer");
+      if (seededLayer) seededLayer.style.display = "none";
+    } catch (geomErr) {
+      console.error("[BhuDrishti] failed to render extraction over uploaded image", geomErr);
+      showApiError(new Error("Extraction loaded, but the uploaded orthophoto/geometry overlay could not be rendered: " + geomErr.message));
+    }
+  }
+</script></main></div></body></html>
