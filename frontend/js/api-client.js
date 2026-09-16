@@ -15,30 +15,74 @@ const API_BASE_URL =
     ? "http://localhost:8000"
     : "https://bhudrishti-api.vercel.app/");
 
+// async function apiRequest(path, options = {}) {
+//   const url = `${API_BASE_URL}${path}`;
+//   let res;
+//   try {
+//     res = await fetch(url, {
+//       headers: { "Content-Type": "application/json" },
+//       ...options,
+//     });
+//   } catch (err) {
+//     throw new Error(
+//       `Could not reach BhuDrishti backend at ${API_BASE_URL}. Is it running? (${err.message})`
+//     );
+//   }
+//   if (!res.ok) {
+//     let detail = res.statusText;
+//     try {
+//       const body = await res.json();
+//       detail = body.detail || JSON.stringify(body);
+//     } catch (_) {
+//       /* ignore parse errors */
+//     }
+//     throw new Error(`API ${res.status} on ${path}: ${detail}`);
+//   }
+//   if (res.status === 204) return null;
+//   return res.json();
+// }
+
 async function apiRequest(path, options = {}) {
   const url = `${API_BASE_URL}${path}`;
+
+  const fetchOptions = {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+    },
+  };
+
+  // Only send JSON Content-Type when the request actually has a body.
+  // This avoids unnecessary CORS preflight requests for GET requests.
+  if (options.body !== undefined && options.body !== null) {
+    fetchOptions.headers["Content-Type"] = "application/json";
+  }
+
   let res;
+
   try {
-    res = await fetch(url, {
-      headers: { "Content-Type": "application/json" },
-      ...options,
-    });
+    res = await fetch(url, fetchOptions);
   } catch (err) {
     throw new Error(
       `Could not reach BhuDrishti backend at ${API_BASE_URL}. Is it running? (${err.message})`
     );
   }
+
   if (!res.ok) {
     let detail = res.statusText;
+
     try {
       const body = await res.json();
       detail = body.detail || JSON.stringify(body);
     } catch (_) {
-      /* ignore parse errors */
+      // Ignore parse errors
     }
+
     throw new Error(`API ${res.status} on ${path}: ${detail}`);
   }
+
   if (res.status === 204) return null;
+
   return res.json();
 }
 
