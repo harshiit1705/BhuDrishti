@@ -22,6 +22,8 @@ class ExtractionRecord:
     pixel_polygon: list
     inference_mode: str
     notes: str
+    parcel_candidates: list = field(default_factory=list)
+    roof_footprints: list = field(default_factory=list)
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     status: str = "ai_preliminary"   # distinct from verification_store's parcel-verification states
     is_demo_data: bool = False
@@ -41,6 +43,8 @@ class ExtractionRecord:
             "image_format": self.image_format,
             "confidence_heuristic": self.confidence_heuristic,
             "pixel_polygon": self.pixel_polygon,
+            "parcel_candidates": self.parcel_candidates,
+            "roof_footprints": self.roof_footprints,
             "inference_mode": self.inference_mode,
             "notes": self.notes,
             "created_at": self.created_at,
@@ -49,7 +53,7 @@ class ExtractionRecord:
         }
 
 
-class ExtractionStore:
+class InMemoryExtractionRepository:
     def __init__(self):
         self._records: dict[str, ExtractionRecord] = {}
         self._counter = 0
@@ -69,4 +73,6 @@ class ExtractionStore:
         return list(self._records.values())
 
 
-extraction_store = ExtractionStore()
+ExtractionStore = InMemoryExtractionRepository
+
+extraction_store = InMemoryExtractionRepository()

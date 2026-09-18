@@ -21,7 +21,8 @@ from .geometry_engine import Parcel
 
 PROJECT_ID = "SIH-2026-IND-U04"
 PROJECT_NAME = "Indore Urban Zone 04 — Scheme 54"
-CRS = "EPSG:32643"
+CRS = None
+CRS_LABEL = "LOCAL-DEMO (not georeferenced)"
 
 
 def build_demo_parcels() -> list[Parcel]:

@@ -10,37 +10,11 @@
  */
 const API_BASE_URL =
   window.BHUDRISHTI_API_BASE ||
-  (window.location.hostname === "localhost" ||
+  (window.location.protocol === "file:" ||
+   window.location.hostname === "localhost" ||
    window.location.hostname === "127.0.0.1"
     ? "http://localhost:8000"
-    : "https://bhudrishti-api.vercel.app");
-
-// async function apiRequest(path, options = {}) {
-//   const url = `${API_BASE_URL}${path}`;
-//   let res;
-//   try {
-//     res = await fetch(url, {
-//       headers: { "Content-Type": "application/json" },
-//       ...options,
-//     });
-//   } catch (err) {
-//     throw new Error(
-//       `Could not reach BhuDrishti backend at ${API_BASE_URL}. Is it running? (${err.message})`
-//     );
-//   }
-//   if (!res.ok) {
-//     let detail = res.statusText;
-//     try {
-//       const body = await res.json();
-//       detail = body.detail || JSON.stringify(body);
-//     } catch (_) {
-//       /* ignore parse errors */
-//     }
-//     throw new Error(`API ${res.status} on ${path}: ${detail}`);
-//   }
-//   if (res.status === 204) return null;
-//   return res.json();
-// }
+    : `${window.location.protocol}//${window.location.host}`);
 
 async function apiRequest(path, options = {}) {
   const url = `${API_BASE_URL}${path}`;
@@ -173,6 +147,9 @@ const BhuDrishtiAPI = {
   getExportGeojsonUrl: () => `${API_BASE_URL}/api/export/geojson`,
   getExportGeojson: () => apiRequest("/api/export/geojson"),
 
+  // System status / demo-readiness
+  getSystemStatus: () => apiRequest("/api/system/status"),
+
   // Health
   getHealth: () => apiRequest("/api/health"),
 };
@@ -267,6 +244,27 @@ async function getExtractionImage(extractionId) {
   });
 }
 
+// --- Shared demo/system status -----------------------------------------
+// Lightweight status strip injected into every Stitch page. It reports the
+// backend's actual operating mode instead of implying production services.
+async function syncSystemStatus() {
+  if (document.querySelector("[data-bhudrishti-system-status]")) return;
+  const el = document.createElement("div");
+  el.setAttribute("data-bhudrishti-system-status", "true");
+  el.style.cssText = "position:fixed;right:18px;bottom:18px;z-index:9998;background:rgba(255,255,255,.96);border:1px solid rgba(0,0,0,.10);border-radius:10px;padding:7px 10px;font:600 10px/1.35 Inter,sans-serif;color:#334155;box-shadow:0 3px 14px rgba(0,0,0,.10);max-width:290px;";
+  el.textContent = "Backend status: checking…";
+  document.body.appendChild(el);
+  try {
+    const s = await BhuDrishtiAPI.getSystemStatus();
+    el.innerHTML = `<div style="font-weight:800;color:#166534">● Backend Connected</div>` +
+      `<div>CV: ${s.extraction?.mode || "--"} · Elevation: ${s.elevation?.mode || "--"}</div>` +
+      `<div>Storage: ${s.persistence?.label || "--"} · CRS: ${s.georeferencing?.georeferenced ? (s.georeferencing.crs || "configured") : "Not georeferenced"}</div>`;
+  } catch (err) {
+    el.textContent = "⚠ Backend unavailable — live data is not loaded";
+    el.style.color = "#991b1b";
+  }
+}
+
 // --- Step 0: cross-page "latest extraction" awareness -----------------
 // This is NOT a fake frontend copy of extraction data -- it stores only the
 // extraction_id (a string) in sessionStorage so that navigating between
@@ -305,8 +303,9 @@ async function syncTopologyBadge() {
   }
 }
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", syncTopologyBadge);
+  document.addEventListener("DOMContentLoaded", () => { syncTopologyBadge(); syncSystemStatus(); });
 } else {
   syncTopologyBadge();
+  syncSystemStatus();
 }
 

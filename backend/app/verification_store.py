@@ -70,7 +70,7 @@ ALLOWED_REJECT_FROM = {"in_review"}
 ALLOWED_ACCEPT_PRELIMINARY_FROM = {"unverified"}
 
 
-class VerificationStore:
+class InMemoryVerificationRepository:
     def __init__(self):
         self._records: dict[str, VerificationRecord] = {}
 
@@ -135,4 +135,6 @@ class VerificationStore:
         return self._records.get(parcel_id)
 
 
-store = VerificationStore()
+VerificationStore = InMemoryVerificationRepository
+
+store = InMemoryVerificationRepository()

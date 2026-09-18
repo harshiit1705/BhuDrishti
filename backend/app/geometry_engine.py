@@ -52,6 +52,15 @@ class Parcel:
             "geometry": mapping(self.polygon),
         }
 
+    def coordinate_metadata(self) -> dict:
+        return {
+            "type": "local_demo",
+            "crs": None,
+            "units": "meters",
+            "georeferenced": False,
+        }
+
+
 
 @dataclass
 class TopologyIssue:
@@ -63,9 +72,13 @@ class TopologyIssue:
     description: str
     recommended_action: str
     status: str = "open"
+    geometry: object | None = None  # actual issue geometry where the engine can compute it
 
     def to_dict(self):
-        return self.__dict__
+        data = {k: v for k, v in self.__dict__.items() if k != "geometry"}
+        if self.geometry is not None:
+            data["geometry"] = mapping(self.geometry)
+        return data
 
 
 def _pairwise(parcels: list[Parcel]):
@@ -178,6 +191,7 @@ def run_topology_validation(parcels: list[Parcel]) -> list[TopologyIssue]:
                     description=f"Boundary overlap of {inter_area:.2f} m² between "
                                 f"{a.parcel_id} and {b.parcel_id}.",
                     recommended_action="Field verification: confirm true boundary with GNSS rover.",
+                    geometry=inter if inter.geom_type == "Polygon" else None,
                 ))
                 counter += 1
 
@@ -188,6 +202,11 @@ def run_topology_validation(parcels: list[Parcel]) -> list[TopologyIssue]:
         if a.polygon.distance(b.polygon) <= SLIVER_WIDTH_M and not a.polygon.touches(b.polygon) \
                 and not a.polygon.intersects(b.polygon) and a.polygon.distance(b.polygon) > 1e-9:
             gap_width = a.polygon.distance(b.polygon)
+            # Build a small geometry representing the detected gap where GEOS can
+            # derive one from the local buffer corridor. This is a visualization
+            # aid for the actual computed proximity conflict, not a legal parcel.
+            corridor = a.polygon.buffer(SLIVER_WIDTH_M / 2).intersection(b.polygon.buffer(SLIVER_WIDTH_M / 2))
+            gap_geom = corridor.difference(a.polygon.union(b.polygon)) if not corridor.is_empty else None
             issues.append(TopologyIssue(
                 issue_id=f"TOP-{counter:03d}",
                 issue_type="gap",
@@ -198,6 +217,7 @@ def run_topology_validation(parcels: list[Parcel]) -> list[TopologyIssue]:
                             f"{a.parcel_id} and {b.parcel_id}.",
                 recommended_action="Auto-snappable if < 0.1m; else route to surveyor.",
                 status="resolved" if gap_width < SLIVER_WIDTH_M else "open",
+                geometry=gap_geom if getattr(gap_geom, "geom_type", None) in ("Polygon", "MultiPolygon") else None,
             ))
             counter += 1
 
