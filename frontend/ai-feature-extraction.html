@@ -810,25 +810,9 @@
           if (!inferenceFile && datasetId && typeof getDatasetImage === 'function') {
             inferenceFile = await getDatasetImage(datasetId);
           }
-          if (!inferenceFile && datasetId) {
-            // Keep the old endpoint as a fallback for environments with durable
-            // dataset storage, but do not rely on it for Vercel serverless.
-            const res = await BhuDrishtiAPI.inferDataset(datasetId);
-            setRealPipeline('complete', res);
-            progressLabel.textContent = '✓ Extraction complete — ' + res.extraction_id + ' generated from the uploaded image.';
-            document.getElementById('resultParcelId').textContent = res.extraction_id;
-            document.getElementById('resultFeatures').textContent = res.topology_issue_count + ' topology issue(s), ' + res.area_m2 + ' m² (demo scale) — ' + res.image_width + '×' + res.image_height + 'px "' + res.source_filename + '" — mode: ' + res.inference_mode + ' — status: ' + res.status;
-            document.getElementById('resultConfidence').textContent = res.confidence_heuristic.toFixed(1) + '%';
-            document.getElementById('resultContinueLink').href = 'gis-cadastral-map.html?extraction=' + encodeURIComponent(res.extraction_id);
-            document.getElementById('resultContinueLink').querySelector('span').textContent = 'View in GIS Cadastral Map';
-            setLatestExtractionId(res.extraction_id);
-            progress.classList.add('hidden');
-            results.classList.remove('hidden');
-            return;
-          }
-          if (!inferenceFile) throw new Error('The uploaded ORI is no longer available in this browser. Return to Survey Projects and upload it again.');
           const res = await BhuDrishtiAPI.runRealInference(inferenceFile, datasetId);
           await saveExtractionImage(res.extraction_id, inferenceFile);
+          saveWorkflowExtraction(res);
           setRealPipeline('complete', res);
           progressLabel.textContent = '✓ Extraction complete — ' + res.extraction_id + ' generated from the uploaded image.';
 
@@ -853,7 +837,7 @@
           // of it. This stores only the ID string -- every value shown
           // anywhere is still fetched live from the backend, never cached
           // here as fake state.
-          setLatestExtractionId(res.extraction_id);
+          saveWorkflowExtraction(res); setLatestExtractionId(res.extraction_id);
 
           progress.classList.add('hidden');
           results.classList.remove('hidden');

@@ -639,3 +639,7 @@ Important: this prototype uses SQLite/local file storage for local persistence. 
 ## Vercel FastAPI deployment layout
 
 For the standalone `bhudrishti-api` Vercel project, deploy from the repository root (Root Directory left empty). The repository now contains a root-level `api/index.py` entry point that imports the existing FastAPI app from `backend.app.main`, plus a root-level `requirements.txt`. This follows Vercel's current FastAPI Python entry-point convention. The API routes themselves retain their existing `/api/...` paths.
+
+
+## End-to-end demo continuity
+The prototype keeps the uploaded ORI in browser IndexedDB and the active EXT extraction/verification state in browser-local workflow storage so the Survey Projects → AI → GIS → Survey Priority → Field Verification → Export flow remains continuous even when Vercel serverless invocations do not share `/tmp`. Backend calls are still attempted first. This is a prototype continuity mechanism, not durable production storage. See `CHANGELOG-WORKFLOW-END-TO-END-FIX.md`.

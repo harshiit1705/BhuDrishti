@@ -927,7 +927,10 @@ AI interpretation layers are preliminary prototype CV output. They are not legal
 
   async function loadExtraction(id) {
     try {
-      const record=await BhuDrishtiAPI.getExtraction(id); state.record=record;
+      let record;
+      try { record=await BhuDrishtiAPI.getExtraction(id); }
+      catch (backendErr) { record=getWorkflowExtraction(id); if (!record) throw backendErr; }
+      state.record=record;
       const candidates=record.parcel_candidates||[];
       const roofs=record.roof_footprints||[];
       const topo=(record.candidate_topology_issues||record.analysis?.candidate_topology_issues||[]).length + (record.topology_issues||[]).length;
@@ -935,7 +938,7 @@ AI interpretation layers are preliminary prototype CV output. They are not legal
       await loadImageAndRecord(record);
       if(candidates.length) selectCandidate(candidates[0]);
       else selectCandidate({candidate_id:'P01',pixel_polygon:record.pixel_polygon,area_m2:record.area_m2,vertex_count:record.pixel_polygon?.length||0,extraction_confidence:record.confidence_heuristic,confidence_level:confidenceLevel(record.confidence_heuristic)});
-    } catch(err) { showApiError(err); setText('gis-analysis-disclosure','Extraction could not be loaded from the backend.'); }
+    } catch(err) { showApiError(err); setText('gis-analysis-disclosure','Extraction could not be loaded. Re-run inference from AI Feature Extraction.'); }
   }
 
   async function loadSeededParcel(id) {

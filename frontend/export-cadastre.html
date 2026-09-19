@@ -683,8 +683,9 @@
       const target=params.get('parcel') || params.get('parcel_id');
       if(!target || !target.startsWith('EXT-')) return;
       try{
-        const rec=await BhuDrishtiAPI.getExtraction(target);
-        const ver=await BhuDrishtiAPI.getVerification(target).catch(()=>null);
+        const rec=await BhuDrishtiAPI.getExtraction(target).catch(()=>getWorkflowExtraction(target));
+        if(!rec) throw new Error('Selected extraction is not available.');
+        const ver=await BhuDrishtiAPI.getVerification(target).catch(()=>getWorkflowVerification(target));
         const img=document.getElementById('export-uploaded-orthophoto');
         const svg=document.getElementById('export-dynamic-svg');
         const boundary=document.getElementById('export-active-boundary');
@@ -749,8 +750,13 @@
         downloadBtn.disabled = true;
         downloadBtn.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span><span>Fetching from backend…</span>';
         try {
-          const fullData = await BhuDrishtiAPI.getExportGeojson();
           const target = new URLSearchParams(window.location.search).get('parcel') || new URLSearchParams(window.location.search).get('parcel_id');
+          let fullData;
+          try { fullData = await BhuDrishtiAPI.getExportGeojson(); }
+          catch (_) { fullData = buildLocalExportGeoJSON(target); }
+          if(target && !fullData.features.some(f=>f.properties.parcel_id===target)) {
+            const local=buildLocalExportGeoJSON(target); if(local.features.length) fullData=local;
+          }
           const data = target ? {...fullData, features: fullData.features.filter(f => f.properties.parcel_id === target)} : fullData;
           const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/geo+json' });
           const url = URL.createObjectURL(blob);
@@ -780,11 +786,13 @@
     // no such integration exists in this prototype.
     (async function loadExportMetrics() {
       try {
-        const [parcelsRes, topoRes, exportData] = await Promise.all([
-          BhuDrishtiAPI.getParcels(),
-          BhuDrishtiAPI.getTopologyIssues(),
-          BhuDrishtiAPI.getExportGeojson(),
-        ]);
+        let parcelsRes, topoRes, exportData;
+        try { [parcelsRes, topoRes, exportData] = await Promise.all([BhuDrishtiAPI.getParcels(),BhuDrishtiAPI.getTopologyIssues(),BhuDrishtiAPI.getExportGeojson()]); }
+        catch (_) {
+          parcelsRes={parcels:[]}; topoRes={issues:[]};
+          const target0=new URLSearchParams(window.location.search).get('parcel') || new URLSearchParams(window.location.search).get('parcel_id');
+          exportData=buildLocalExportGeoJSON(target0);
+        }
 
         const params = new URLSearchParams(window.location.search);
         const target = params.get('parcel') || params.get('parcel_id');

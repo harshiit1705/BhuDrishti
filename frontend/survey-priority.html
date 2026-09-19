@@ -604,8 +604,9 @@ Field dispatch, rover assignment, HITL editing, and certification are outside th
 
     try {
       const parcel = parcelId.startsWith('EXT-')
-        ? await BhuDrishtiAPI.getExtraction(parcelId)
+        ? (await BhuDrishtiAPI.getExtraction(parcelId).catch(()=>getWorkflowExtraction(parcelId)))
         : await BhuDrishtiAPI.getParcel(parcelId);
+      if (!parcel) throw new Error('Selected extraction is not available.');
       set('drawerArea', parcel && parcel.area_m2 != null ? `${num(parcel.area_m2).toFixed(1)} m²` : '—');
       const issues = Array.isArray(parcel && parcel.topology_issues) ? parcel.topology_issues : [];
       set('drawerTopology', String(issues.length));
@@ -649,9 +650,20 @@ Field dispatch, rover assignment, HITL editing, and certification are outside th
     if (refreshButton) refreshButton.disabled = true;
     try {
       // Single source of truth for this page.
-      const queueRes = await BhuDrishtiAPI.getSurveyQueue();
+      let queueRes;
+      try { queueRes = await BhuDrishtiAPI.getSurveyQueue(); }
+      catch (backendErr) { queueRes = { queue: [], high_count:0, medium_count:0, low_count:0 }; }
       queueItems = Array.isArray(queueRes.queue) ? queueRes.queue : [];
-      renderKpis(queueRes);
+      const localIds = [];
+      try {
+        const map = JSON.parse(localStorage.getItem('bhudrishti.workflow.extractions') || '{}');
+        Object.values(map).forEach(record => { const item=buildLocalExtractionQueueItem(record); if(item){ localIds.push(item); } });
+      } catch (_) {}
+      const byId = new Map(queueItems.map(x => [x.parcel_id, x]));
+      localIds.forEach(item => byId.set(item.parcel_id, {...byId.get(item.parcel_id), ...item}));
+      queueItems = Array.from(byId.values());
+      const counts={high_count:queueItems.filter(x=>x.priority==='high').length,medium_count:queueItems.filter(x=>x.priority==='medium').length,low_count:queueItems.filter(x=>x.priority==='low').length};
+      renderKpis({...queueRes,...counts});
       renderRows();
     } catch (err) {
       console.error('[BhuDrishti] Failed to load survey queue:', err);

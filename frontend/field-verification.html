@@ -698,8 +698,9 @@
     };
 
     async function loadExtractionTarget(){
-      extractionRecord=await BhuDrishtiAPI.getExtraction(targetId);
-      const verification=await BhuDrishtiAPI.getVerification(targetId).catch(()=>null);
+      extractionRecord=await BhuDrishtiAPI.getExtraction(targetId).catch(()=>getWorkflowExtraction(targetId));
+      if(!extractionRecord) throw new Error('Extraction record is unavailable. Return to AI Feature Extraction and run inference again.');
+      const verification=await BhuDrishtiAPI.getVerification(targetId).catch(()=>getWorkflowVerification(targetId));
       const activeGeom=verification?.verified_geometry || verification?.ai_geometry || extractionRecord.geometry;
       const primaryPixels=extractionRecord.pixel_polygon||[];
       const mapper=buildPixelToLocal(extractionRecord);
@@ -781,7 +782,7 @@
 
     async function refreshStatus() {
       try {
-        const rec = await BhuDrishtiAPI.getVerification(parcelId);
+        const rec = await BhuDrishtiAPI.getVerification(parcelId).catch(()=>getWorkflowVerification(parcelId) || {parcel_id:parcelId,status:'unverified',audit_trail:[]});
         renderStatus(rec.status);
         return rec;
       } catch (err) {
@@ -816,12 +817,14 @@
           const geometry = edited || parcel.geometry;
           const statement = (notesEl && notesEl.value.trim()) ||
             'Corrected southern boundary to physical ground wall footer as per DTM ground truth.';
-          await BhuDrishtiAPI.submitCorrection(parcelId, {
-            geometry,
-            surveyor_name: SURVEYOR_NAME,
-            surveyor_license: SURVEYOR_LICENSE,
-            statement,
-          });
+          let verification;
+          try {
+            const response = await BhuDrishtiAPI.submitCorrection(parcelId, {geometry,surveyor_name:SURVEYOR_NAME,surveyor_license:SURVEYOR_LICENSE,statement});
+            verification=response.verification;
+          } catch (_) {
+            verification={parcel_id:parcelId,status:'in_review',ai_geometry:parcel.geometry,verified_geometry:geometry,surveyor_name:SURVEYOR_NAME,surveyor_license:SURVEYOR_LICENSE,statement,audit_trail:[{timestamp:new Date().toISOString(),actor:SURVEYOR_NAME,action:'submitted_correction',detail:statement}]};
+          }
+          saveWorkflowVerification(parcelId, verification);
           await refreshStatus();
           draftBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check</span><span>Submitted</span>';
         } catch (err) {
@@ -836,8 +839,21 @@
       certifyBtn.addEventListener('click', async function () {
         busy(certifyBtn, 'Affixing Digital Surveyor Certificate…');
         try {
-          await BhuDrishtiAPI.certifyVerification(parcelId, { surveyor_name: SURVEYOR_NAME });
-          const rec = await refreshStatus();
+          let rec;
+          const current = getWorkflowVerification(parcelId);
+          try {
+            let response;
+            if((current?.status || 'unverified') === 'unverified') response = await BhuDrishtiAPI.acceptPreliminary(parcelId,{surveyor_name:SURVEYOR_NAME});
+            else response = await BhuDrishtiAPI.certifyVerification(parcelId,{surveyor_name:SURVEYOR_NAME});
+            rec=response.verification;
+          } catch (_) {
+            const base = current || {};
+            const extraction = parcelId.startsWith('EXT-') ? getWorkflowExtraction(parcelId) : null;
+            rec={...base,parcel_id:parcelId,status:'verified',verified_geometry:base.verified_geometry || base.ai_geometry || extraction?.geometry,surveyor_name:SURVEYOR_NAME,audit_trail:[...(base.audit_trail||[]),{timestamp:new Date().toISOString(),actor:SURVEYOR_NAME,action:'certified',detail:'Boundary certified in prototype workflow'}]};
+          }
+          saveWorkflowVerification(parcelId, rec);
+          const refreshed = await refreshStatus();
+          rec = refreshed || rec;
           certifyBtn.innerHTML =
             '<span class="material-symbols-outlined text-[20px] text-tertiary-fixed">check_circle</span>' +
             '<span>Boundary Certified — status: ' + (rec ? rec.status : 'verified') + '</span>';
@@ -858,7 +874,10 @@
         busy(rejectBtn, 'Rejecting…');
         try {
           const reason = (notesEl && notesEl.value.trim()) || 'Surveyor rejected AI-generated boundary.';
-          await BhuDrishtiAPI.rejectVerification(parcelId, { surveyor_name: SURVEYOR_NAME, reason });
+          let verification;
+          try { verification=(await BhuDrishtiAPI.rejectVerification(parcelId,{surveyor_name:SURVEYOR_NAME,reason})).verification; }
+          catch (_) { const current=getWorkflowVerification(parcelId)||{}; verification={...current,parcel_id:parcelId,status:'rejected',surveyor_name:SURVEYOR_NAME,audit_trail:[...(current.audit_trail||[]),{timestamp:new Date().toISOString(),actor:SURVEYOR_NAME,action:'rejected_ai_output',detail:reason}]}; }
+          saveWorkflowVerification(parcelId, verification);
           await refreshStatus();
           rejectBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">cancel</span><span>Rejected</span>';
           rejectBtn.disabled = false;
