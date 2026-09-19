@@ -731,6 +731,10 @@
    if(progressEl) progressEl.style.width='60%';
    try{
      const r=await BhuDrishtiAPI.uploadDataset(f,'LOCAL-DEMO');
+     // Keep the exact browser File as the durable workflow input for the next
+     // page. Vercel serverless /tmp storage is not guaranteed to be shared
+     // between the upload and inference invocations.
+     if (typeof saveDatasetImage === 'function') await saveDatasetImage(r.dataset_id, f);
      localStorage.setItem(ACTIVE_KEY,r.dataset_id);
      localStorage.setItem(NAME_KEY,f.name);
      localStorage.setItem(SIZE_KEY,String(f.size));

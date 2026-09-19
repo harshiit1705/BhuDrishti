@@ -1,3 +1,9 @@
+
+## Vercel serverless dataset inference fix
+- Survey Projects now stores the uploaded ORI Blob in browser IndexedDB keyed by DS-* before navigation.
+- AI Feature Extraction prefers that exact browser-local image and sends it directly to POST /api/extraction/infer with dataset_id metadata.
+- Backend accepts dataset_id on direct multipart inference, avoiding reliance on /tmp SQLite/file state being shared between separate Vercel function invocations.
+
 # BhuDrishti End-to-End Workflow Upgrade
 
 ## Goal

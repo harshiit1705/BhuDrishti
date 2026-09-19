@@ -802,8 +802,33 @@
           : 'Processing the uploaded image with the backend CV pipeline…';
         runBtn.disabled = true;
         try {
-          const res = datasetId ? await BhuDrishtiAPI.inferDataset(datasetId) : await BhuDrishtiAPI.runRealInference(file);
-          if (file) await saveExtractionImage(res.extraction_id, file);
+          // A Vercel serverless invocation may not share /tmp with the earlier
+          // dataset-upload invocation. Prefer the exact browser-local File we
+          // saved on Survey Projects and send it directly to the real inference
+          // endpoint, carrying the dataset ID as metadata.
+          let inferenceFile = file;
+          if (!inferenceFile && datasetId && typeof getDatasetImage === 'function') {
+            inferenceFile = await getDatasetImage(datasetId);
+          }
+          if (!inferenceFile && datasetId) {
+            // Keep the old endpoint as a fallback for environments with durable
+            // dataset storage, but do not rely on it for Vercel serverless.
+            const res = await BhuDrishtiAPI.inferDataset(datasetId);
+            setRealPipeline('complete', res);
+            progressLabel.textContent = '✓ Extraction complete — ' + res.extraction_id + ' generated from the uploaded image.';
+            document.getElementById('resultParcelId').textContent = res.extraction_id;
+            document.getElementById('resultFeatures').textContent = res.topology_issue_count + ' topology issue(s), ' + res.area_m2 + ' m² (demo scale) — ' + res.image_width + '×' + res.image_height + 'px "' + res.source_filename + '" — mode: ' + res.inference_mode + ' — status: ' + res.status;
+            document.getElementById('resultConfidence').textContent = res.confidence_heuristic.toFixed(1) + '%';
+            document.getElementById('resultContinueLink').href = 'gis-cadastral-map.html?extraction=' + encodeURIComponent(res.extraction_id);
+            document.getElementById('resultContinueLink').querySelector('span').textContent = 'View in GIS Cadastral Map';
+            setLatestExtractionId(res.extraction_id);
+            progress.classList.add('hidden');
+            results.classList.remove('hidden');
+            return;
+          }
+          if (!inferenceFile) throw new Error('The uploaded ORI is no longer available in this browser. Return to Survey Projects and upload it again.');
+          const res = await BhuDrishtiAPI.runRealInference(inferenceFile, datasetId);
+          await saveExtractionImage(res.extraction_id, inferenceFile);
           setRealPipeline('complete', res);
           progressLabel.textContent = '✓ Extraction complete — ' + res.extraction_id + ' generated from the uploaded image.';
 
@@ -893,7 +918,9 @@
       const demo=document.getElementById('ai-demo-map-background');
       const badge=document.getElementById('ai-uploaded-image-badge');
       if(img){
-        img.src=BhuDrishtiAPI.getDatasetFileUrl(id);
+        let localFile = null;
+        try { localFile = await getDatasetImage(id); } catch (_) {}
+        img.src = localFile ? URL.createObjectURL(localFile) : BhuDrishtiAPI.getDatasetFileUrl(id);
         img.classList.remove('hidden');
         if(demo) demo.classList.add('hidden');
         if(badge) badge.classList.remove('hidden');

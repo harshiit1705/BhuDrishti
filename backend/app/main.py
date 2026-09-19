@@ -426,7 +426,7 @@ def run_demo_extraction(payload: dict = Body(...)):
 # image's actual pixels -- it is never selected from the PARCELS fixture
 # dict, and it is stored in the separate `extraction_store`, not in PARCELS.
 @app.post("/api/extraction/infer")
-async def infer_extraction(image: UploadFile = File(...)):
+async def infer_extraction(image: UploadFile = File(...), dataset_id: str | None = Form(None)):
     raw = await image.read()
     try:
         img = extraction_engine.decode_image(raw, image.filename or "upload")
@@ -450,6 +450,7 @@ async def infer_extraction(image: UploadFile = File(...)):
         inference_mode=result.inference_mode,
         notes=result.notes,
         is_demo_data=False,
+        dataset_id=dataset_id,
     ))
 
     # Uploaded prototype images have no georeferencing. Their pixel-derived

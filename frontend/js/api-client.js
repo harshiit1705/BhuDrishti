@@ -108,9 +108,10 @@ const BhuDrishtiAPI = {
   // the backend (see extraction_engine.py). Uses a raw fetch (not apiRequest)
   // because FormData uploads must NOT have a manually-set Content-Type --
   // the browser has to set the multipart boundary itself.
-  runRealInference: async (file) => {
+  runRealInference: async (file, datasetId = null) => {
     const form = new FormData();
     form.append("image", file, file.name);
+    if (datasetId) form.append("dataset_id", datasetId);
     let res;
     try {
       res = await fetch(`${API_BASE_URL}/api/extraction/infer`, { method: "POST", body: form });
@@ -226,6 +227,28 @@ function openExtractionImageDB() {
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error || new Error("Could not open browser image storage."));
+  });
+}
+
+async function saveDatasetImage(datasetId, file) {
+  if (!datasetId || !file) return;
+  const db = await openExtractionImageDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(EXTRACTION_IMAGE_STORE, "readwrite");
+    tx.objectStore(EXTRACTION_IMAGE_STORE).put(file, `dataset:${datasetId}`);
+    tx.oncomplete = () => { db.close(); resolve(true); };
+    tx.onerror = () => { db.close(); reject(tx.error || new Error("Could not store uploaded ORI.")); };
+  });
+}
+
+async function getDatasetImage(datasetId) {
+  if (!datasetId) return null;
+  const db = await openExtractionImageDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(EXTRACTION_IMAGE_STORE, "readonly");
+    const request = tx.objectStore(EXTRACTION_IMAGE_STORE).get(`dataset:${datasetId}`);
+    request.onsuccess = () => { const value = request.result || null; db.close(); resolve(value); };
+    request.onerror = () => { db.close(); reject(request.error || new Error("Could not read uploaded ORI.")); };
   });
 }
 
