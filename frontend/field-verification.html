@@ -204,28 +204,17 @@
 <span class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">Surveyor Field Verification</span>
 <span class="px-space-xs py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-secondary font-semibold uppercase">HITL Active</span>
 <span class="px-space-xs py-0.5 rounded bg-primary text-on-primary font-label-sm text-label-sm font-semibold">Target: <span id="target-parcel-label">BD-047</span></span>
-<<<<<<< HEAD
 <span id="field-target-source" class="px-space-xs py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface-variant font-semibold">BACKEND TARGET</span>
 <span id="verification-status-badge" class="px-space-xs py-0.5 rounded bg-surface-container-high font-label-sm text-label-sm text-on-surface font-bold uppercase">loading…</span>
 </div>
 <p class="font-body-sm text-body-sm text-on-surface-variant">Human-in-the-loop cadastral adjudication. AI assists the surveyor; the certified surveyor remains the final legal authority.</p>
 <p id="vertex-editor-disclosure" class="font-label-sm text-label-sm text-on-surface-variant mt-1">Vertex dragging edits the loaded backend geometry. "Save Draft" submits the actual edited GeoJSON to the backend for review; uploaded imagery remains in local-demo coordinates and is not georeferenced.</p>
-=======
-<span id="verification-status-badge" class="px-space-xs py-0.5 rounded bg-surface-container-high font-label-sm text-label-sm text-on-surface font-bold uppercase">loading…</span>
-</div>
-<p class="font-body-sm text-body-sm text-on-surface-variant">Human-in-the-loop cadastral adjudication. AI assists the surveyor; the certified surveyor remains the final legal authority.</p>
-<p id="vertex-editor-disclosure" class="font-label-sm text-label-sm text-on-surface-variant mt-1">⚠ Vertex dragging on the map canvas below is a visual demonstration only in this prototype; it is not yet bound to real coordinate output. "Save Draft" submits the current parcel geometry to the backend for review.</p>
->>>>>>> origin/main
 </div>
 </div>
 <div class="flex items-center gap-space-sm">
 <div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-1.5 rounded">
 <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-<<<<<<< HEAD
 <span class="font-label-sm text-label-sm text-on-surface font-semibold uppercase tracking-wider">Rover Sync: Not Connected (prototype)</span>
-=======
-<span class="font-label-sm text-label-sm text-on-surface font-semibold uppercase tracking-wider">Rover Sync: 2.8cm RTK Fix</span>
->>>>>>> origin/main
 </div>
 <div class="flex items-center gap-space-xs bg-surface-container px-space-md py-1.5 rounded">
 <span class="material-symbols-outlined text-[16px] text-secondary">domain</span>
@@ -270,13 +259,9 @@
 <!-- Vector Map Canvas & HUD Overlays -->
 <div class="relative flex-1 w-full overflow-hidden bg-primary-container min-h-[560px]">
 <!-- High-res Orthomosaic Drone imagery simulated background -->
-<<<<<<< HEAD
 <div id="field-demo-map-background" class="absolute inset-0 w-full h-full bg-cover bg-center opacity-65 scale-105 filter contrast-125 brightness-95" data-location="Illustrative Stitch map shown only for seeded BD-* records." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBDKlFRtNnpai-XNt69-OcTLPLesm5-P006Vt5coi8cBv60-RIAQSI1vV56UDG3FFt1YPem1EbLmU1aRaHvX2sN6DQu9DyDVeQazNwK31oFOFq1K-YWUv05PKhPdIVe_tBtPBs69wNjyLIBRfktAC6xq0aSkKxARdo1WgRx6D2QC5B9ty46s_jb_aYZ6YhbTAL86Rn3CdS148A9BhbFmhvMeve7-N-dwAQiwlJr_RwlVH0h2RrEaEUC1A');"></div>
 <img id="field-uploaded-orthophoto" class="absolute inset-0 w-full h-full object-contain hidden" alt="Active uploaded orthophoto used for field verification" />
 <div id="field-source-banner" class="absolute top-3 left-3 z-10 hidden px-3 py-2 rounded-lg bg-primary text-on-primary font-label-sm shadow-lg">ACTIVE ORTHOPHOTO • <span id="field-source-meta"></span></div>
-=======
-<div class="absolute inset-0 w-full h-full bg-cover bg-center opacity-65 scale-105 filter contrast-125 brightness-95" data-location="Indore Urban Cadastre Drone Aerial Survey" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBDKlFRtNnpai-XNt69-OcTLPLesm5-P006Vt5coi8cBv60-RIAQSI1vV56UDG3FFt1YPem1EbLmU1aRaHvX2sN6DQu9DyDVeQazNwK31oFOFq1K-YWUv05PKhPdIVe_tBtPBs69wNjyLIBRfktAC6xq0aSkKxARdo1WgRx6D2QC5B9ty46s_jb_aYZ6YhbTAL86Rn3CdS148A9BhbFmhvMeve7-N-dwAQiwlJr_RwlVH0h2RrEaEUC1A');"></div>
->>>>>>> origin/main
 <!-- Ambient Grid Layer (Local-demo grid (visual reference only)) -->
 <div class="absolute inset-0 pointer-events-none opacity-25">
 <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -602,26 +587,15 @@
   })();
 </script>
 <script>
-<<<<<<< HEAD
   // REAL surveyor geometry editing for both BD-* and EXT-* targets.
   // EXT-* uses the exact persisted ORI pixels as the map background and the
   // extraction's pixel_polygon as the initial boundary. The canonical local
   // demo geometry is reconstructed from the same pixel/local bounding boxes
   // when the edited boundary is submitted.
-=======
-  // REAL surveyor geometry editing. Fetches the actual parcel polygon from
-  // the backend, projects its lon/lat vertices into the SVG viewBox, renders
-  // draggable handles for each real vertex, and inverts that same transform
-  // to build real GeoJSON coordinates when the surveyor submits. This
-  // replaces the previous hardcoded decorative V1-V6 handles for the parcel
-  // boundary being edited (the neighboring-parcel context polygons and GNSS
-  // dots stay as static illustrative context).
->>>>>>> origin/main
   (function () {
     const svg = document.getElementById('cadastral-svg');
     const polyEl = document.getElementById('surveyor-poly');
     const handlesGroup = document.getElementById('vertex-handles');
-<<<<<<< HEAD
     const imageEl = document.getElementById('field-uploaded-orthophoto');
     const demoBg = document.getElementById('field-demo-map-background');
     const sourceBanner = document.getElementById('field-source-banner');
@@ -689,62 +663,10 @@
         c.setAttribute('filter','url(#node-glow)'); c.dataset.index=String(i); c.style.cursor='grab';
         const t=document.createElementNS(ns,'text'); t.setAttribute('x',v.x+9); t.setAttribute('y',v.y-9); t.setAttribute('fill','#ffffff'); t.setAttribute('font-size','11'); t.setAttribute('font-weight','700'); t.textContent='V'+(i+1);
         handlesGroup.appendChild(c); handlesGroup.appendChild(t);
-=======
-    if (!svg || !polyEl || !handlesGroup) return;
-
-    const VIEW_W = 800, VIEW_H = 600, MARGIN = 90;
-    let transform = null; // { minX, maxX, minY, maxY, toSvg(lon,lat), toGeo(x,y) }
-    let vertices = [];    // current SVG-space {x, y} for each polygon vertex (open ring, no repeat of first/last)
-
-    function buildTransform(minX, maxX, minY, maxY) {
-      const spanX = (maxX - minX) || 1;
-      const spanY = (maxY - minY) || 1;
-      const scale = Math.min((VIEW_W - 2 * MARGIN) / spanX, (VIEW_H - 2 * MARGIN) / spanY);
-      return {
-        toSvg(lon, lat) {
-          return {
-            x: MARGIN + (lon - minX) * scale,
-            y: VIEW_H - (MARGIN + (lat - minY) * scale), // flip Y: SVG y grows downward
-          };
-        },
-        toGeo(x, y) {
-          return {
-            lon: minX + (x - MARGIN) / scale,
-            lat: minY + (VIEW_H - y - MARGIN) / scale,
-          };
-        },
-      };
-    }
-
-    function renderPolygonAndHandles() {
-      polyEl.setAttribute('points', vertices.map(v => `${v.x},${v.y}`).join(' '));
-      handlesGroup.innerHTML = '';
-      vertices.forEach((v, i) => {
-        const ns = 'http://www.w3.org/2000/svg';
-        const c = document.createElementNS(ns, 'circle');
-        c.setAttribute('cx', v.x);
-        c.setAttribute('cy', v.y);
-        c.setAttribute('r', 7);
-        c.setAttribute('fill', '#ffffff');
-        c.setAttribute('stroke', '#006399');
-        c.setAttribute('stroke-width', '2.5');
-        c.setAttribute('filter', 'url(#node-glow)');
-        c.dataset.index = String(i);
-        c.style.cursor = 'grab';
-        const t = document.createElementNS(ns, 'text');
-        t.setAttribute('x', v.x + 8);
-        t.setAttribute('y', v.y - 8);
-        t.setAttribute('fill', '#ffffff');
-        t.setAttribute('class', 'font-label-sm text-label-sm font-bold pointer-events-none');
-        t.textContent = 'V' + (i + 1);
-        handlesGroup.appendChild(c);
-        handlesGroup.appendChild(t);
->>>>>>> origin/main
       });
       attachDragHandlers();
     }
 
-<<<<<<< HEAD
     function svgPoint(evt){
       const pt=svg.createSVGPoint(); pt.x=evt.clientX; pt.y=evt.clientY; const ctm=svg.getScreenCTM();
       if(!ctm) return {x:0,y:0}; const loc=pt.matrixTransform(ctm.inverse()); return {x:loc.x,y:loc.y};
@@ -822,65 +744,6 @@
       try { if(isExtraction) await loadExtractionTarget(); else await loadSeededTarget(); }
       catch(err){ console.error(err); showApiError(err); }
     })();
-=======
-    function svgPoint(evt) {
-      const pt = svg.createSVGPoint();
-      pt.x = evt.clientX;
-      pt.y = evt.clientY;
-      const ctm = svg.getScreenCTM();
-      if (!ctm) return { x: 0, y: 0 };
-      const loc = pt.matrixTransform(ctm.inverse());
-      return { x: loc.x, y: loc.y };
-    }
-
-    function attachDragHandlers() {
-      let dragging = null;
-      handlesGroup.querySelectorAll('circle').forEach(c => {
-        c.addEventListener('pointerdown', (e) => {
-          dragging = Number(c.dataset.index);
-          c.style.cursor = 'grabbing';
-          e.preventDefault();
-        });
-      });
-      svg.addEventListener('pointermove', (e) => {
-        if (dragging === null) return;
-        const p = svgPoint(e);
-        vertices[dragging] = { x: p.x, y: p.y };
-        renderPolygonAndHandles();
-      });
-      window.addEventListener('pointerup', () => { dragging = null; });
-    }
-
-    // Builds the actual GeoJSON Polygon from the CURRENT (possibly edited)
-    // handle positions, inverting the SVG projection back to lon/lat.
-    window.getEditedParcelGeoJSON = function () {
-      if (!transform || !vertices.length) return null;
-      const ring = vertices.map(v => {
-        const g = transform.toGeo(v.x, v.y);
-        return [g.lon, g.lat];
-      });
-      ring.push(ring[0]); // close the ring
-      return { type: 'Polygon', coordinates: [ring] };
-    };
-
-    async function loadRealGeometry() {
-      const parcelId = (typeof getParcelIdFromQuery === 'function') ? getParcelIdFromQuery('BD-047') : 'BD-047';
-      try {
-        const parcel = await BhuDrishtiAPI.getParcel(parcelId);
-        const ring = parcel.geometry.coordinates[0]; // exterior ring, GeoJSON [lon, lat], last point repeats first
-        const pts = ring.slice(0, ring.length - 1);
-        const lons = pts.map(p => p[0]);
-        const lats = pts.map(p => p[1]);
-        transform = buildTransform(Math.min(...lons), Math.max(...lons), Math.min(...lats), Math.max(...lats));
-        vertices = pts.map(([lon, lat]) => transform.toSvg(lon, lat));
-        renderPolygonAndHandles();
-      } catch (err) {
-        if (typeof showApiError === 'function') showApiError(err);
-      }
-    }
-
-    loadRealGeometry();
->>>>>>> origin/main
   })();
 </script>
 <script>
@@ -947,13 +810,9 @@
         busy(draftBtn, 'Submitting…');
         try {
           const edited = (typeof window.getEditedParcelGeoJSON === 'function') ? window.getEditedParcelGeoJSON() : null;
-<<<<<<< HEAD
           const parcel = parcelId.startsWith('EXT-')
             ? await BhuDrishtiAPI.getExtraction(parcelId)
             : await BhuDrishtiAPI.getParcel(parcelId);
-=======
-          const parcel = await BhuDrishtiAPI.getParcel(parcelId);
->>>>>>> origin/main
           const geometry = edited || parcel.geometry;
           const statement = (notesEl && notesEl.value.trim()) ||
             'Corrected southern boundary to physical ground wall footer as per DTM ground truth.';
@@ -985,10 +844,7 @@
           certifyBtn.classList.remove('bg-primary');
           certifyBtn.classList.add('bg-tertiary-container', 'text-on-tertiary-container');
           certifyBtn.disabled = false;
-<<<<<<< HEAD
           window.location.href = `export-cadastre.html?parcel=${encodeURIComponent(parcelId)}`;
-=======
->>>>>>> origin/main
         } catch (err) {
           showApiError(err);
           restore(certifyBtn);
@@ -1016,8 +872,4 @@
     refreshStatus();
   })();
 </script>
-<<<<<<< HEAD
 <a id="after-certification-link" class="hidden fixed bottom-6 right-6 z-50 px-4 py-2 rounded-lg bg-tertiary-container text-on-tertiary-container font-semibold shadow-lg" href="#">Continue to Export</a></main></div></body></html>
-=======
-</main></div></body></html>
->>>>>>> origin/main

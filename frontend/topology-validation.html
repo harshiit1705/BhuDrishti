@@ -955,13 +955,9 @@
     const severityDot = { critical: 'bg-error', warning: 'bg-amber-500', info: 'bg-secondary' };
 
     try {
-<<<<<<< HEAD
       const params = new URLSearchParams(window.location.search);
       const selectedParcel = params.get('parcel') || null;
       const data = await BhuDrishtiAPI.getTopologyIssues(selectedParcel);
-=======
-      const data = await BhuDrishtiAPI.getTopologyIssues();
->>>>>>> origin/main
       const counts = { overlap: 0, gap: 0, geometry: 0 };
       data.issues.forEach(i => { counts[typeMap[i.issue_type]] = (counts[typeMap[i.issue_type]] || 0) + 1; });
 
@@ -1017,11 +1013,7 @@
       recheckBtn.addEventListener('click', async () => {
         recheckBtn.classList.add('opacity-75');
         try {
-<<<<<<< HEAD
           await BhuDrishtiAPI.getTopologyIssues(selectedParcel);
-=======
-          await BhuDrishtiAPI.getTopologyIssues();
->>>>>>> origin/main
           location.reload();
         } catch (err) {
           showApiError(err);

@@ -268,20 +268,12 @@
 <div class="flex items-center gap-space-xs">
 <span class="material-symbols-outlined text-[18px] text-secondary">upload</span>
 <span class="font-label-md text-label-md font-semibold text-on-surface">Real image inference (Prototype CV)</span>
-<<<<<<< HEAD
 <span class="font-label-sm text-label-sm text-on-surface-variant">— actual OpenCV threshold/contour pipeline runs on the pixels you provide, or on the active persisted dataset.</span>
-=======
-<span class="font-label-sm text-label-sm text-on-surface-variant">— actual OpenCV threshold/contour pipeline runs on the pixels you provide.</span>
->>>>>>> origin/main
 </div>
 <input type="file" id="realImageInput" accept="image/png,image/jpeg,image/tiff" class="text-on-surface font-label-sm text-label-sm" />
 <button class="h-9 px-space-md rounded-lg bg-primary text-on-primary font-label-md text-label-md font-semibold hover:opacity-90 transition-all flex items-center gap-space-xs" id="btnRunRealInference">
 <span class="material-symbols-outlined text-[18px]">bolt</span>
-<<<<<<< HEAD
 <span id="runRealInferenceLabel">Run Real Inference on Uploaded Image</span>
-=======
-<span>Run Real Inference on Uploaded Image</span>
->>>>>>> origin/main
 </button>
 <span class="text-on-surface-variant">or</span>
 <button class="h-9 px-space-md rounded-lg bg-surface-container text-on-surface font-label-md text-label-md font-semibold hover:bg-surface-container-high transition-all" id="btnSampleA">Use Sample Image A</button>
@@ -789,17 +781,12 @@
       });
 
       async function runInference(file) {
-<<<<<<< HEAD
         const datasetId = new URLSearchParams(window.location.search).get('dataset');
         // When Survey Projects handed us a persisted dataset, the browser does
         // NOT need a second local file selection. The backend already owns the
         // uploaded ORI and performs inference from that persisted file.
         if (!file && !datasetId) {
           errorBox.textContent = 'Select an image file first, or open this page from Survey Projects with an active dataset.';
-=======
-        if (!file) {
-          errorBox.textContent = 'Select an image file first (or use a sample image).';
->>>>>>> origin/main
           errorBox.classList.remove('hidden');
           return;
         }
@@ -808,7 +795,6 @@
         progress.classList.remove('hidden');
         // Real, sequential status -- each line only appears once the
         // corresponding backend step has actually completed, not on a timer.
-<<<<<<< HEAD
         if (file) setUploadedImagePreview(file);
         setRealPipeline('processing');
         progressLabel.textContent = datasetId
@@ -818,15 +804,6 @@
         try {
           const res = datasetId ? await BhuDrishtiAPI.inferDataset(datasetId) : await BhuDrishtiAPI.runRealInference(file);
           if (file) await saveExtractionImage(res.extraction_id, file);
-=======
-        setUploadedImagePreview(file);
-        setRealPipeline('processing');
-        progressLabel.textContent = 'Processing the uploaded image with the backend CV pipeline…';
-        runBtn.disabled = true;
-        try {
-          const res = await BhuDrishtiAPI.runRealInference(file);
-          await saveExtractionImage(res.extraction_id, file);
->>>>>>> origin/main
           setRealPipeline('complete', res);
           progressLabel.textContent = '✓ Extraction complete — ' + res.extraction_id + ' generated from the uploaded image.';
 
@@ -865,11 +842,7 @@
       }
 
       if (runBtn) {
-<<<<<<< HEAD
         runBtn.addEventListener('click', () => runInference(fileInput.files[0] || null));
-=======
-        runBtn.addEventListener('click', () => runInference(fileInput.files[0]));
->>>>>>> origin/main
       }
       async function useSample(path, name) {
         errorBox.classList.add('hidden');
@@ -887,7 +860,6 @@
       if (sampleBBtn) sampleBBtn.addEventListener('click', () => useSample('assets/demo/sample_boundary_b.png', 'sample_boundary_b.png'));
     })();
   </script>
-<<<<<<< HEAD
 <script>
 (async function(){
   const id=new URLSearchParams(window.location.search).get('dataset');
@@ -937,6 +909,4 @@
   }
 })();
 </script>
-=======
->>>>>>> origin/main
 </div></main></div></body></html>

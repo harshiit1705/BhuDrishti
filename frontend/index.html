@@ -702,19 +702,11 @@ async function initDashboard() {
 
       const btn = node.querySelector('[data-field="inspect-btn"]');
       if (isExtraction) {
-<<<<<<< HEAD
         btn.title = "Open EXT record in Field Verification";
         btn.addEventListener("click", () => {
           window.location.href = `field-verification.html?parcel=${encodeURIComponent(pid)}`;
         });
         btn.querySelector("span").textContent = "Verify";
-=======
-        btn.title = "HITL/Field Verification for AI extractions is not implemented yet";
-        btn.addEventListener("click", () => {
-          window.location.href = `ai-feature-extraction.html?extraction=${encodeURIComponent(pid)}`;
-        });
-        btn.querySelector("span").textContent = "View Extraction";
->>>>>>> origin/main
       } else {
         btn.addEventListener("click", () => {
           window.location.href = linkWithParcel("field-verification.html", pid);

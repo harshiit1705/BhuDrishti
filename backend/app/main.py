@@ -9,16 +9,10 @@ Every response includes `"is_demo_data": true` where the data originates
 from the synthetic demo dataset, per project instructions.
 """
 from __future__ import annotations
-<<<<<<< HEAD
 from fastapi import FastAPI, HTTPException, Body, UploadFile, File, Form, Query
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from shapely.geometry import mapping, box, Polygon
-=======
-from fastapi import FastAPI, HTTPException, Body, UploadFile, File, Form
-from fastapi.middleware.cors import CORSMiddleware
-from shapely.geometry import mapping, box
->>>>>>> origin/main
 
 from .geometry_engine import Parcel, run_topology_validation, GeometryValidationError
 from .elevation_engine import synth_raster_pair, analyze_parcel_elevation
@@ -29,11 +23,8 @@ from .verification_store import store, InvalidTransitionError
 from . import extraction_engine
 from .extraction_store import extraction_store, ExtractionRecord
 from .repositories import PERSISTENCE_MODE, PERSISTENCE_LABEL
-<<<<<<< HEAD
 from pathlib import Path
 import sqlite3, json, hashlib
-=======
->>>>>>> origin/main
 
 app = FastAPI(
     title="BhuDrishti API",
@@ -46,7 +37,6 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 # In-memory "database" for the prototype, seeded with the deterministic demo set.
 # ---------------------------------------------------------------------------
 PARCELS: dict[str, Parcel] = {p.parcel_id: p for p in build_demo_parcels()}
-<<<<<<< HEAD
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "bhudrishti.db"
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 UPLOAD_DIR=DB_PATH.parent / "uploads"
@@ -55,8 +45,6 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 with sqlite3.connect(DB_PATH) as _db:
     _db.execute("""CREATE TABLE IF NOT EXISTS datasets (dataset_id TEXT PRIMARY KEY, filename TEXT, file_type TEXT, size_bytes INTEGER, declared_crs TEXT, status TEXT, created_at TEXT)""")
     _db.commit()
-=======
->>>>>>> origin/main
 
 
 def _authoritative_parcel(parcel_id: str) -> Parcel:
@@ -78,7 +66,6 @@ def _coordinate_system() -> dict:
             "label": CRS_LABEL}
 
 
-<<<<<<< HEAD
 def _candidate_topology_issues(record: ExtractionRecord) -> list[dict]:
     """Analyze every image-derived parcel candidate in pixel space.
 
@@ -128,8 +115,6 @@ def _candidate_topology_issues(record: ExtractionRecord) -> list[dict]:
     return issues
 
 
-=======
->>>>>>> origin/main
 
 def _irregularity_ratio(p: Parcel) -> float:
     """0 = perfectly matches its minimum bounding rectangle, 1 = highly irregular."""
@@ -231,20 +216,10 @@ def get_project(project_id: str):
 # ---------------------------------------------------------------------------
 @app.post("/api/datasets/validate")
 def validate_dataset(payload: dict = Body(...)):
-<<<<<<< HEAD
-=======
-    """
-    Prototype-level ingestion validation. Real production ingestion would
-    read actual GeoTIFF/LAS headers via GDAL; this environment has no GDAL,
-    so this validates the metadata the frontend uploader already extracts
-    (file type, declared CRS, declared extent) and reports pass/fail honestly.
-    """
->>>>>>> origin/main
     required = ["file_type", "declared_crs"]
     missing = [k for k in required if k not in payload]
     if missing:
         return {"valid": False, "errors": [f"Missing field: {m}" for m in missing]}
-<<<<<<< HEAD
     errors=[]
     if CRS is None and payload.get("declared_crs") not in (None, "", "LOCAL-DEMO"):
         errors.append("CRS validation is unavailable for the local-demo coordinate space.")
@@ -317,20 +292,6 @@ def _extraction_response(record):
     temp=Parcel(record.extraction_id,record.geometry,source="ai_extraction")
     issues=run_topology_validation([temp]); by=_issues_by_parcel(issues); conf=_confidence_for_geometry(record.extraction_id,temp,by)
     return {**record.to_dict(),"confidence":conf.to_dict(),"topology_issues":[i.to_dict() for i in by.get(record.extraction_id,[])],"topology_issue_count":len(by.get(record.extraction_id,[])),"priority":conf.priority,"compared_against":[],"elevation":None,"elevation_note":"Synthetic elevation can be opened for this extraction as a prototype; no real DEM is attached.","analysis":{"parcel_candidates":record.parcel_candidates,"roof_footprints":record.roof_footprints,"georeferencing":{"available":False,"note":"Uploaded dataset has no verified project georeferencing in this prototype."},"model_adapter":{"current":"opencv_contour_pipeline","future":"segmentation_model","future_implemented":False}}}
-=======
-    errors = []
-    # The bundled prototype geometry is deliberately NOT georeferenced.
-    # If a caller supplies a declared CRS, report that this prototype cannot
-    # validate it against the local-demo coordinate space.
-    if CRS is None and payload.get("declared_crs") not in (None, "", "LOCAL-DEMO"):
-        errors.append("This prototype dataset is local-demo geometry and is not georeferenced; CRS validation is unavailable.")
-    elif CRS is not None and payload.get("declared_crs") != CRS:
-        errors.append(f"CRS mismatch: expected {CRS}, got {payload.get('declared_crs')}")
-    allowed_types = {"geotiff", "cog", "las", "laz", "geojson", "shapefile"}
-    if str(payload.get("file_type", "")).lower() not in allowed_types:
-        errors.append(f"Unsupported file_type: {payload.get('file_type')}")
-    return {"valid": len(errors) == 0, "errors": errors}
->>>>>>> origin/main
 
 
 # ---------------------------------------------------------------------------
@@ -505,11 +466,7 @@ async def infer_extraction(image: UploadFile = File(...)):
         "priority": conf.priority,
         "compared_against": [],
         "elevation": None,
-<<<<<<< HEAD
         "elevation_note": "No real DEM is attached. The Elevation Analysis screen can show a deterministic synthetic prototype surface for this extraction.",
-=======
-        "elevation_note": "No DSM/DTM exists for ad-hoc image uploads in this prototype; elevation analysis is only available for the seeded demo parcel set.",
->>>>>>> origin/main
         "analysis": {
             "parcel_candidates": record.parcel_candidates,
             "roof_footprints": record.roof_footprints,
@@ -520,7 +477,6 @@ async def infer_extraction(image: UploadFile = File(...)):
             },
             "georeferencing": {"available": False, "note": "Uploaded image has no embedded project georeferencing in this prototype."},
             "model_adapter": {"current": "opencv_contour_pipeline", "future": "segmentation_model", "future_implemented": False},
-<<<<<<< HEAD
             "candidate_topology_issues": _candidate_topology_issues(record),
             "layer_summary": {
                 "source_imagery": bool(record.dataset_id),
@@ -528,8 +484,6 @@ async def infer_extraction(image: UploadFile = File(...)):
                 "roof_footprints": len(record.roof_footprints or []),
                 "topology_checks": len(_candidate_topology_issues(record)),
             },
-=======
->>>>>>> origin/main
         },
     }
 
@@ -539,16 +493,11 @@ def get_extraction(extraction_id: str):
     record = extraction_store.get(extraction_id)
     if not record:
         raise HTTPException(404, "Extraction record not found")
-<<<<<<< HEAD
     vr = store.get(record.extraction_id)
     current_geometry = vr.verified_geometry if vr and vr.verified_geometry is not None else record.geometry
     current_source = "surveyor_verified" if vr and vr.verified_geometry is not None else "ai_extraction"
     temp_parcel = Parcel(parcel_id=record.extraction_id, polygon=current_geometry,
                           source=current_source, owner=None, ward=None, land_use=None)
-=======
-    temp_parcel = Parcel(parcel_id=record.extraction_id, polygon=record.geometry,
-                          source="ai_extraction", owner=None, ward=None, land_use=None)
->>>>>>> origin/main
     # No georeferencing is stored for ad-hoc uploads, so only validate this
     # extraction's own geometry. Do not create cross-parcel topology from the
     # prototype's shared local coordinate convention.
@@ -558,20 +507,16 @@ def get_extraction(extraction_id: str):
     own_issues = by_parcel.get(record.extraction_id, [])
     return {
         **record.to_dict(),
-<<<<<<< HEAD
         "geometry": mapping(current_geometry),
         "area_m2": round(current_geometry.area, 2),
         "status": vr.status if vr else record.status,
         "geometry_source": current_source,
-=======
->>>>>>> origin/main
         "confidence": conf.to_dict(),
         "topology_issues": [i.to_dict() for i in own_issues],
         "topology_issue_count": len(own_issues),
         "priority": conf.priority,
         "compared_against": [],
         "elevation": None,
-<<<<<<< HEAD
         "elevation_note": "No real DEM is attached. The Elevation Analysis screen can show a deterministic synthetic prototype surface for this extraction.",
         "analysis": {
             "parcel_candidates": record.parcel_candidates,
@@ -583,12 +528,6 @@ def get_extraction(extraction_id: str):
                 "roof_footprints": len(record.roof_footprints or []),
                 "topology_checks": len(_candidate_topology_issues(record)),
             },
-=======
-        "elevation_note": "No DSM/DTM exists for ad-hoc image uploads in this prototype; elevation analysis is only available for the seeded demo parcel set.",
-        "analysis": {
-            "parcel_candidates": record.parcel_candidates,
-            "roof_footprints": record.roof_footprints,
->>>>>>> origin/main
             "boundary_comparison": {
                 "available": bool(record.roof_footprints),
                 "method": "prototype pixel-mask erosion; roof footprint is not a legal cadastral boundary",
@@ -609,7 +548,6 @@ def list_extractions():
 # 4. TOPOLOGY ISSUES
 # ---------------------------------------------------------------------------
 @app.get("/api/topology/issues")
-<<<<<<< HEAD
 def list_topology_issues(parcel_id: str | None = Query(None)):
     """Recalculate topology from the current authoritative geometry.
 
@@ -642,11 +580,6 @@ def list_topology_issues(parcel_id: str | None = Query(None)):
         "is_demo_data": not any(pid.startswith("EXT-") for i in issues for pid in i.parcel_ids),
         "scope": parcel_id or "all",
     }
-=======
-def list_topology_issues():
-    issues = run_topology_validation(_authoritative_parcels())
-    return {"issues": [i.to_dict() for i in issues], "count": len(issues), "coordinate_system": _coordinate_system(), "is_demo_data": True}
->>>>>>> origin/main
 
 
 # ---------------------------------------------------------------------------
@@ -654,16 +587,9 @@ def list_topology_issues():
 # ---------------------------------------------------------------------------
 @app.get("/api/elevation/{parcel_id}")
 def get_elevation(parcel_id: str):
-<<<<<<< HEAD
     elev=_target_elevation(parcel_id)
     if elev is None: raise HTTPException(404,"No elevation dataset for this parcel")
     return {**elev.__dict__, "is_demo_data": True, "source":"synthetic_demo", "note":"Prototype elevation surface; not a real surveyed DSM/DTM."}
-=======
-    if parcel_id not in ELEVATION_DEMO_CONFIG:
-        raise HTTPException(404, "No elevation dataset for this parcel")
-    elev = _elevation_for(parcel_id)
-    return {**elev.__dict__, "is_demo_data": True}
->>>>>>> origin/main
 
 
 # ---------------------------------------------------------------------------
@@ -671,7 +597,6 @@ def get_elevation(parcel_id: str):
 # ---------------------------------------------------------------------------
 @app.get("/api/confidence/{parcel_id}")
 def get_confidence(parcel_id: str):
-<<<<<<< HEAD
     if parcel_id in PARCELS:
         p = _authoritative_parcel(parcel_id)
         issues = run_topology_validation(_authoritative_parcels())
@@ -690,15 +615,6 @@ def get_confidence(parcel_id: str):
                 "geometry_source": target.source, "is_demo_data": False,
                 "verification_status": store.get(parcel_id).status if store.get(parcel_id) else "unverified"}
     raise HTTPException(404, "Parcel or extraction not found")
-=======
-    if parcel_id not in PARCELS:
-        raise HTTPException(404, "Parcel not found")
-    p = _authoritative_parcel(parcel_id)
-    issues = run_topology_validation(_authoritative_parcels())
-    by_parcel = _issues_by_parcel(issues)
-    conf = _confidence_for_geometry(parcel_id, p, by_parcel)
-    return {**conf.to_dict(), "geometry_source": p.source, "is_demo_data": True}
->>>>>>> origin/main
 
 
 # ---------------------------------------------------------------------------
@@ -712,19 +628,12 @@ def get_survey_queue():
     # in isolation for geometry validity; it is not treated as a neighboring
     # parcel merely because the prototype CV transform uses a common local
     # coordinate convention.
-<<<<<<< HEAD
     extraction_parcels = []
     for r in extraction_store.all():
         vr = store.get(r.extraction_id)
         geom = vr.verified_geometry if vr and vr.verified_geometry is not None else r.geometry
         source = "surveyor_verified" if vr and vr.verified_geometry is not None else "ai_extraction"
         extraction_parcels.append(Parcel(parcel_id=r.extraction_id, polygon=geom, source=source))
-=======
-    extraction_parcels = [
-        Parcel(parcel_id=r.extraction_id, polygon=r.geometry, source="ai_extraction")
-        for r in extraction_store.all()
-    ]
->>>>>>> origin/main
     authoritative_seeded = _authoritative_parcels()
     seeded_issues = run_topology_validation(authoritative_seeded)
     extraction_issues = []
@@ -750,10 +659,7 @@ def get_survey_queue():
     for ep in extraction_parcels:
         conf = _confidence_for_geometry(ep.parcel_id, ep, by_parcel)
         rec = extraction_lookup.get(ep.parcel_id)
-<<<<<<< HEAD
         vr = store.get(ep.parcel_id)
-=======
->>>>>>> origin/main
         # ai_confidence_heuristic surfaces the CV pipeline's OWN quality signal
         # (extraction_engine.run_cv_inference -> ExtractionRecord.confidence_heuristic)
         # alongside -- and clearly distinct from -- the survey/topology-derived
@@ -766,11 +672,8 @@ def get_survey_queue():
             "is_demo_data": False,
             "ai_confidence_heuristic": rec.confidence_heuristic if rec else None,
             "topology_issue_count": len(by_parcel.get(ep.parcel_id, [])),
-<<<<<<< HEAD
             "verification_status": vr.status if vr else "unverified",
             "geometry_source": ep.source,
-=======
->>>>>>> origin/main
         })
     ranked.sort(key=lambda c: c["risk_score"], reverse=True)
     return {
@@ -786,7 +689,6 @@ def get_survey_queue():
 
 
 # ---------------------------------------------------------------------------
-<<<<<<< HEAD
 # Cross-screen record resolver
 # ---------------------------------------------------------------------------
 def _target_geometry(target_id: str):
@@ -813,13 +715,10 @@ def _target_elevation(target_id: str):
     return None
 
 # ---------------------------------------------------------------------------
-=======
->>>>>>> origin/main
 # 8. VERIFICATION (HITL)
 # ---------------------------------------------------------------------------
 @app.post("/api/verification/{parcel_id}/submit")
 def submit_verification(parcel_id: str, payload: dict = Body(...)):
-<<<<<<< HEAD
     target, existing= _target_geometry(parcel_id)
     if not target: raise HTTPException(404,"Parcel or extraction not found")
     geometry=payload.get("geometry")
@@ -864,72 +763,6 @@ def get_verification(parcel_id: str):
     if not target: raise HTTPException(404,"Parcel or extraction not found")
     rec=store.get(parcel_id)
     if not rec: return {"parcel_id":parcel_id,"status":"unverified","audit_trail":[],"ai_geometry":mapping(target.polygon)}
-=======
-    if parcel_id not in PARCELS:
-        raise HTTPException(404, "Parcel not found")
-    geometry = payload.get("geometry")
-    surveyor_name = payload.get("surveyor_name", "Unknown Surveyor")
-    surveyor_license = payload.get("surveyor_license", "")
-    statement = payload.get("statement", "")
-    if not geometry:
-        raise HTTPException(400, "geometry (GeoJSON) is required")
-    try:
-        rec = store.submit_correction(parcel_id, PARCELS[parcel_id].polygon, geometry,
-                                       surveyor_name, surveyor_license, statement)
-    except GeometryValidationError as e:
-        # P0-2: invalid/degenerate geometry is rejected with a clear reason
-        # instead of being silently accepted into the verification store.
-        raise HTTPException(422, f"Geometry validation failed: {e}")
-    except InvalidTransitionError as e:
-        raise HTTPException(409, str(e))
-    return {"status": "ok", "verification": rec.to_dict()}
-
-
-@app.post("/api/verification/{parcel_id}/certify")
-def certify_verification(parcel_id: str, payload: dict = Body(...)):
-    if parcel_id not in PARCELS:
-        raise HTTPException(404, "Parcel not found")
-    surveyor_name = payload.get("surveyor_name", "Unknown Surveyor")
-    store.get_or_create(parcel_id, PARCELS[parcel_id].polygon)
-    try:
-        rec = store.certify(parcel_id, surveyor_name)
-    except InvalidTransitionError as e:
-        raise HTTPException(409, str(e))
-    return {"status": "ok", "verification": rec.to_dict()}
-
-
-@app.post("/api/verification/{parcel_id}/accept-preliminary")
-def accept_preliminary(parcel_id: str, payload: dict = Body(...)):
-    if parcel_id not in PARCELS:
-        raise HTTPException(404, "Parcel not found")
-    surveyor_name = payload.get("surveyor_name", "Unknown Surveyor")
-    try:
-        rec = store.accept_preliminary(parcel_id, PARCELS[parcel_id].polygon, surveyor_name)
-    except InvalidTransitionError as e:
-        raise HTTPException(409, str(e))
-    return {"status": "ok", "verification": rec.to_dict()}
-
-
-@app.post("/api/verification/{parcel_id}/reject")
-def reject_verification(parcel_id: str, payload: dict = Body(...)):
-    if parcel_id not in PARCELS:
-        raise HTTPException(404, "Parcel not found")
-    surveyor_name = payload.get("surveyor_name", "Unknown Surveyor")
-    reason = payload.get("reason", "")
-    store.get_or_create(parcel_id, PARCELS[parcel_id].polygon)
-    try:
-        rec = store.reject(parcel_id, surveyor_name, reason)
-    except InvalidTransitionError as e:
-        raise HTTPException(409, str(e))
-    return {"status": "ok", "verification": rec.to_dict()}
-
-
-@app.get("/api/verification/{parcel_id}")
-def get_verification(parcel_id: str):
-    rec = store.get(parcel_id)
-    if not rec:
-        return {"parcel_id": parcel_id, "status": "unverified", "audit_trail": []}
->>>>>>> origin/main
     return rec.to_dict()
 
 
@@ -938,7 +771,6 @@ def get_verification(parcel_id: str):
 # ---------------------------------------------------------------------------
 @app.get("/api/export/geojson")
 def export_geojson():
-<<<<<<< HEAD
     features=[]
     for pid in PARCELS:
         p=_authoritative_parcel(pid); features.append({"type":"Feature","properties":{"parcel_id":pid,"area_m2":round(p.polygon.area,2),"source":p.source,"owner":p.owner,"ward":p.ward},"geometry":mapping(p.polygon)})
@@ -946,30 +778,6 @@ def export_geojson():
         target,_=_target_geometry(rec.extraction_id); vr=store.get(rec.extraction_id)
         p=target; features.append({"type":"Feature","properties":{"parcel_id":rec.extraction_id,"area_m2":round(p.polygon.area,2),"source":p.source,"source_filename":rec.source_filename,"verification_status":vr.status if vr else "unverified"},"geometry":mapping(p.polygon)})
     return {"type":"FeatureCollection","crs":None,"coordinate_system":_coordinate_system(),"features":features,"is_demo_data":False,"note":"AI extraction features are preliminary until surveyor verification; verified geometry is exported when available."}
-=======
-    features = []
-    for pid in PARCELS:
-        p = _authoritative_parcel(pid)
-        geom = p.polygon
-        source = p.source
-        features.append({
-            "type": "Feature",
-            "properties": {
-                "parcel_id": pid, "area_m2": round(geom.area, 2),
-                "source": source, "owner": p.owner, "ward": p.ward,
-            },
-            "geometry": mapping(geom),
-        })
-    return {
-        "type": "FeatureCollection",
-        "crs": None,
-        "coordinate_system": _coordinate_system(),
-        "features": features,
-        "is_demo_data": True,
-        "note": "source=ai_preliminary means no surveyor verification has been recorded yet "
-                "for that parcel; source=surveyor_verified means a human-certified geometry is used.",
-    }
->>>>>>> origin/main
 
 
 # ---------------------------------------------------------------------------
