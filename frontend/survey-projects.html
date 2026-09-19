@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "on-error-container": "#93000a",
+          "on-tertiary-fixed": "#00201d",
+          "surface-container-highest": "#d3e4fe",
+          "surface-container-lowest": "#ffffff",
+          "primary-container": "#131b2e",
+          "error": "#ba1a1a",
+          "tertiary-fixed": "#89f5e7",
+          "on-primary-container": "#7c839b",
+          "on-tertiary-fixed-variant": "#005049",
+          "secondary-container": "#7bc2ff",
+          "surface-bright": "#f8f9ff",
+          "surface-tint": "#565e74",
+          "surface-dim": "#cbdbf5",
+          "inverse-surface": "#213145",
+          "surface": "#f8f9ff",
+          "on-tertiary-container": "#0c9488",
+          "surface-variant": "#d3e4fe",
+          "background": "#f8f9ff",
+          "on-tertiary": "#ffffff",
+          "inverse-primary": "#bec6e0",
+          "surface-container": "#e5eeff",
+          "tertiary-container": "#00201d",
+          "surface-container-low": "#eff4ff",
+          "outline-variant": "#c6c6cd",
+          "tertiary-fixed-dim": "#6bd8cb",
+          "on-background": "#0b1c30",
+          "error-container": "#ffdad6",
+          "on-error": "#ffffff",
+          "on-secondary-fixed": "#001d32",
+          "on-primary-fixed-variant": "#3f465c",
+          "on-secondary-fixed-variant": "#004b74",
+          "on-secondary": "#ffffff",
+          "tertiary": "#000000",
+          "primary-fixed": "#dae2fd",
+          "surface-container-high": "#dce9ff",
+          "outline": "#76777d",
+          "primary": "#000000",
+          "on-primary": "#ffffff",
+          "on-surface-variant": "#45464d",
+          "inverse-on-surface": "#eaf1ff",
+          "secondary-fixed-dim": "#94ccff",
+          "on-surface": "#0b1c30",
+          "primary-fixed-dim": "#bec6e0",
+          "on-secondary-container": "#004f7b",
+          "secondary": "#006399",
+          "secondary-fixed": "#cde5ff",
+          "on-primary-fixed": "#131b2e"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "margin": "1rem",
+          "space-xl": "1.5rem",
+          "space-md": "0.75rem",
+          "space-sm": "0.5rem",
+          "space-lg": "1rem",
+          "space-xs": "0.25rem",
+          "gutter": "0.75rem",
+          "margin-mobile": "0.75rem",
+          "gutter-mobile": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg-mobile": [
+            "Inter"
+          ],
+          "headline-xl-mobile": [
+            "Inter"
+          ],
+          "body-lg": [
+            "Inter"
+          ],
+          "label-md": [
+            "JetBrains Mono"
+          ],
+          "body-sm": [
+            "Inter"
+          ],
+          "label-sm": [
+            "JetBrains Mono"
+          ],
+          "headline-md": [
+            "Inter"
+          ],
+          "label-lg": [
+            "JetBrains Mono"
+          ],
+          "headline-lg": [
+            "Inter"
+          ],
+          "headline-xl": [
+            "Inter"
+          ],
+          "body-md": [
+            "Inter"
+          ]
+        },
+        "fontSize": {
+          "headline-lg-mobile": [
+            "16px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-xl-mobile": [
+            "20px",
+            {
+              "lineHeight": "28px",
+              "fontWeight": "600"
+            }
+          ],
+          "body-lg": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-md": [
+            "11px",
+            {
+              "lineHeight": "14px",
+              "letterSpacing": "0.04em",
+              "fontWeight": "500"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.05em",
+              "fontWeight": "500"
+            }
+          ],
+          "headline-md": [
+            "15px",
+            {
+              "lineHeight": "22px",
+              "letterSpacing": "-0.005em",
+              "fontWeight": "600"
+            }
+          ],
+          "label-lg": [
+            "13px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.02em",
+              "fontWeight": "500"
+            }
+          ],
+          "headline-lg": [
+            "18px",
+            {
+              "lineHeight": "26px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-xl": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  };</script><script src="js/api-client.js"></script></head><body class="bg-surface font-body-md text-body-md text-on-surface"><aside class="fixed left-0 top-0 h-full w-80 bg-surface-container-lowest z-50 flex flex-col shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="p-space-lg bg-surface-container-low"><div class="flex items-center gap-space-sm"><img alt="BhuDrishti Cadastral Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XAESHsrZYb18NEf2utCtorT-r_MWimEWE4l5_VFsu9_OClcLQmSCNe5F9Q_Dw2vUPrxSHubCUDqlN-Vv76cS32HSQKTF0plkT2s9lR0tucO0IttwQlyJDN6DgSEtyPjdX0pacePWDLnyagQ0otL7ZUTvZcRETpjrF6SQW23EEpGQkovnlAfUV3pNhs9YjjBOUi0ggynIaC_GZnTnrQ2Zlm8QIYVXk2B4xJMn8FtqLapAEhHTUb7xOrFHXv"/><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">BhuDrishti</span><span class="px-space-xs py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-secondary font-semibold">v2.4</span></div><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Urban Cadastral AI</span></div></div><div class="mt-space-sm pt-space-xs flex items-center justify-between"><span class="inline-flex items-center px-space-sm py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm tracking-wider font-semibold uppercase">DoLR • MoRD, Govt. of India</span><span class="w-2 h-2 rounded-full bg-secondary-container animate-pulse"></span></div></div><div class="px-space-lg py-space-sm bg-surface-container-low"><div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"><span class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[14px] text-secondary">layers</span>Cadastral Hierarchy</span><span class="text-on-surface font-semibold">9 Stages</span></div></div><nav class="flex-1 px-space-md py-space-sm space-y-0.5 overflow-y-auto" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded-lg"><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="dashboard" href="dashboard.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">grid_view</span><span class="font-body-md text-body-md">Dashboard</span></div><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container font-semibold">KPI</span></a><a aria-current="page" class="flex items-center justify-between px-space-md py-2 transition-all bg-primary-container text-on-primary-container font-semibold rounded-lg" data-path="survey-projects" href="survey-projects.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">inventory_2</span><span class="font-body-md text-body-md">Survey Projects</span></div><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">12 Active</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="gis-cadastral-map" href="gis-cadastral-map.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">map</span><span class="font-body-md text-body-md">GIS Cadastral Map</span></div><span class="w-2 h-2 rounded-full bg-secondary"></span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="ai-feature-extraction" href="ai-feature-extraction.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">neurology</span><span class="font-body-md text-body-md">AI Feature Extraction</span></div><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-secondary font-semibold">Prototype CV</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="topology-validation" href="topology-validation.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">polyline</span><span class="font-body-md text-body-md">Topology Validation</span></div><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-semibold" id="sidebar-topology-badge" data-topology-badge="true">-- Issues</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="elevation-analysis" href="elevation-analysis.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">landscape</span><span class="font-body-md text-body-md">Elevation Analysis</span></div><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">DSM/DTM</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="survey-priority" href="survey-priority.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">rule</span><span class="font-body-md text-body-md">Survey Priority</span></div><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Risk Score</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="field-verification" href="field-verification.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">edit_location_alt</span><span class="font-body-md text-body-md">Field Verification</span></div><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-semibold">HITL</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="export-cadastre" href="export-cadastre.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">output</span><span class="font-body-md text-body-md">Export Cadastre</span></div><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">SHP/GeoJSON</span></a></nav><div class="p-space-md bg-surface-container-low font-label-sm text-label-sm text-on-surface-variant"><div class="flex items-center justify-between mb-1"><span class="flex items-center gap-space-xs font-semibold text-on-surface"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>System Operational</span><span class="text-secondary font-mono">v2.4.1</span></div><div class="truncate text-on-surface-variant">LOCAL-DEMO • Not georeferenced</div><div class="mt-0.5 text-on-surface-variant flex items-center gap-space-xs"><span class="material-symbols-outlined text-[12px] text-secondary">memory</span>Prototype CV Engine (on-demand, no active AI core)</div></div></aside><div class="pl-80"><header class="fixed top-0 left-80 right-0 h-16 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs px-space-md py-1.5 rounded bg-surface-container text-on-surface font-body-md text-body-md font-semibold cursor-pointer"><span class="material-symbols-outlined text-[18px] text-secondary">location_on</span><span>Indore Urban Zone 04</span><span class="font-label-sm text-label-sm text-on-surface-variant font-normal">(SIH-2026-IND-U04)</span><span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span></div><div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container text-on-surface font-label-md text-label-md font-medium"><span class="w-2 h-2 rounded-full bg-secondary"></span><span>Analysis Complete • Preliminary Cadastre</span></div><div class="hidden xl:flex items-center gap-space-sm text-on-surface-variant font-label-sm text-label-sm"><span class="px-space-sm py-1 rounded bg-surface-container-low" title="Illustrative Stitch mockup value -- not backend data">Area: <strong class="text-on-surface">48.2 Ha</strong> <span class="text-on-surface-variant">(Demo)</span></span><span class="px-space-sm py-1 rounded bg-surface-container-low" title="Illustrative Stitch mockup value -- not backend data, no real GSD/georeferencing in this prototype">GSD: <strong class="text-on-surface">2.5 cm/px</strong> <span class="text-on-surface-variant">(Demo)</span></span></div></div><div class="flex items-center gap-space-md"><div class="hidden lg:flex items-center gap-space-xs px-space-md py-1.5 rounded bg-surface-container font-label-md text-label-md text-on-surface font-semibold tracking-wide"><span class="material-symbols-outlined text-[16px] text-secondary">navigation</span><span title="Illustrative Stitch mockup value -- not backend data">22°43'18.4"N 75°51'44.2"E (Demo)</span><span class="text-outline">|</span><span class="text-on-surface-variant font-normal" title="Illustrative Stitch mockup value -- not backend data">Elev: 553.4m (Demo)</span></div><div class="flex items-center gap-space-xs px-space-sm py-1.5 rounded bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-secondary animate-ping"></span><span class="font-medium text-on-surface">Sync Live</span></div><button class="relative p-1.5 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-error text-on-error font-label-sm text-label-sm font-bold leading-none">17</span></button><div class="flex items-center gap-space-sm pl-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden md:flex flex-col text-left"><div class="flex items-center gap-space-xs"><span class="font-body-sm text-body-sm font-semibold text-on-surface leading-tight">Er. Rajesh Varma</span><span class="px-1.5 py-0.2 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm font-semibold">SoI</span></div><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Senior Cadastral Surveyor</span></div></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full"><div class="flex flex-col w-full">
+<div class="px-space-xl py-space-lg flex flex-col gap-space-lg">
+<!-- Top Workflow Stepper -->
+<div class="w-full bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
+<div class="grid grid-cols-1 md:grid-cols-5 gap-space-sm items-center">
+<!-- Step 1: Active -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-lg bg-surface-container-high transition-all">
+<div class="w-7 h-7 rounded-lg bg-primary text-on-primary flex items-center justify-center font-label-md text-label-md font-bold shadow-sm">
+            01
+          </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-secondary font-semibold uppercase tracking-wider">Active Phase</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface truncate">Data Ingestion</span>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-lg bg-surface-container-low transition-all">
+<div class="w-7 h-7 rounded-lg bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-label-md text-label-md font-semibold">
+            02
+          </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Prototype CV</span>
+<span class="font-body-md text-body-md font-medium text-on-surface truncate">Feature Extraction</span>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-lg bg-surface-container-low transition-all">
+<div class="w-7 h-7 rounded-lg bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-label-md text-label-md font-semibold">
+            03
+          </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Topology</span>
+<span class="font-body-md text-body-md font-medium text-on-surface truncate">Elevation &amp; Gaps</span>
+</div>
+</div>
+<!-- Step 4 -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-lg bg-surface-container-low transition-all">
+<div class="w-7 h-7 rounded-lg bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-label-md text-label-md font-semibold">
+            04
+          </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">HITL Review</span>
+<span class="font-body-md text-body-md font-medium text-on-surface truncate">Surveyor Verification</span>
+</div>
+</div>
+<!-- Step 5 -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-lg bg-surface-container-low transition-all">
+<div class="w-7 h-7 rounded-lg bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-label-md text-label-md font-semibold">
+            05
+          </div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Statutory</span>
+<span class="font-body-md text-body-md font-medium text-on-surface truncate">Export &amp; Adjudication</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Title & Context Overline -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="px-space-xs py-0.5 rounded bg-primary text-on-primary font-label-sm text-label-sm font-semibold tracking-wider uppercase">Stage 01 Form</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Statutory Cadastral Workflow</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight">Create Cadastral Survey Project</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-3xl">Upload orthorectified drone imagery, elevation rasters (DSM/DTM), and spatial ground truth for AI parcel extraction.</p>
+<div class="mt-space-sm rounded-lg border border-outline-variant bg-surface-container-low px-space-md py-space-sm flex flex-col md:flex-row md:items-center md:justify-between gap-space-sm">
+  <div>
+    <div class="font-label-sm text-label-sm font-bold text-on-surface">SURVEY PROJECT INTAKE</div>
+    <div class="font-body-sm text-body-sm text-on-surface-variant">Survey Projects is the surveyor's project/data workspace. Upload and validate source data here, then hand the selected dataset to AI Feature Extraction.</div>
+  </div>
+  <div id="datasetWorkflowState" class="shrink-0 px-3 py-2 rounded-lg bg-surface-container font-label-sm text-label-sm font-semibold text-on-surface-variant">No ORI dataset selected</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm self-start md:self-auto">
+<div class="flex items-center gap-space-xs px-space-md py-space-xs bg-surface-container-low rounded-lg shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[16px]">verified</span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold uppercase">CRS Auto-Sync Active</span>
+</div>
+<div class="flex items-center gap-space-xs px-space-md py-space-xs bg-surface-container-low rounded-lg shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[16px]">cloud_sync</span>
+<span class="font-label-sm text-label-sm text-on-surface font-mono">Bucket: in-do-lr-u04</span>
+</div>
+</div>
+</div>
+<!-- Project Metadata Panel (Institutional Strip) -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">badge</span>
+<span class="font-headline-md text-headline-md font-bold text-on-surface">Administrative Metadata &amp; Coordinate Frame</span>
+</div>
+<span class="font-label-sm text-label-sm px-space-sm py-0.5 rounded bg-surface-container font-mono text-on-surface-variant">REC-IND-2026-09A</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Project Name -->
+<div class="flex flex-col gap-space-xs p-space-sm bg-surface-container-low rounded-lg">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">edit_note</span> Project Name
+          </span>
+<span class="font-body-md text-body-md font-semibold text-on-surface truncate" id="proj-name" title="Indore Urban Zone 04 — Scheme 54 Cadastral Survey">
+            Indore Urban Zone 04 — Scheme 54
+          </span>
+<span class="font-label-sm text-label-sm text-secondary font-mono" id="proj-id">SIH-2026-IND-U04</span>
+</div>
+<!-- Survey Authority -->
+<div class="flex flex-col gap-space-xs p-space-sm bg-surface-container-low rounded-lg">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">account_balance</span> Survey Authority
+          </span>
+<span class="font-body-md text-body-md font-semibold text-on-surface truncate">
+            DoLR, MoRD
+          </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Govt. of India &amp; MP Revenue</span>
+</div>
+<!-- Coordinate Reference System (CRS) -->
+<div class="flex flex-col gap-space-xs p-space-sm bg-surface-container-low rounded-lg">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">public</span> Target CRS
+          </span>
+<span class="font-body-md text-body-md font-semibold text-on-surface truncate" id="proj-crs">
+            LOCAL-DEMO • Not georeferenced
+          </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono truncate">WGS 84 / UTM zone 43N</span>
+</div>
+<!-- Ground Sampling Distance (GSD) -->
+<div class="flex flex-col gap-space-xs p-space-sm bg-surface-container-low rounded-lg">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">photo_size_select_small</span> Resolution / GSD
+          </span>
+<span class="font-body-md text-body-md font-semibold text-on-surface truncate">
+            2.5 cm / pixel
+          </span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Sub-Centimetric Class-A</span>
+</div>
+</div>
+</div>
+<!-- Data Upload Grid (4 Technical Dropzone Cards) -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">layers</span>
+<span class="font-headline-md text-headline-md font-bold text-on-surface">Spatial Data Packages &amp; Rasters</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3 Required • 1 Ground Truth Reference</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-space-md">
+<!-- Card 1: Orthorectified Drone Mosaic -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col justify-between gap-space-md transition-shadow hover:shadow-md">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">satellite_alt</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-body-md text-body-md font-bold text-on-surface">Orthorectified Drone Mosaic (ORI / RGB)</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container font-label-sm text-label-sm font-bold text-error">REQUIRED</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Ultra-high resolution aerial imagery canvas</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[22px]">check_circle</span>
+</div>
+<!-- Visual Preview Canvas Container -->
+<div class="relative w-full h-32 rounded-lg overflow-hidden bg-surface-container shadow-inner">
+<img class="w-full h-full object-cover" id="oriPreviewImage" data-alt="High resolution aerial drone orthomosaic photogrammetry showing geometric urban building footprints, paved roads, and clear property boundaries with sharp contrast under bright midday sun." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQX8dXBarat_mdbUdGK5BRq8FPx2CLnRmoCGjgo9Ze5t_oFaSjJhby2Gbyco6LdjfyhZ9HP-A1vyVVLSLL1an5g_kZNPST3hKJI_c4JCIMCbpiSidgvOtt6ZSfP56k7S6HiXA30tzy0ta3GHXzNXDlTC1FlMKo_rIevJZb8OlyERYfyAXIgKL0MHmwIb2uJ-PqLj846U7U33i5Ja0HZc_6OKjEQHcdqIG-DzWfANlcopB1r-ug_SZs0Q"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container/80 via-transparent to-transparent flex items-end p-space-sm">
+<span class="font-label-sm text-label-sm text-surface font-mono">RGB • 3-Band • GeoTIFF Tile Matrix</span>
+</div>
+</div>
+<!-- Upload File Strip -->
+<div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span id="oriFileName" class="font-mono font-semibold text-on-surface truncate">No ORI selected</span>
+<span id="oriFileSize" class="font-mono text-secondary font-bold">—</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span class="flex items-center gap-1 text-on-tertiary-container font-medium">
+<span class="material-symbols-outlined text-[14px]">done_all</span> Valid Pyramids &amp; GeoTIFF Tags
+                </span>
+<span id="oriStatus">Waiting for upload</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden mt-1">
+<div id="oriProgress" class="bg-secondary h-full rounded-full w-0 transition-all"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs font-label-sm text-label-sm text-on-surface-variant">
+<span class="truncate">Supported: GeoTIFF, COG, ECW</span>
+<div class="flex items-center gap-space-sm">
+<button id="btnDatasetUpload" type="button" class="px-space-sm py-1 rounded bg-surface-container text-on-surface font-semibold hover:bg-surface-container-high transition-colors">Upload / Replace</button>
+<input id="datasetFileInput" type="file" accept=".tif,.tiff,.png,.jpg,.jpeg,.geojson,.las,.laz" class="hidden"/>
+<span id="oriDatasetId" class="font-mono text-[10px] text-on-surface-variant">No dataset</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Digital Surface Model (DSM) -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col justify-between gap-space-md transition-shadow hover:shadow-md">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">view_in_ar</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-body-md text-body-md font-bold text-on-surface">Digital Surface Model (DSM)</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container font-label-sm text-label-sm font-bold text-error">REQUIRED</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Top-of-canopy and structural heights elevation grid</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[22px]">check_circle</span>
+</div>
+<!-- Visual Preview Canvas Container -->
+<div class="relative w-full h-32 rounded-lg overflow-hidden bg-surface-container shadow-inner">
+<img class="w-full h-full object-cover" data-alt="Technical digital surface model DSM elevation map with color coded height gradients representing rooftops, tree canopies, and vertical topography in vibrant spectral shades." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfKwZNlXhZu70ZYEoO-_GueKWuHvPnXVLs5se-1KuUgfo9m3IJIkj5_Qrm5z9M47xhP1CHkdPwm0QT05i4lGTm3ir4RIa2TR3-BtEtK97y3e2_v_Xfsi1qo32OuvB427AWfqMRsjGzPJ3Velg5Aqy2XkEVWSoDvmO3NrPx4Dp9k3Lo1A7-UMJcYdZ3NCefS9z0OsIJGzmb-p3SaImYHbiGmqNa2XFRQAOHv_LW_z3aXw16ASnNGLqdpA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container/80 via-transparent to-transparent flex items-end p-space-sm">
+<span class="font-label-sm text-label-sm text-surface font-mono">Elevation Range: 541.2m - 578.6m</span>
+</div>
+</div>
+<!-- Upload File Strip -->
+<div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="font-mono font-semibold text-on-surface truncate">indore_u04_dsm_firstreturn.tif</span>
+<span class="font-mono text-secondary font-bold">890 MB</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span class="flex items-center gap-1 text-on-tertiary-container font-medium">
+<span class="material-symbols-outlined text-[14px]">done_all</span> Vertical Datum: EGM2008 • Float32
+                </span>
+<span class="font-mono">100% Ingested</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden mt-1">
+<div class="bg-secondary h-full rounded-full w-full"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs font-label-sm text-label-sm text-on-surface-variant">
+<span class="truncate">Supported: GeoTIFF, LAS / LAZ Point Cloud</span>
+<button class="px-space-sm py-1 rounded bg-surface-container text-on-surface font-semibold hover:bg-surface-container-high transition-colors">Re-upload</button>
+</div>
+</div>
+<!-- Card 3: Digital Terrain Model (DTM) -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col justify-between gap-space-md transition-shadow hover:shadow-md">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">landscape</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-body-md text-body-md font-bold text-on-surface">Digital Terrain Model (DTM - Bare Earth)</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container font-label-sm text-label-sm font-bold text-error">REQUIRED</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Filtered ground surface for normalized nDSM calculation</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[22px]">check_circle</span>
+</div>
+<!-- Visual Preview Canvas Container -->
+<div class="relative w-full h-32 rounded-lg overflow-hidden bg-surface-container shadow-inner">
+<img class="w-full h-full object-cover" data-alt="Digital terrain model DTM bare earth elevation raster showing smooth terrain relief contours, drainage paths, and base ground elevation without buildings or vegetation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjpFVJaQiE80IgqqPDA685cMTM3rcmNFsg5o2_1PREajoLIF2-k1o_UMFYSkITB6wi9PHWZMjb3JLgux60dC4-aSDfIGMSCeKjIUaaTauo2CYWsp42BuGyLKtFqRSU3TCE8hQRix_hg1jm0cCLhUaQ0wR5jCA0VCHhy4AeH19ifltdK0FEEaJ0hHIUW9qDhnP3N_clyRMcleWih2Bltuwx9yeQyk5LPZhuLPizizOzEgUidGO4H6IAGw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container/80 via-transparent to-transparent flex items-end p-space-sm">
+<span class="font-label-sm text-label-sm text-surface font-mono">Bare-Earth nDSM Ready • 0.05m Tolerance</span>
+</div>
+</div>
+<!-- Upload File Strip -->
+<div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="font-mono font-semibold text-on-surface truncate">indore_u04_dtm_bare_earth.tif</span>
+<span class="font-mono text-secondary font-bold">812 MB</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span class="flex items-center gap-1 text-on-tertiary-container font-medium">
+<span class="material-symbols-outlined text-[14px]">done_all</span> Height Differential Validated
+                </span>
+<span class="font-mono">100% Ingested</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden mt-1">
+<div class="bg-secondary h-full rounded-full w-full"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs font-label-sm text-label-sm text-on-surface-variant">
+<span class="truncate">Supported: GeoTIFF, DEM, XYZ Grid</span>
+<button class="px-space-sm py-1 rounded bg-surface-container text-on-surface font-semibold hover:bg-surface-container-high transition-colors">Re-upload</button>
+</div>
+</div>
+<!-- Card 4: Legacy Cadastral Revenue Map & GNSS Control (Optional) -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col justify-between gap-space-md transition-shadow hover:shadow-md">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">architecture</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-body-md text-body-md font-bold text-on-surface">Legacy Revenue Map &amp; GNSS Control</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container font-label-sm text-label-sm font-medium text-secondary">OPTIONAL</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Historical Khasra boundaries &amp; DGPS field control points</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[22px]">check_circle</span>
+</div>
+<!-- Visual Preview Canvas Container -->
+<div class="relative w-full h-32 rounded-lg overflow-hidden bg-surface-container shadow-inner">
+<img class="w-full h-full object-cover" data-alt="Technical vector cadastral parcel overlay map displaying scanned vintage property plots aligned with sharp modern vector geometry nodes and geographic control points." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuvQ5Jfup-OWcMxH-Gu-sm_hgOAUCsfJLOSsYgDIlC5_oT1htRvnQ5Jfw_applhu9yiWM0HKkXZr_DS_9UlkwmGPLYuv4xt8WUctj5ufnhXhfFnVbclkrySQFA1FeM8fiWmv88IMpCWdjelDysBoqaZWaAqBksk8nN-Uo2I7Okl5kYrO3L9MfB2vvNEJIQ7nzEvFUNhzGjglzAS_0nF8ltaeknW_NlS6jqSy9q58vDfHXvOe4uiKll4g"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary-container/80 via-transparent to-transparent flex items-end p-space-sm">
+<span class="font-label-sm text-label-sm text-surface font-mono">32 GCPs Coordinated • Residual RMSE: 1.8cm</span>
+</div>
+</div>
+<!-- Upload File Strip -->
+<div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="font-mono font-semibold text-on-surface truncate">khasra_indore_1984_scanned_rectified.geojson</span>
+<span class="font-mono text-secondary font-bold">14.2 MB</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span class="flex items-center gap-1 text-secondary font-medium">
+<span class="material-symbols-outlined text-[14px]">my_location</span> 32 Ground Control Points (GCP) Identified
+                </span>
+<span class="font-mono">100% Ingested</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden mt-1">
+<div class="bg-secondary h-full rounded-full w-full"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs font-label-sm text-label-sm text-on-surface-variant">
+<span class="truncate">Supported: GeoJSON, Shapefile (.shp/.zip), CSV Rover</span>
+<button class="px-space-sm py-1 rounded bg-surface-container text-on-surface font-semibold hover:bg-surface-container-high transition-colors">Replace</button>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Model Configuration Parameters Panel -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col gap-space-lg">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[22px]">neurology</span>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">AI Parcel Extraction Engine Settings</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Illustrative panel — no deep-learning inference runs in this prototype</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="px-space-sm py-1 rounded bg-surface-container font-label-sm text-label-sm font-mono text-on-surface">CPU-only (classical OpenCV)</span>
+<span class="px-space-sm py-1 rounded bg-surface-container-high font-label-sm text-label-sm font-semibold text-secondary">No GPU used</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-lg">
+<!-- Parameter 1: Engine -->
+<div class="flex flex-col gap-space-xs p-space-md bg-surface-container-low rounded-lg">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Extraction Engine Model</label>
+<div class="flex items-center justify-between px-space-sm py-1.5 bg-surface-container-lowest rounded shadow-sm">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Classical CV (OpenCV contours)</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container font-semibold text-secondary">Prototype</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">Fine-tuned on Indian dense informal settlement parcel morphologies and high-density masonry.</span>
+</div>
+<!-- Parameter 2: Confidence Slider -->
+<div class="flex flex-col gap-space-xs p-space-md bg-surface-container-low rounded-lg">
+<div class="flex items-center justify-between">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Building Confidence</label>
+<span class="font-label-md text-label-md font-mono font-bold text-secondary" id="confidence-val">0.65</span>
+</div>
+<div class="py-2 flex items-center">
+<input class="w-full accent-primary h-2 bg-surface-container rounded-lg cursor-pointer" id="confidence-slider" max="0.95" min="0.30" step="0.05" type="range" value="0.65"/>
+</div>
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>Recall Favored (0.30)</span>
+<span>Precision Favored (0.95)</span>
+</div>
+</div>
+<!-- Parameter 3: Road Right-of-Way Buffer -->
+<div class="flex flex-col gap-space-xs p-space-md bg-surface-container-low rounded-lg">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Road RoW Buffer Margin</label>
+<div class="flex items-center gap-space-xs">
+<input class="w-full bg-surface-container-lowest rounded shadow-sm px-space-sm py-1.5 font-label-md text-label-md font-bold text-on-surface outline-none" step="0.5" type="number" value="8.0"/>
+<span class="px-space-sm py-1.5 bg-surface-container rounded font-label-sm text-label-sm font-semibold text-on-surface-variant">Meters</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">Institutional setback buffer deducted from road centerlines prior to parcel node computation.</span>
+</div>
+<!-- Parameter 4: Parcel Generation Strategy -->
+<div class="flex flex-col gap-space-xs p-space-md bg-surface-container-low rounded-lg">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Tessellation Strategy</label>
+<div class="px-space-sm py-1.5 bg-surface-container-lowest rounded shadow-sm flex items-center justify-between">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface truncate">Voronoi + Road Barrier Clip</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">tune</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">Delaunay triangulation constrained by physical road vectors and property boundary hedgerows.</span>
+</div>
+<!-- Parameter 5: Elevation Parallax Correction -->
+<div class="flex flex-col gap-space-xs p-space-md bg-surface-container-low rounded-lg">
+<div class="flex items-center justify-between">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Elevation Parallax Correction</label>
+<span class="px-space-xs py-0.5 rounded bg-surface-container font-label-sm text-label-sm font-semibold text-secondary">ACTIVE</span>
+</div>
+<div class="flex items-center justify-between px-space-sm py-1.5 bg-surface-container-lowest rounded shadow-sm">
+<span class="font-body-sm text-body-sm font-medium text-on-surface truncate">Solar Vector Ephemeris</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">wb_sunny</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">Recalibrates building lean and eave displacement back to true ground contact footing lines.</span>
+</div>
+<!-- Parameter 6: Topology Engine Mode -->
+<div class="flex flex-col gap-space-xs p-space-md bg-surface-container-low rounded-lg">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Sliver &amp; Gap Prevention</label>
+<div class="flex items-center justify-between px-space-sm py-1.5 bg-surface-container-lowest rounded shadow-sm">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">Auto-Snapping (0.08m)</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">grain</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">Strict planar enforcement prohibiting overlapping cadastral polygons or sliver geometries.</span>
+</div>
+</div>
+</div>
+<!-- Bottom Institutional Action Bar -->
+<div class="w-full bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col sm:flex-row items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm w-full sm:w-auto">
+<button class="w-full sm:w-auto px-space-md py-2 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-body-md text-body-md font-semibold transition-colors flex items-center justify-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px]">save</span>
+<span>Save Draft</span>
+</button>
+<button class="w-full sm:w-auto px-space-md py-2 rounded-lg bg-surface-container-low hover:bg-surface-container text-error font-body-md text-body-md font-semibold transition-colors flex items-center justify-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px]">close</span>
+<span>Cancel</span>
+</button>
+</div>
+<div class="flex items-center gap-space-md w-full sm:w-auto justify-end">
+<button class="w-full sm:w-auto px-space-lg py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-body-md text-body-md font-semibold transition-all flex items-center justify-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-secondary">fact_check</span>
+<span>Validate Spatial Alignment &amp; CRS</span>
+</button>
+<button id="startAiBtn" type="button" disabled class="w-full sm:w-auto px-space-xl py-2 rounded-lg bg-primary hover:bg-primary/90 text-on-primary font-body-md text-body-md font-bold shadow-md transition-all flex items-center justify-center gap-space-sm group">
+<span id="startAiLabel">Continue to AI Feature Extraction</span>
+<span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<script>
+    const slider = document.getElementById('confidence-slider');
+    const valDisplay = document.getElementById('confidence-val');
+    if (slider && valDisplay) {
+      slider.addEventListener('input', (e) => {
+        valDisplay.textContent = parseFloat(e.target.value).toFixed(2);
+      });
+    }
+  </script>
+  <script>
+    // Step 0: this screen previously showed the project name/ID/CRS as
+    // static Stitch mockup text with no backend connection at all. Now it
+    // fetches the real (seeded, single) project record from GET /api/projects.
+    (async function loadProjectInfo() {
+      try {
+        const data = await BhuDrishtiAPI.getProjects();
+        const proj = data.projects && data.projects[0];
+        if (!proj) return;
+        const set = (id, text) => { const el = document.getElementById(id); if (el) { el.textContent = text; el.title = text; } };
+        set('proj-name', proj.name);
+        set('proj-id', proj.project_id);
+        set('proj-crs', proj.crs);
+      } catch (err) {
+        showApiError(err);
+      }
+    })();
+  </script>
+
+<script>
+(function(){
+ const input=document.getElementById('datasetFileInput');
+ const btn=document.getElementById('btnDatasetUpload');
+ const start=document.getElementById('startAiBtn');
+ const nameEl=document.getElementById('oriFileName');
+ const sizeEl=document.getElementById('oriFileSize');
+ const statusEl=document.getElementById('oriStatus');
+ const progressEl=document.getElementById('oriProgress');
+ const datasetEl=document.getElementById('oriDatasetId');
+ const workflowEl=document.getElementById('datasetWorkflowState');
+ const preview=document.getElementById('oriPreviewImage');
+ const label=document.getElementById('startAiLabel');
+ const ACTIVE_KEY='bhudrishti.latestDatasetId';
+ const NAME_KEY='bhudrishti.latestDatasetName';
+ const SIZE_KEY='bhudrishti.latestDatasetSize';
+ const setReady=(id,name,size)=>{
+   if(start){start.disabled=!id; start.dataset.datasetId=id||'';}
+   if(datasetEl){datasetEl.textContent=id?'ORI active • '+id:'No dataset'; datasetEl.title=id||'';}
+   if(workflowEl){workflowEl.textContent=id?'ORI dataset ready • '+id:'No ORI dataset selected'; workflowEl.className='shrink-0 px-3 py-2 rounded-lg '+(id?'bg-secondary-container text-on-secondary-container':'bg-surface-container text-on-surface-variant')+' font-label-sm text-label-sm font-semibold';}
+   if(label) label.textContent=id?'Continue to AI Feature Extraction':'Upload ORI to continue';
+ };
+ const showFile=(f)=>{
+   if(nameEl) nameEl.textContent=f.name;
+   if(sizeEl) sizeEl.textContent=(f.size/1024/1024).toFixed(2)+' MB';
+   if(statusEl) statusEl.textContent='Selected • ready to upload';
+   if(progressEl) progressEl.style.width='25%';
+   if(preview && /^image\/(png|jpeg|webp)$/i.test(f.type)) preview.src=URL.createObjectURL(f);
+ };
+ if(btn&&input) btn.onclick=()=>input.click();
+ if(input) input.onchange=async()=>{
+   const f=input.files && input.files[0]; if(!f)return;
+   showFile(f);
+   if(btn){btn.disabled=true; btn.textContent='Uploading…';}
+   if(statusEl) statusEl.textContent='Uploading to backend…';
+   if(progressEl) progressEl.style.width='60%';
+   try{
+     const r=await BhuDrishtiAPI.uploadDataset(f,'LOCAL-DEMO');
+     localStorage.setItem(ACTIVE_KEY,r.dataset_id);
+     localStorage.setItem(NAME_KEY,f.name);
+     localStorage.setItem(SIZE_KEY,String(f.size));
+     if(statusEl) statusEl.textContent='Backend ready • dataset persisted';
+     if(progressEl) progressEl.style.width='100%';
+     setReady(r.dataset_id,f.name,f.size);
+     if(btn) btn.textContent='Upload / Replace';
+   }catch(e){
+     if(statusEl) statusEl.textContent='Upload failed • check backend connection';
+     if(progressEl) progressEl.style.width='0%';
+     if(typeof showApiError==='function') showApiError(e); else console.error(e);
+     setReady('', '', 0);
+     if(btn) btn.textContent='Upload / Replace';
+   }finally{ if(btn) btn.disabled=false; }
+ };
+ if(start) start.onclick=()=>{ const id=start.dataset.datasetId||localStorage.getItem(ACTIVE_KEY); if(id) window.location.href='ai-feature-extraction.html?dataset='+encodeURIComponent(id); };
+ // Restore the latest backend dataset when this page is reopened.
+ (async function restore(){
+   const id=localStorage.getItem(ACTIVE_KEY);
+   if(!id) return;
+   try{
+     const data=await BhuDrishtiAPI.getDatasets();
+     const d=(data.datasets||[]).find(x=>x.dataset_id===id);
+     if(d){
+       if(nameEl) nameEl.textContent=d.filename||localStorage.getItem(NAME_KEY)||'Uploaded ORI';
+       if(sizeEl) sizeEl.textContent=d.size_bytes?((d.size_bytes/1024/1024).toFixed(2)+' MB'):(localStorage.getItem(SIZE_KEY)?(Number(localStorage.getItem(SIZE_KEY))/1024/1024).toFixed(2)+' MB':'—');
+       if(statusEl) statusEl.textContent='Backend ready • persisted dataset';
+       if(progressEl) progressEl.style.width='100%';
+       setReady(d.dataset_id,d.filename,d.size_bytes);
+     }
+   }catch(e){ console.warn('Could not restore active dataset',e); }
+ })();
+})();
+</script>
+</div></main></div></body></html>

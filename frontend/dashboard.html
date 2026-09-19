@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "on-error-container": "#93000a",
+          "on-tertiary-fixed": "#00201d",
+          "surface-container-highest": "#d3e4fe",
+          "surface-container-lowest": "#ffffff",
+          "primary-container": "#131b2e",
+          "error": "#ba1a1a",
+          "tertiary-fixed": "#89f5e7",
+          "on-primary-container": "#7c839b",
+          "on-tertiary-fixed-variant": "#005049",
+          "secondary-container": "#7bc2ff",
+          "surface-bright": "#f8f9ff",
+          "surface-tint": "#565e74",
+          "surface-dim": "#cbdbf5",
+          "inverse-surface": "#213145",
+          "surface": "#f8f9ff",
+          "on-tertiary-container": "#0c9488",
+          "surface-variant": "#d3e4fe",
+          "background": "#f8f9ff",
+          "on-tertiary": "#ffffff",
+          "inverse-primary": "#bec6e0",
+          "surface-container": "#e5eeff",
+          "tertiary-container": "#00201d",
+          "surface-container-low": "#eff4ff",
+          "outline-variant": "#c6c6cd",
+          "tertiary-fixed-dim": "#6bd8cb",
+          "on-background": "#0b1c30",
+          "error-container": "#ffdad6",
+          "on-error": "#ffffff",
+          "on-secondary-fixed": "#001d32",
+          "on-primary-fixed-variant": "#3f465c",
+          "on-secondary-fixed-variant": "#004b74",
+          "on-secondary": "#ffffff",
+          "tertiary": "#000000",
+          "primary-fixed": "#dae2fd",
+          "surface-container-high": "#dce9ff",
+          "outline": "#76777d",
+          "primary": "#000000",
+          "on-primary": "#ffffff",
+          "on-surface-variant": "#45464d",
+          "inverse-on-surface": "#eaf1ff",
+          "secondary-fixed-dim": "#94ccff",
+          "on-surface": "#0b1c30",
+          "primary-fixed-dim": "#bec6e0",
+          "on-secondary-container": "#004f7b",
+          "secondary": "#006399",
+          "secondary-fixed": "#cde5ff",
+          "on-primary-fixed": "#131b2e"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "margin": "1rem",
+          "space-xl": "1.5rem",
+          "space-md": "0.75rem",
+          "space-sm": "0.5rem",
+          "space-lg": "1rem",
+          "space-xs": "0.25rem",
+          "gutter": "0.75rem",
+          "margin-mobile": "0.75rem",
+          "gutter-mobile": "0.5rem"
+        },
+        "fontFamily": {
+          "headline-lg-mobile": [
+            "Inter"
+          ],
+          "headline-xl-mobile": [
+            "Inter"
+          ],
+          "body-lg": [
+            "Inter"
+          ],
+          "label-md": [
+            "JetBrains Mono"
+          ],
+          "body-sm": [
+            "Inter"
+          ],
+          "label-sm": [
+            "JetBrains Mono"
+          ],
+          "headline-md": [
+            "Inter"
+          ],
+          "label-lg": [
+            "JetBrains Mono"
+          ],
+          "headline-lg": [
+            "Inter"
+          ],
+          "headline-xl": [
+            "Inter"
+          ],
+          "body-md": [
+            "Inter"
+          ]
+        },
+        "fontSize": {
+          "headline-lg-mobile": [
+            "16px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-xl-mobile": [
+            "20px",
+            {
+              "lineHeight": "28px",
+              "fontWeight": "600"
+            }
+          ],
+          "body-lg": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-md": [
+            "11px",
+            {
+              "lineHeight": "14px",
+              "letterSpacing": "0.04em",
+              "fontWeight": "500"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.05em",
+              "fontWeight": "500"
+            }
+          ],
+          "headline-md": [
+            "15px",
+            {
+              "lineHeight": "22px",
+              "letterSpacing": "-0.005em",
+              "fontWeight": "600"
+            }
+          ],
+          "label-lg": [
+            "13px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.02em",
+              "fontWeight": "500"
+            }
+          ],
+          "headline-lg": [
+            "18px",
+            {
+              "lineHeight": "26px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-xl": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  };</script><script src="js/api-client.js"></script></head><body class="bg-surface font-body-md text-body-md text-on-surface"><aside class="fixed left-0 top-0 h-full w-80 bg-surface-container-lowest z-50 flex flex-col shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="p-space-lg bg-surface-container-low"><div class="flex items-center gap-space-sm"><img alt="BhuDrishti Cadastral Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XAESHsrZYb18NEf2utCtorT-r_MWimEWE4l5_VFsu9_OClcLQmSCNe5F9Q_Dw2vUPrxSHubCUDqlN-Vv76cS32HSQKTF0plkT2s9lR0tucO0IttwQlyJDN6DgSEtyPjdX0pacePWDLnyagQ0otL7ZUTvZcRETpjrF6SQW23EEpGQkovnlAfUV3pNhs9YjjBOUi0ggynIaC_GZnTnrQ2Zlm8QIYVXk2B4xJMn8FtqLapAEhHTUb7xOrFHXv"/><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">BhuDrishti</span><span class="px-space-xs py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-secondary font-semibold">v2.4</span></div><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Urban Cadastral AI</span></div></div><div class="mt-space-sm pt-space-xs flex items-center justify-between"><span class="inline-flex items-center px-space-sm py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm tracking-wider font-semibold uppercase">DoLR • MoRD, Govt. of India</span><span class="w-2 h-2 rounded-full bg-secondary-container animate-pulse"></span></div></div><div class="px-space-lg py-space-sm bg-surface-container-low"><div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider"><span class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[14px] text-secondary">layers</span>Cadastral Hierarchy</span><span class="text-on-surface font-semibold">9 Stages</span></div></div><nav class="flex-1 px-space-md py-space-sm space-y-0.5 overflow-y-auto" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded-lg"><a aria-current="page" class="flex items-center justify-between px-space-md py-2 transition-all bg-primary-container text-on-primary-container font-semibold rounded-lg" data-path="dashboard" href="dashboard.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">grid_view</span><span class="font-body-md text-body-md">Dashboard</span></div><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container font-semibold">KPI</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="survey-projects" href="survey-projects.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">inventory_2</span><span class="font-body-md text-body-md">Survey Projects</span></div><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">12 Active</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="gis-cadastral-map" href="gis-cadastral-map.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">map</span><span class="font-body-md text-body-md">GIS Cadastral Map</span></div><span class="w-2 h-2 rounded-full bg-secondary"></span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="ai-feature-extraction" href="ai-feature-extraction.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">neurology</span><span class="font-body-md text-body-md">AI Feature Extraction</span></div><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-secondary font-semibold">Prototype CV</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="topology-validation" href="topology-validation.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">polyline</span><span class="font-body-md text-body-md">Topology Validation</span></div><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-semibold" id="sidebar-topology-badge" data-topology-badge="true">-- Issues</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="elevation-analysis" href="elevation-analysis.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">landscape</span><span class="font-body-md text-body-md">Elevation Analysis</span></div><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">DSM/DTM</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="survey-priority" href="survey-priority.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">rule</span><span class="font-body-md text-body-md">Survey Priority</span></div><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Risk Score</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="field-verification" href="field-verification.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">edit_location_alt</span><span class="font-body-md text-body-md">Field Verification</span></div><span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-semibold">HITL</span></a><a class="flex items-center justify-between px-space-md py-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="export-cadastre" href="export-cadastre.html"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[18px]">output</span><span class="font-body-md text-body-md">Export Cadastre</span></div><span class="font-label-sm text-label-sm text-on-surface-variant font-medium">SHP/GeoJSON</span></a></nav><div class="p-space-md bg-surface-container-low font-label-sm text-label-sm text-on-surface-variant"><div class="flex items-center justify-between mb-1"><span class="flex items-center gap-space-xs font-semibold text-on-surface"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>System Operational</span><span class="text-secondary font-mono">v2.4.1</span></div><div class="truncate text-on-surface-variant">LOCAL-DEMO • Not georeferenced</div><div class="mt-0.5 text-on-surface-variant flex items-center gap-space-xs"><span class="material-symbols-outlined text-[12px] text-secondary">memory</span>Prototype CV Engine (on-demand, no active AI core)</div></div></aside><div class="pl-80"><header class="fixed top-0 left-80 right-0 h-16 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs px-space-md py-1.5 rounded bg-surface-container text-on-surface font-body-md text-body-md font-semibold cursor-pointer"><span class="material-symbols-outlined text-[18px] text-secondary">location_on</span><span>Indore Urban Zone 04</span><span class="font-label-sm text-label-sm text-on-surface-variant font-normal">(SIH-2026-IND-U04)</span><span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span></div><div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container text-on-surface font-label-md text-label-md font-medium"><span class="w-2 h-2 rounded-full bg-secondary"></span><span>Analysis Complete • Preliminary Cadastre</span></div><div class="hidden xl:flex items-center gap-space-sm text-on-surface-variant font-label-sm text-label-sm"><span class="px-space-sm py-1 rounded bg-surface-container-low" title="Illustrative Stitch mockup value -- not backend data">Area: <strong class="text-on-surface">48.2 Ha</strong> <span class="text-on-surface-variant">(Demo)</span></span><span class="px-space-sm py-1 rounded bg-surface-container-low" title="Illustrative Stitch mockup value -- not backend data, no real GSD/georeferencing in this prototype">GSD: <strong class="text-on-surface">2.5 cm/px</strong> <span class="text-on-surface-variant">(Demo)</span></span></div></div><div class="flex items-center gap-space-md"><div class="hidden lg:flex items-center gap-space-xs px-space-md py-1.5 rounded bg-surface-container font-label-md text-label-md text-on-surface font-semibold tracking-wide"><span class="material-symbols-outlined text-[16px] text-secondary">navigation</span><span title="Illustrative Stitch mockup value -- not backend data">22°43'18.4"N 75°51'44.2"E (Demo)</span><span class="text-outline">|</span><span class="text-on-surface-variant font-normal" title="Illustrative Stitch mockup value -- not backend data">Elev: 553.4m (Demo)</span></div><div class="flex items-center gap-space-xs px-space-sm py-1.5 rounded bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-secondary animate-ping"></span><span class="font-medium text-on-surface">Sync Live</span></div><button class="relative p-1.5 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-error text-on-error font-label-sm text-label-sm font-bold leading-none">17</span></button><div class="flex items-center gap-space-sm pl-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden md:flex flex-col text-left"><div class="flex items-center gap-space-xs"><span class="font-body-sm text-body-sm font-semibold text-on-surface leading-tight">Er. Rajesh Varma</span><span class="px-1.5 py-0.2 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm font-semibold">SoI</span></div><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Senior Cadastral Surveyor</span></div></div></div></header><main class="relative pt-16 bg-surface min-h-screen w-full"><div class="flex flex-col w-full">
+<!-- Sub-Header / Operational Banner -->
+<div class="px-space-lg py-space-md bg-surface-container-lowest shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-space-md">
+<div class="space-y-1">
+<div class="flex items-center gap-space-sm flex-wrap">
+<h1 class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight">
+          BhuDrishti — AI-Powered Urban Cadastral Intelligence
+        </h1>
+<span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container text-on-secondary-container font-label-sm text-label-sm font-semibold tracking-wide">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+          Status: Analysis Complete (Ready for Field Verification)
+        </span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high font-label-sm text-label-sm text-on-surface-variant font-mono">SIH26012</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-4xl">
+        Automated cadastral mapping, validation and survey prioritization for Indore Urban Zone 04 (Department of Land Resources, MoRD).
+      </p>
+</div>
+<!-- Action Group -->
+<div class="flex items-center gap-space-sm self-start xl:self-auto shrink-0">
+<button class="inline-flex items-center gap-space-xs px-space-md py-1.5 rounded bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors font-body-sm text-body-sm font-semibold" onclick="window.location.href='survey-projects.html'">
+<span class="material-symbols-outlined text-[16px] text-secondary">refresh</span>
+<span>Run New Survey</span>
+</button>
+<button class="inline-flex items-center gap-space-xs px-space-md py-1.5 rounded bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors font-body-sm text-body-sm font-semibold" onclick="window.location.href='export-cadastre.html'">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+<span>Export Cadastre</span>
+</button>
+<button class="inline-flex items-center gap-space-xs px-space-md py-1.5 rounded bg-primary text-on-primary hover:bg-primary-container transition-colors font-body-sm text-body-sm font-semibold shadow-sm" onclick="window.location.href='gis-cadastral-map.html'">
+<span class="material-symbols-outlined text-[16px] text-secondary-container">travel_explore</span>
+<span>View Live Map</span>
+</button>
+</div>
+</div>
+<div class="p-space-lg space-y-space-lg">
+<!-- Top KPI Grid: High-Density GIS Command Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-space-md">
+<!-- KPI 1 -->
+<div class="p-space-md rounded bg-surface-container-lowest shadow-sm flex flex-col justify-between hover:translate-y-[-1px] transition-transform">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Seeded Parcels</span>
+<span class="p-1 rounded bg-surface-container text-secondary material-symbols-outlined text-[18px]">crop_free</span>
+</div>
+<div class="mt-space-sm flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-on-surface font-bold font-label-md" id="kpi-parcel-count">--</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Polygons</span>
+</div>
+<div class="mt-space-xs pt-space-xs text-on-surface-variant font-body-sm text-body-sm flex items-center justify-between">
+<span id="kpi-parcel-area">-- Hectares surveyed</span>
+<span class="text-on-tertiary-container font-label-sm text-label-sm font-semibold">Seeded demo context</span>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="p-space-md rounded bg-surface-container-lowest shadow-sm flex flex-col justify-between hover:translate-y-[-1px] transition-transform">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">AI Extractions</span>
+<span class="p-1 rounded bg-surface-container text-secondary material-symbols-outlined text-[18px]">apartment</span>
+</div>
+<div class="mt-space-sm flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-on-surface font-bold font-label-md" id="kpi-extraction-count">--</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">EXT-* records</span>
+</div>
+<div class="mt-space-xs pt-space-xs text-on-surface-variant font-body-sm text-body-sm flex items-center justify-between">
+<span>AI Preliminary — not certified cadastral parcels</span>
+<span class="text-on-surface font-label-sm text-label-sm font-mono" id="kpi-extraction-conf">--</span>
+</div>
+</div>
+<!-- KPI 3: current backend does not extract roads -->
+<div class="p-space-md rounded bg-surface-container-lowest shadow-sm flex flex-col justify-between hover:translate-y-[-1px] transition-transform">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Road Networks</span>
+<span class="p-1 rounded bg-surface-container text-secondary material-symbols-outlined text-[18px]">alt_route</span>
+</div>
+<div class="mt-space-sm flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-on-surface font-bold font-label-md">Demo</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Illustrative</span>
+</div>
+<div class="mt-space-xs pt-space-xs text-on-surface-variant font-body-sm text-body-sm flex items-center justify-between">
+<span>Not generated by current CV extraction</span>
+<span class="text-on-surface font-label-sm text-label-sm font-mono">Demo only</span>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="p-space-md rounded bg-surface-container-lowest shadow-sm flex flex-col justify-between hover:translate-y-[-1px] transition-transform">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Issues Detected</span>
+<span class="p-1 rounded bg-error-container text-on-error-container material-symbols-outlined text-[18px]">warning</span>
+</div>
+<div class="mt-space-sm flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-error font-bold font-label-md" id="kpi-issues-count">--</span>
+<span class="font-label-sm text-label-sm text-error font-medium">Flags</span>
+</div>
+<div class="mt-space-xs pt-space-xs text-on-surface-variant font-body-sm text-body-sm flex items-center justify-between">
+<span id="kpi-issues-breakdown">-- critical, -- warning</span>
+<span class="text-error font-label-sm text-label-sm font-semibold">HITL Req</span>
+</div>
+</div>
+<!-- KPI 5 -->
+<div class="p-space-md rounded bg-surface-container-lowest shadow-sm flex flex-col justify-between hover:translate-y-[-1px] transition-transform">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">CV Confidence</span>
+<span class="p-1 rounded bg-surface-container text-secondary material-symbols-outlined text-[18px]">verified</span>
+</div>
+<div class="mt-space-sm flex items-baseline gap-space-xs">
+<span class="font-headline-xl text-headline-xl text-on-surface font-bold font-label-md" id="kpi-avg-confidence">--%</span>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-medium">Mean heuristic</span>
+</div>
+<div class="mt-space-xs pt-space-xs text-on-surface-variant font-body-sm text-body-sm flex items-center justify-between">
+<span id="kpi-confidence-subtext">No AI extractions yet</span>
+<span class="text-on-surface font-label-sm text-label-sm font-mono" id="kpi-confidence-count">0 records</span>
+</div>
+</div>
+</div>
+<!-- Main Spatial Layout: 65% Map Preview & Stepper / 35% Priority & Discrepancies -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- Left Column (65% -> col-span-8) -->
+<div class="lg:col-span-8 space-y-space-lg">
+<!-- Interactive High-Fidelity Cadastral Map Canvas Container -->
+<div class="rounded bg-surface-container-lowest shadow-sm overflow-hidden flex flex-col">
+<!-- Map Title Bar & Controls -->
+<div class="px-space-md py-space-sm bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[18px] text-secondary">map</span>
+<span class="font-headline-md text-headline-md text-on-surface font-semibold">Cadastral Map Overview — Zone 04</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-mono">Demo scale</span>
+</div>
+<!-- Toolbar Controls -->
+<div class="flex items-center gap-space-xs">
+<div class="flex items-center rounded bg-surface-container-highest p-0.5">
+<button class="p-1 rounded hover:bg-surface-container-lowest text-on-surface transition-colors flex items-center justify-center" title="Zoom In">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+<button class="p-1 rounded hover:bg-surface-container-lowest text-on-surface transition-colors flex items-center justify-center" title="Zoom Out">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+</div>
+<button class="flex items-center gap-1 px-space-sm py-1 rounded bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors font-label-sm text-label-sm font-medium">
+<span class="material-symbols-outlined text-[15px] text-secondary">layers</span>
+<span>Layers (6)</span>
+</button>
+<button class="p-1 rounded bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors flex items-center justify-center" title="Toggle Fullscreen">
+<span class="material-symbols-outlined text-[16px]">fullscreen</span>
+</button>
+</div>
+</div>
+<!-- Cartographic Viewport & High Density Aerial Vector Rendering -->
+<div class="relative w-full h-[460px] bg-primary-container overflow-hidden select-none">
+<!-- Static Stitch overview is shown only when no uploaded extraction image exists. -->
+<div id="dashboard-static-basemap" class="absolute inset-0 bg-cover bg-center opacity-45 mix-blend-luminosity filter contrast-125" data-alt="Illustrative Stitch aerial basemap — demo only." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB4U0TlZC_mCSLT7dcm80McukLvfbflg6NL5OMKkwKTGlotU5vRj6BwQrtfxGpkxHfTJOmzl1uaajUVHuqyqxIFOwgyCWowBMbQ6_SaDkZ4ZIn4LclqNBKGcqTD__CFxdCiRxcXp_-ZbeZpBcPWZ2uPOIXQYT8vKU9A1h_eUrMfjxOyra5kvrLu52hctEpEBXk0HiFRx5Dtz9I2UQJ-S2XrgAwGtz98r8VJ5kOr8MKprwu75UObTNbhxg')"></div>
+<div id="dashboard-live-extraction-image" class="hidden absolute inset-0 bg-center bg-cover" style="background-size:contain;background-repeat:no-repeat;background-color:#111827;" data-alt="Latest uploaded orthophoto used for AI extraction."></div>
+<div id="dashboard-live-extraction-scrim" class="hidden absolute inset-0 bg-black/10 pointer-events-none"></div>
+<div id="dashboard-live-extraction-label" class="hidden absolute top-space-md right-space-md z-20 px-space-sm py-1 rounded bg-surface-container-lowest/95 shadow-md font-label-sm text-label-sm text-on-surface font-mono">
+LIVE BACKEND IMAGE · <span id="dashboard-live-extraction-id">EXT-----</span>
+</div>
+<!-- SVG Vector Cadastral Overlay Graphic -->
+<svg id="dashboard-seeded-vector-layer" class="absolute inset-0 w-full h-full pointer-events-none" preserveaspectratio="none" viewbox="0 0 1000 580">
+<defs>
+<pattern height="40" id="grid" patternunits="userSpaceOnUse" width="40">
+<path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(218, 226, 253, 0.08)" stroke-width="0.8"></path>
+</pattern>
+<pattern height="8" id="hatch-error" patterntransform="rotate(45 0 0)" patternunits="userSpaceOnUse" width="8">
+<line stroke="#ba1a1a" stroke-width="1.8" x1="0" x2="0" y1="0" y2="8"></line>
+</pattern>
+</defs>
+<rect fill="url(#grid)" height="100%" width="100%"></rect>
+<!-- Road Network Centerlines & Rights-of-Way (Gray corridor) -->
+<path d="M 0,290 L 1000,290" stroke="#7c839b" stroke-opacity="0.35" stroke-width="26"></path>
+<path d="M 0,290 L 1000,290" stroke="#dae2fd" stroke-dasharray="6,4" stroke-opacity="0.7" stroke-width="1.5"></path>
+<path d="M 480,0 L 480,580" stroke="#7c839b" stroke-opacity="0.35" stroke-width="22"></path>
+<path d="M 480,0 L 480,580" stroke="#dae2fd" stroke-dasharray="6,4" stroke-opacity="0.7" stroke-width="1.5"></path>
+<path d="M 180,290 L 320,580" stroke="#7c839b" stroke-opacity="0.35" stroke-width="18"></path>
+<path d="M 740,0 L 860,290" stroke="#7c839b" stroke-opacity="0.35" stroke-width="18"></path>
+<!-- Standard Valid Cadastral Parcel Polygons (#0284c7 styled cyan) -->
+<!-- Block 1 NW -->
+<polygon fill="rgba(0, 99, 153, 0.12)" points="50,40 220,35 210,140 45,135" stroke="#006399" stroke-width="1.6"></polygon>
+<polygon fill="rgba(0, 99, 153, 0.12)" points="220,35 440,30 435,130 210,140" stroke="#006399" stroke-width="1.6"></polygon>
+<polygon fill="rgba(0, 99, 153, 0.12)" points="45,135 210,140 205,260 40,255" stroke="#006399" stroke-width="1.6"></polygon>
+<polygon fill="rgba(0, 99, 153, 0.12)" points="210,140 435,130 430,260 205,260" stroke="#006399" stroke-width="1.6"></polygon>
+<!-- Block 2 NE -->
+<polygon fill="rgba(0, 99, 153, 0.12)" points="520,35 710,40 705,150 515,145" stroke="#006399" stroke-width="1.6"></polygon>
+<polygon fill="rgba(0, 99, 153, 0.12)" points="710,40 950,45 940,155 705,150" stroke="#006399" stroke-width="1.6"></polygon>
+<polygon fill="rgba(0, 99, 153, 0.12)" points="515,145 705,150 700,265 510,260" stroke="#006399" stroke-width="1.6"></polygon>
+<polygon fill="rgba(0, 99, 153, 0.12)" points="705,150 940,155 930,270 700,265" stroke="#006399" stroke-width="1.6"></polygon>
+<!-- Block 3 SW -->
+<polygon fill="rgba(0, 99, 153, 0.12)" points="45,325 170,320 190,440 40,430" stroke="#006399" stroke-width="1.6"></polygon>
+<polygon fill="rgba(0, 99, 153, 0.12)" points="170,320 440,325 435,445 190,440" stroke="#006399" stroke-width="1.6"></polygon>
+<polygon fill="rgba(0, 99, 153, 0.12)" points="40,430 190,440 210,550 35,540" stroke="#006399" stroke-width="1.6"></polygon>
+<polygon fill="rgba(0, 99, 153, 0.12)" points="190,440 435,445 430,555 210,550" stroke="#006399" stroke-width="1.6"></polygon>
+<!-- Building Footprints (Amber/Slate geometric roofs) -->
+<rect fill="#dae2fd" fill-opacity="0.35" height="50" stroke="#7bc2ff" stroke-width="1" width="80" x="75" y="55"></rect>
+<rect fill="#dae2fd" fill-opacity="0.35" height="60" stroke="#7bc2ff" stroke-width="1" width="120" x="250" y="50"></rect>
+<rect fill="#dae2fd" fill-opacity="0.35" height="70" stroke="#7bc2ff" stroke-width="1" width="90" x="70" y="160"></rect>
+<rect fill="#dae2fd" fill-opacity="0.35" height="75" stroke="#7bc2ff" stroke-width="1" width="110" x="245" y="165"></rect>
+<rect fill="#dae2fd" fill-opacity="0.35" height="65" stroke="#7bc2ff" stroke-width="1" width="95" x="545" y="55"></rect>
+<rect fill="#dae2fd" fill-opacity="0.35" height="70" stroke="#7bc2ff" stroke-width="1" width="130" x="740" y="60"></rect>
+<!-- Block 4 SE - Problematic Parcels with Flashing High-Contrast Overlays -->
+<!-- Problem Parcel BD-047 (Overlap and roof overhang) -->
+<g class="cursor-pointer">
+<polygon fill="rgba(186, 26, 26, 0.15)" points="515,325 720,330 710,435 510,430" stroke="#ba1a1a" stroke-dasharray="4,2" stroke-width="2.2"></polygon>
+<polygon fill="url(#hatch-error)" fill-opacity="0.4" points="680,330 740,330 735,410 675,410" stroke="#ba1a1a" stroke-width="1.2"></polygon>
+<!-- Building footprint exceeding boundary -->
+<rect fill="#ffdad6" fill-opacity="0.45" height="70" stroke="#ba1a1a" stroke-width="1.5" width="155" x="540" y="345"></rect>
+<circle class="animate-ping" cx="695" cy="380" fill="#ba1a1a" fill-opacity="0.25" r="14"></circle>
+<circle cx="695" cy="380" fill="#ba1a1a" r="5"></circle>
+</g>
+<!-- Problem Parcel BD-082 (Vertex self intersection) -->
+<g class="cursor-pointer">
+<polygon fill="rgba(186, 26, 26, 0.18)" points="720,330 940,320 915,440 760,400 750,445 710,435" stroke="#ba1a1a" stroke-width="2"></polygon>
+<circle class="animate-pulse" cx="755" cy="415" fill="#ba1a1a" fill-opacity="0.3" r="12"></circle>
+<circle cx="755" cy="415" fill="#ba1a1a" r="4"></circle>
+</g>
+<!-- Problem Parcel BD-103 (RoW Gap Discrepancy) -->
+<g class="cursor-pointer">
+<polygon fill="rgba(217, 119, 6, 0.18)" points="510,445 680,450 670,555 505,550" stroke="#d97706" stroke-dasharray="5,3" stroke-width="2"></polygon>
+<line stroke="#d97706" stroke-linecap="round" stroke-width="2.5" x1="505" x2="480" y1="445" y2="445"></line>
+<circle cx="492" cy="445" fill="#d97706" r="3.5"></circle>
+</g>
+<!-- Parcel BD-019 (Shadow Occlusion) -->
+<polygon fill="rgba(0, 99, 153, 0.12)" points="680,450 930,440 920,560 670,555" stroke="#006399" stroke-width="1.6"></polygon>
+<rect fill="#dae2fd" fill-opacity="0.3" height="65" stroke="#7bc2ff" stroke-width="1" width="130" x="710" y="470"></rect>
+<path d="M 830,470 L 850,535 L 835,535 L 815,470 Z" fill="#45464d" fill-opacity="0.5"></path>
+<!-- Parcel Centroid ID Markers (Monospace) -->
+<text fill="#dae2fd" font-family="JetBrains Mono" font-size="10" font-weight="600" x="130" y="85">BD-011</text>
+<text fill="#dae2fd" font-family="JetBrains Mono" font-size="10" font-weight="600" x="320" y="85">BD-012</text>
+<text fill="#dae2fd" font-family="JetBrains Mono" font-size="10" font-weight="600" x="120" y="200">BD-024</text>
+<text fill="#dae2fd" font-family="JetBrains Mono" font-size="10" font-weight="600" x="310" y="205">BD-025</text>
+<text fill="#dae2fd" font-family="JetBrains Mono" font-size="10" font-weight="600" x="590" y="90">BD-033</text>
+<text fill="#dae2fd" font-family="JetBrains Mono" font-size="10" font-weight="600" x="800" y="95">BD-034</text>
+<!-- Problem Centroid Callouts -->
+<text fill="#ffdad6" font-family="JetBrains Mono" font-size="11" font-weight="700" x="575" y="385">BD-047 [ERR]</text>
+<text fill="#ffdad6" font-family="JetBrains Mono" font-size="11" font-weight="700" x="815" y="375">BD-082 [INT]</text>
+<text fill="#fcd34d" font-family="JetBrains Mono" font-size="11" font-weight="700" x="560" y="500">BD-103 [GAP]</text>
+<text fill="#dae2fd" font-family="JetBrains Mono" font-size="10" font-weight="600" x="760" y="500">BD-019</text>
+</svg>
+<!-- Floating Mini-Legend (Level 2 Floating UI Element) -->
+<div id="dashboard-seeded-legend" class="absolute top-space-md left-space-md bg-surface-container-lowest/95 backdrop-blur shadow-md rounded p-space-sm space-y-1.5 max-w-[210px] pointer-events-auto">
+<div class="font-label-sm text-label-sm text-on-surface uppercase tracking-wider font-semibold">Illustrative Demo Layers</div>
+<div class="space-y-1 text-on-surface-variant font-label-sm text-label-sm">
+<div class="font-label-sm text-label-sm text-on-surface-variant mb-1">Not generated by current backend.</div>
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-0.5 bg-secondary"></span>
+<span class="text-on-surface">Parcel Boundaries (248)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 bg-surface-container-highest"></span>
+<span>Building Footprints (231)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-1 bg-outline-variant"></span>
+<span>RoW Centerlines (14)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-error"></span>
+<span class="text-error font-semibold">Topology Overlap (7)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary-container"></span>
+<span class="text-on-secondary-container">Elev. Anomaly DSM (10)</span>
+</div>
+</div>
+</div>
+<!-- Coordinate Cursor Tracker Widget -->
+<div id="dashboard-seeded-coordinate" class="absolute bottom-space-md right-space-md bg-surface-container-lowest/95 backdrop-blur shadow-md rounded px-space-sm py-1 flex items-center gap-space-sm font-label-md text-label-md pointer-events-auto">
+<div class="flex items-center gap-1 text-secondary">
+<span class="material-symbols-outlined text-[14px]">file_download_done</span>
+<span class="font-semibold text-on-surface font-mono">22°43'12.1"N 75°51'39.8"E</span>
+</div>
+<span class="text-outline-variant font-light">|</span>
+<span class="text-on-surface-variant font-mono">Z: 552.8m</span>
+<span class="px-1 rounded bg-surface-container font-label-sm text-label-sm text-on-surface font-semibold font-mono">UTM 43N</span>
+</div>
+<!-- Scale Bar Overlay -->
+<div id="dashboard-seeded-scale" class="absolute bottom-space-md left-space-md bg-surface-container-lowest/90 px-space-sm py-0.5 rounded shadow-sm flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface">
+<div class="w-12 h-1 bg-on-surface"></div>
+<span>25m</span>
+</div>
+</div>
+<!-- Bottom Action strip under map -->
+<div class="p-space-sm bg-surface-container-lowest flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant">
+<div class="flex items-center gap-space-md">
+<span>Basemap: <strong class="text-on-surface font-mono">Illustrative Stitch demo</strong></span>
+<span>Orthorectification: <strong class="text-on-tertiary-container">Not measured by current prototype</strong></span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="inline-flex items-center gap-1 text-secondary">
+<span class="material-symbols-outlined text-[14px]">tune</span>
+<span class="cursor-pointer hover:underline">Adjust Feature Opacity</span>
+</span>
+</div>
+</div>
+</div>
+<!-- 2. Actual CV extraction pipeline summary -->
+<div class="p-space-lg rounded bg-surface-container-lowest shadow-sm space-y-space-md">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold">Cadastral Pipeline <span class="font-label-sm text-label-sm text-on-surface-variant font-normal">(Backend CV prototype)</span></h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant" id="dashboard-pipeline-subtitle">Final pipeline summary; per-stage timings are not exposed by the backend.</p>
+</div>
+<span class="px-space-sm py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-tertiary-container font-semibold font-mono" id="dashboard-pipeline-runtime">--</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-space-sm pt-space-xs" id="dashboard-pipeline-stages">
+<div class="p-space-sm rounded bg-surface-container-low flex flex-col justify-between space-y-2"><span class="font-label-sm text-label-sm text-on-surface-variant font-mono uppercase">Stage 01</span><div class="font-body-sm text-body-sm font-semibold text-on-surface">Image Decode</div><div class="font-label-sm text-label-sm text-on-surface-variant">PIL image ingestion</div></div>
+<div class="p-space-sm rounded bg-surface-container-low flex flex-col justify-between space-y-2"><span class="font-label-sm text-label-sm text-on-surface-variant font-mono uppercase">Stage 02</span><div class="font-body-sm text-body-sm font-semibold text-on-surface">Grayscale + Blur</div><div class="font-label-sm text-label-sm text-on-surface-variant">OpenCV preprocessing</div></div>
+<div class="p-space-sm rounded bg-surface-container-low flex flex-col justify-between space-y-2"><span class="font-label-sm text-label-sm text-on-surface-variant font-mono uppercase">Stage 03</span><div class="font-body-sm text-body-sm font-semibold text-on-surface">Otsu Threshold</div><div class="font-label-sm text-label-sm text-on-surface-variant">Automatic segmentation</div></div>
+<div class="p-space-sm rounded bg-surface-container-low flex flex-col justify-between space-y-2"><span class="font-label-sm text-label-sm text-on-surface-variant font-mono uppercase">Stage 04</span><div class="font-body-sm text-body-sm font-semibold text-on-surface">Morphological Cleanup</div><div class="font-label-sm text-label-sm text-on-surface-variant">Noise / gap cleanup</div></div>
+<div class="p-space-sm rounded bg-surface-container-low flex flex-col justify-between space-y-2"><span class="font-label-sm text-label-sm text-on-surface-variant font-mono uppercase">Stage 05</span><div class="font-body-sm text-body-sm font-semibold text-on-surface">Contour Detection</div><div class="font-label-sm text-label-sm text-on-surface-variant">Largest usable contour</div></div>
+<div class="p-space-sm rounded bg-surface-container-low flex flex-col justify-between space-y-2"><span class="font-label-sm text-label-sm text-on-surface-variant font-mono uppercase">Stage 06</span><div class="font-body-sm text-body-sm font-semibold text-on-surface">Polygon Output</div><div class="font-label-sm text-label-sm text-on-surface-variant" id="dashboard-pipeline-result">No extraction yet</div></div>
+</div>
+</div>
+<!-- Right Column (35% -> col-span-4) -->
+<div class="lg:col-span-4 space-y-space-lg">
+<!-- 1. Survey Priority Summary -->
+<div class="p-space-lg rounded bg-surface-container-lowest shadow-sm space-y-space-md">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold">Survey Priority Allocation</h2>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono" id="priority-total-label">N=-- Parcels</span>
+</div>
+<!-- Stacked Proportion Bar -->
+<div class="w-full space-y-1.5">
+<div class="w-full h-3 rounded overflow-hidden flex bg-surface-container" id="priority-bar">
+<div class="h-full bg-error" style="width: 0%;" title="High" id="priority-bar-high"></div>
+<div class="h-full bg-secondary-container" style="width: 0%;" title="Medium" id="priority-bar-medium"></div>
+<div class="h-full bg-secondary" style="width: 100%;" title="Low" id="priority-bar-low"></div>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>Immediate Field Visit: <strong class="text-error font-mono" id="priority-pct-high">--%</strong></span>
+<span>Autonomous Sign-off: <strong class="text-secondary font-mono" id="priority-pct-low">--%</strong></span>
+</div>
+</div>
+<!-- Risk Cards Stack -->
+<div class="space-y-space-xs">
+<!-- High Priority Card -->
+<div class="p-space-md rounded bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-3 h-8 rounded-sm bg-error"></div>
+<div>
+<div class="font-body-sm text-body-sm font-bold text-on-surface">HIGH PRIORITY</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Requires Immediate Surveyor Inspection</div>
+</div>
+</div>
+<div class="text-right">
+<span class="font-headline-lg text-headline-lg font-bold text-error font-label-md" id="priority-count-high">--</span>
+<span class="block font-label-sm text-label-sm text-on-surface-variant">Parcels</span>
+</div>
+</div>
+<!-- Medium Priority Card -->
+<div class="p-space-md rounded bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-3 h-8 rounded-sm bg-secondary-container"></div>
+<div>
+<div class="font-body-sm text-body-sm font-bold text-on-surface">MEDIUM PRIORITY</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Minor Overlap / Shadow Ambiguity</div>
+</div>
+</div>
+<div class="text-right">
+<span class="font-headline-lg text-headline-lg font-bold text-on-secondary-container font-label-md" id="priority-count-medium">--</span>
+<span class="block font-label-sm text-label-sm text-on-surface-variant">Parcels</span>
+</div>
+</div>
+<!-- Low Priority Card -->
+<div class="p-space-md rounded bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-3 h-8 rounded-sm bg-secondary"></div>
+<div>
+<div class="font-body-sm text-body-sm font-bold text-on-surface">LOW PRIORITY</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">High Confidence, AI-Concordant</div>
+</div>
+</div>
+<div class="text-right">
+<span class="font-headline-lg text-headline-lg font-bold text-secondary font-label-md" id="priority-count-low">--</span>
+<span class="block font-label-sm text-label-sm text-on-surface-variant">Parcels</span>
+</div>
+</div>
+</div>
+<!-- Philosophy Call-out Box -->
+<div class="p-space-md rounded bg-surface-container text-on-surface space-y-1">
+<div class="flex items-center gap-1.5 font-label-sm text-label-sm font-bold text-secondary uppercase tracking-wider">
+<span class="material-symbols-outlined text-[15px]">psychology</span>
+<span>Operational Philosophy</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant italic leading-relaxed">
+              "AI generates the map. AI flags spatial discrepancies. Surveyor verifies only what matters."
+            </p>
+</div>
+</div>
+<!-- 2. Critical Spatial Discrepancies (Recent Issues Table) -->
+<div class="p-space-lg rounded bg-surface-container-lowest shadow-sm space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-error">fmd_bad</span>
+<h2 class="font-headline-md text-headline-md text-on-surface font-bold">Critical Discrepancies</h2>
+</div>
+<span class="px-space-xs py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold font-mono" id="discrepancies-count-badge">
+              Action Req (--)
+            </span>
+</div>
+<!-- Issues Table / List (populated live from /api/survey-queue) -->
+<div class="space-y-space-xs" id="critical-discrepancies-list">
+<div class="font-body-sm text-body-sm text-on-surface-variant p-space-sm">Loading survey queue…</div>
+</div>
+<template id="discrepancy-card-template">
+<div class="p-space-sm rounded bg-surface-container-low hover:bg-surface-container transition-colors flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-md text-label-md font-bold text-on-surface" data-field="parcel_id">Parcel</span>
+<span class="px-1.5 py-0.2 rounded font-label-sm text-label-sm font-bold uppercase" data-field="priority-badge">PRIORITY</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">Conf: <strong data-field="confidence">--%</strong></span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant" data-field="reason">--</p>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono" data-field="ward">--</span>
+<button class="inline-flex items-center gap-0.5 px-space-sm py-1 rounded bg-surface-container-highest text-on-surface hover:bg-primary hover:text-on-primary transition-colors font-label-sm text-label-sm font-semibold" data-field="inspect-btn">
+<span>Inspect</span>
+<span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</template>
+<!-- Bottom Topology View Link -->
+<div class="pt-space-xs">
+<a class="inline-flex items-center gap-1 font-body-sm text-body-sm font-semibold text-secondary hover:text-on-surface transition-colors" href="topology-validation.html">
+<span id="topology-link-label">View all flagged issues in Topology Validation</span>
+<span class="material-symbols-outlined text-[16px]">arrow_right_alt</span>
+</a>
+</div>
+<div class="mt-space-sm p-space-sm rounded bg-surface-container-low flex items-center justify-between text-body-sm" id="extraction-activity-card">
+<span class="text-on-surface-variant">AI Extractions this backend session:</span>
+<span class="font-mono font-semibold text-on-surface" id="extraction-activity-text">loading…</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div>
+<script>
+async function initDashboard() {
+  const $ = (id) => document.getElementById(id);
+  const setText = (id, value) => { const el = $(id); if (el) el.textContent = value; };
+
+  function renderPriority(queueRes) {
+    const queue = Array.isArray(queueRes.queue) ? queueRes.queue : [];
+    const total = queue.length;
+    const high = typeof queueRes.high_count === "number" ? queueRes.high_count : queue.filter(q => q.priority === "high").length;
+    const medium = typeof queueRes.medium_count === "number" ? queueRes.medium_count : queue.filter(q => q.priority === "medium").length;
+    const low = typeof queueRes.low_count === "number" ? queueRes.low_count : queue.filter(q => q.priority === "low").length;
+    const denominator = total || 1;
+
+    setText("priority-total-label", `N=${total} Queue Records`);
+    setText("priority-count-high", high);
+    setText("priority-count-medium", medium);
+    setText("priority-count-low", low);
+    setText("priority-pct-high", `${(100 * high / denominator).toFixed(1)}%`);
+    setText("priority-pct-low", `${(100 * low / denominator).toFixed(1)}%`);
+    if ($("priority-bar-high")) $("priority-bar-high").style.width = `${100 * high / denominator}%`;
+    if ($("priority-bar-medium")) $("priority-bar-medium").style.width = `${100 * medium / denominator}%`;
+    if ($("priority-bar-low")) $("priority-bar-low").style.width = `${100 * low / denominator}%`;
+    return queue;
+  }
+
+  function renderDiscrepancies(queue, issues) {
+    // Only records requiring attention are shown under "Critical Discrepancies".
+    // Low-risk records remain visible in the Survey Priority page but are not
+    // mislabeled as discrepancies here.
+    const actionQueue = queue.filter(item => item.priority === "high" || item.priority === "medium");
+    setText("discrepancies-count-badge", `Action Req (${actionQueue.length})`);
+    setText("topology-link-label", `View all ${issues.length} flagged issues in Topology Validation`);
+
+    const listEl = $("critical-discrepancies-list");
+    const tpl = $("discrepancy-card-template");
+    if (!listEl || !tpl) return;
+    listEl.innerHTML = "";
+
+    if (!actionQueue.length) {
+      listEl.innerHTML =
+        '<div class="font-body-sm text-body-sm text-on-surface-variant p-space-sm">No high/medium priority records currently require attention.</div>';
+      return;
+    }
+
+    for (const item of actionQueue.slice(0, 6)) {
+      const node = tpl.content.cloneNode(true);
+      const pid = String(item.parcel_id || "Unknown");
+      const isExtraction = item.is_extraction === true || pid.startsWith("EXT-");
+      node.querySelector('[data-field="parcel_id"]').textContent = `Parcel ${pid}`;
+
+      const badge = node.querySelector('[data-field="priority-badge"]');
+      badge.textContent = String(item.priority || "unknown").toUpperCase();
+      badge.className =
+        item.priority === "high"
+          ? "px-1.5 py-0.2 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold uppercase"
+          : "px-1.5 py-0.2 rounded bg-surface-container text-on-secondary-container font-label-sm text-label-sm font-bold uppercase";
+
+      const conf = Number(item.confidence);
+      const aiConf = Number(item.ai_confidence_heuristic);
+      node.querySelector('[data-field="confidence"]').textContent =
+        isExtraction && Number.isFinite(aiConf)
+          ? `${aiConf.toFixed(1)}% CV / ${Number.isFinite(conf) ? conf.toFixed(1) : "--"}% survey`
+          : (Number.isFinite(conf) ? `${conf.toFixed(1)}%` : "--");
+
+      const reasons = Array.isArray(item.reasons) ? item.reasons : [];
+      node.querySelector('[data-field="reason"]').textContent =
+        reasons.length ? reasons.join("; ") : "No specific risk reason reported by backend.";
+
+      const topo = Number(item.topology_issue_count);
+      node.querySelector('[data-field="ward"]').textContent =
+        `Risk score: ${Number.isFinite(Number(item.risk_score)) ? Number(item.risk_score).toFixed(1) : "--"} · Topology issues: ${Number.isFinite(topo) ? topo : "--"}${isExtraction ? " · AI extraction" : " · Seeded demo"}`;
+
+      const btn = node.querySelector('[data-field="inspect-btn"]');
+      if (isExtraction) {
+        btn.title = "Open EXT record in Field Verification";
+        btn.addEventListener("click", () => {
+          window.location.href = `field-verification.html?parcel=${encodeURIComponent(pid)}`;
+        });
+        btn.querySelector("span").textContent = "Verify";
+      } else {
+        btn.addEventListener("click", () => {
+          window.location.href = linkWithParcel("field-verification.html", pid);
+        });
+      }
+      listEl.appendChild(node);
+    }
+  }
+
+  async function renderLatestExtraction(extractions) {
+    const latest = extractions.length ? extractions[extractions.length - 1] : null;
+    setText("kpi-extraction-count", extractions.length);
+
+    if (!latest) {
+      setText("kpi-extraction-conf", "No extractions yet");
+      setText("kpi-confidence-subtext", "No AI extractions yet");
+      setText("kpi-confidence-count", "0 records");
+      setText("dashboard-pipeline-subtitle", "Final pipeline summary; per-stage timings are not exposed by the backend.");
+      setText("dashboard-pipeline-runtime", "--");
+      setText("dashboard-pipeline-result", "No extraction yet");
+      return;
+    }
+
+    const mean = extractions.reduce((sum, e) => sum + Number(e.confidence_heuristic || 0), 0) / extractions.length;
+    setText("kpi-extraction-conf", `${mean.toFixed(1)}% mean heuristic`);
+    setText("kpi-confidence-subtext", "Mean CV segmentation heuristic");
+    setText("kpi-confidence-count", `${extractions.length} record${extractions.length === 1 ? "" : "s"}`);
+    setText("dashboard-pipeline-subtitle", `Latest backend extraction: ${latest.extraction_id} · ${latest.source_filename || "uploaded image"}`);
+    setText("dashboard-pipeline-runtime", `${latest.inference_mode || "CV prototype"}`);
+    setText("dashboard-pipeline-result", `${latest.extraction_id} · ${Number(latest.area_m2 || 0).toFixed(2)} m²`);
+
+    // Show the actual uploaded image from browser-local IndexedDB when it is
+    // available. The backend stores geometry/results; the browser stores the
+    // large image Blob so it can be reused across pages without bundling it.
+    try {
+      const image = await getExtractionImage(latest.extraction_id);
+      const live = $("dashboard-live-extraction-image");
+      const label = $("dashboard-live-extraction-label");
+      const idEl = $("dashboard-live-extraction-id");
+      const staticMap = $("dashboard-static-basemap");
+      const svg = $("dashboard-seeded-vector-layer");
+      const legend = $("dashboard-seeded-legend");
+      const coords = $("dashboard-seeded-coordinate");
+      const scale = $("dashboard-seeded-scale");
+
+      if (image && live) {
+        const url = URL.createObjectURL(image);
+        live.style.backgroundImage = `url("${url}")`;
+        live.classList.remove("hidden");
+        if ($("dashboard-live-extraction-scrim")) $("dashboard-live-extraction-scrim").classList.remove("hidden");
+        if (label) label.classList.remove("hidden");
+        if (idEl) idEl.textContent = latest.extraction_id;
+        // Do not draw the unrelated seeded cadastral geometry over an
+        // un-georeferenced uploaded image.
+        [staticMap, svg, legend, coords, scale].forEach(el => { if (el) el.classList.add("hidden"); });
+        // Object URL is intentionally kept for this page lifetime.
+      }
+    } catch (err) {
+      console.warn("[BhuDrishti] latest extraction image unavailable:", err);
+    }
+  }
+
+  try {
+    const [parcelsRes, issuesRes, queueRes, extractionsRes] = await Promise.all([
+      BhuDrishtiAPI.getParcels(),
+      BhuDrishtiAPI.getTopologyIssues(),
+      BhuDrishtiAPI.getSurveyQueue(),
+      BhuDrishtiAPI.getExtractions(),
+    ]);
+
+    const parcels = Array.isArray(parcelsRes.parcels) ? parcelsRes.parcels : [];
+    const issues = Array.isArray(issuesRes.issues) ? issuesRes.issues : [];
+    const queue = renderPriority(queueRes);
+    const extractions = Array.isArray(extractionsRes.extractions) ? extractionsRes.extractions : [];
+
+    // Seeded parcel KPI: explicitly seeded and therefore intentionally
+    // separate from AI-preliminary EXT-* records.
+    setText("kpi-parcel-count", parcels.length);
+    const totalAreaHa = parcels.reduce((sum, p) => sum + Number(p.area_m2 || 0), 0) / 10000;
+    setText("kpi-parcel-area", `${totalAreaHa.toFixed(2)} Hectares · seeded demo dataset`);
+
+    // Topology issue KPI is from the live endpoint.
+    setText("kpi-issues-count", issues.length);
+    const critical = issues.filter(i => i.severity === "critical").length;
+    const warning = issues.filter(i => i.severity === "warning").length;
+    setText("kpi-issues-breakdown", `${critical} critical, ${warning} warning`);
+
+    // CV confidence is based ONLY on actual EXT-* extraction records.
+    if (extractions.length) {
+      const meanConf = extractions.reduce((sum, e) => sum + Number(e.confidence_heuristic || 0), 0) / extractions.length;
+      setText("kpi-avg-confidence", `${meanConf.toFixed(1)}%`);
+    } else {
+      setText("kpi-avg-confidence", "--");
+    }
+
+    renderDiscrepancies(queue, issues);
+    await renderLatestExtraction(extractions);
+
+    const activityText = $("extraction-activity-text");
+    if (activityText) {
+      if (!extractions.length) {
+        activityText.textContent = "0 (no images processed yet this backend session)";
+      } else {
+        const latest = extractions[extractions.length - 1];
+        activityText.textContent =
+          `${extractions.length} — latest: ${latest.extraction_id} (${Number(latest.confidence_heuristic || 0).toFixed(1)}% heuristic conf., ${latest.status})`;
+      }
+    }
+  } catch (err) {
+    showApiError(err);
+  }
+}
+
+let dashboardLoading = false;
+async function refreshDashboard() {
+  if (dashboardLoading) return;
+  dashboardLoading = true;
+  try {
+    await initDashboard();
+  } finally {
+    dashboardLoading = false;
+  }
+}
+
+refreshDashboard();
+window.addEventListener("pageshow", refreshDashboard);
+window.addEventListener("focus", refreshDashboard);
+</script>
+</body></html>
