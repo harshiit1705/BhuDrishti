@@ -36,8 +36,12 @@ Thumbs.db
 
 # Generated output
 dist/
+<<<<<<< HEAD
 build/
 backend/data/bhudrishti.db
 backend/data/bhudrishti.db-*
 backend/app/data/
 backend/data/uploads/
+=======
+build/
+>>>>>>> origin/main

@@ -1,11 +1,20 @@
+<<<<<<< HEAD
 """Persistent extraction repository for the prototype.
 
 Uses SQLite so uploaded extraction records survive page navigation, refresh,
 and backend restarts. Geometry is stored as WKT and rich candidate metadata as JSON.
+=======
+"""
+Extraction record store -- holds AI-generated preliminary geometry produced
+by extraction_engine.run_cv_inference(), kept SEPARATE from the seeded demo
+`PARCELS` dict in main.py so real inference output is never confused with,
+or silently mutates, the fixture data.
+>>>>>>> origin/main
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+<<<<<<< HEAD
 import json
 import sqlite3
 from pathlib import Path
@@ -20,6 +29,9 @@ def _conn():
     c = sqlite3.connect(DB_PATH)
     c.row_factory = sqlite3.Row
     return c
+=======
+from shapely.geometry import Polygon, mapping
+>>>>>>> origin/main
 
 
 @dataclass
@@ -37,9 +49,14 @@ class ExtractionRecord:
     parcel_candidates: list = field(default_factory=list)
     roof_footprints: list = field(default_factory=list)
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+<<<<<<< HEAD
     status: str = "ai_preliminary"
     is_demo_data: bool = False
     dataset_id: str | None = None
+=======
+    status: str = "ai_preliminary"   # distinct from verification_store's parcel-verification states
+    is_demo_data: bool = False
+>>>>>>> origin/main
 
     @property
     def area_m2(self) -> float:
@@ -63,6 +80,7 @@ class ExtractionRecord:
             "created_at": self.created_at,
             "status": self.status,
             "is_demo_data": self.is_demo_data,
+<<<<<<< HEAD
             "dataset_id": self.dataset_id,
         }
 
@@ -123,3 +141,31 @@ class PersistentExtractionRepository:
 
 ExtractionStore = PersistentExtractionRepository
 extraction_store = PersistentExtractionRepository()
+=======
+        }
+
+
+class InMemoryExtractionRepository:
+    def __init__(self):
+        self._records: dict[str, ExtractionRecord] = {}
+        self._counter = 0
+
+    def new_id(self) -> str:
+        self._counter += 1
+        return f"EXT-{self._counter:04d}"
+
+    def save(self, record: ExtractionRecord) -> ExtractionRecord:
+        self._records[record.extraction_id] = record
+        return record
+
+    def get(self, extraction_id: str) -> ExtractionRecord | None:
+        return self._records.get(extraction_id)
+
+    def all(self) -> list[ExtractionRecord]:
+        return list(self._records.values())
+
+
+ExtractionStore = InMemoryExtractionRepository
+
+extraction_store = InMemoryExtractionRepository()
+>>>>>>> origin/main

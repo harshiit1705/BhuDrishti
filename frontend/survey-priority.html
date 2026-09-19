@@ -556,7 +556,11 @@ Field dispatch, rover assignment, HITL editing, and certification are outside th
         ? `<div class="text-[10px] text-on-surface-variant mt-0.5" title="CV segmentation-quality heuristic from the upload pipeline; it is not survey risk">AI/CV: ${num(item.ai_confidence_heuristic).toFixed(1)}%</div>`
         : '';
       const confidenceCell = `<div>Survey: ${surveyConfidence.toFixed(1)}%</div>${aiConfidence}`;
+<<<<<<< HEAD
       const actionCell = `<a href="field-verification.html?parcel=${encodeURIComponent(item.parcel_id)}" onclick="event.stopPropagation()" class="inline-flex items-center gap-1 px-2 py-1 rounded bg-primary text-on-primary font-label-sm font-semibold"><span class="material-symbols-outlined text-[14px]">edit_location_alt</span>Verify</a>`;
+=======
+      const actionCell = '<span class="px-1.5 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface-variant">Not connected</span>';
+>>>>>>> origin/main
 
       return `<tr class="hover:bg-surface-container-low cursor-pointer transition-colors" data-id="${item.parcel_id}">
         <td class="py-2.5 px-3 text-on-surface-variant">${idx + 1}</td>
@@ -564,7 +568,11 @@ Field dispatch, rover assignment, HITL editing, and certification are outside th
         <td class="py-2.5 px-3">${priorityBadge(item.priority)} <div class="mt-1 text-on-surface-variant text-[11px]">Risk: ${risk.toFixed(1)} · Topology: ${topology}</div></td>
         <td class="py-2.5 px-3 text-on-surface">${confidenceCell}</td>
         <td class="py-2.5 px-3 text-on-surface-variant">${primaryReason}</td>
+<<<<<<< HEAD
         <td class="py-2.5 px-3 text-on-surface-variant">${item.verification_status || 'unverified'}</td>
+=======
+        <td class="py-2.5 px-3 text-on-surface-variant"><span class="px-1.5 py-0.5 rounded bg-surface-container font-label-sm text-label-sm">Not tracked by backend</span></td>
+>>>>>>> origin/main
         <td class="py-2.5 px-3 text-right">${actionCell}</td>
       </tr>`;
     }).join('');

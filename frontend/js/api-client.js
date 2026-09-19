@@ -68,6 +68,7 @@ const BhuDrishtiAPI = {
   getProject: (projectId) => apiRequest(`/api/projects/${encodeURIComponent(projectId)}`),
 
   // Datasets
+<<<<<<< HEAD
   validateDataset: (payload) => apiRequest("/api/datasets/validate", { method: "POST", body: JSON.stringify(payload) }),
   uploadDataset: async (file, declaredCrs = "LOCAL-DEMO") => {
     const form = new FormData(); form.append("file", file, file.name); form.append("declared_crs", declaredCrs);
@@ -78,13 +79,24 @@ const BhuDrishtiAPI = {
   getDatasets: () => apiRequest("/api/datasets"),
   inferDataset: (datasetId) => apiRequest(`/api/datasets/${encodeURIComponent(datasetId)}/infer`, {method:"POST"}),
   getDatasetFileUrl: (datasetId) => `${API_BASE_URL}/api/datasets/${encodeURIComponent(datasetId)}/file`,
+=======
+  validateDataset: (payload) =>
+    apiRequest("/api/datasets/validate", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+>>>>>>> origin/main
 
   // Parcels
   getParcels: () => apiRequest("/api/parcels"),
   getParcel: (parcelId) => apiRequest(`/api/parcels/${encodeURIComponent(parcelId)}`),
 
   // Topology
+<<<<<<< HEAD
   getTopologyIssues: (parcelId = null) => apiRequest(`/api/topology/issues${parcelId ? `?parcel_id=${encodeURIComponent(parcelId)}` : ""}`),
+=======
+  getTopologyIssues: () => apiRequest("/api/topology/issues"),
+>>>>>>> origin/main
 
   // Elevation
   getElevation: (parcelId) => apiRequest(`/api/elevation/${encodeURIComponent(parcelId)}`),
@@ -256,7 +268,11 @@ async function syncSystemStatus() {
   if (document.querySelector("[data-bhudrishti-system-status]")) return;
   const el = document.createElement("div");
   el.setAttribute("data-bhudrishti-system-status", "true");
+<<<<<<< HEAD
   el.style.cssText = "position:fixed;right:18px;bottom:88px;z-index:9998;pointer-events:none;background:rgba(255,255,255,.96);border:1px solid rgba(0,0,0,.10);border-radius:10px;padding:7px 10px;font:600 10px/1.35 Inter,sans-serif;color:#334155;box-shadow:0 3px 14px rgba(0,0,0,.10);max-width:290px;";
+=======
+  el.style.cssText = "position:fixed;right:18px;bottom:18px;z-index:9998;background:rgba(255,255,255,.96);border:1px solid rgba(0,0,0,.10);border-radius:10px;padding:7px 10px;font:600 10px/1.35 Inter,sans-serif;color:#334155;box-shadow:0 3px 14px rgba(0,0,0,.10);max-width:290px;";
+>>>>>>> origin/main
   el.textContent = "Backend status: checking…";
   document.body.appendChild(el);
   try {

@@ -15,7 +15,11 @@ class Repository(Protocol, Generic[T]):
     def all(self) -> list[T]: ...
 
 class InMemoryRepository(Generic[T]):
+<<<<<<< HEAD
     """Legacy generic helper retained for compatibility; workflow stores use SQLite."""
+=======
+    """Generic in-memory repository used by the prototype runtime."""
+>>>>>>> origin/main
     def __init__(self):
         self._items: dict[str, T] = {}
 
@@ -33,5 +37,10 @@ class InMemoryRepository(Generic[T]):
     def all(self) -> list[T]:
         return list(self._items.values())
 
+<<<<<<< HEAD
 PERSISTENCE_MODE = "sqlite_file"
 PERSISTENCE_LABEL = "SQLite File / Prototype Persistence"
+=======
+PERSISTENCE_MODE = "in_memory_session"
+PERSISTENCE_LABEL = "Session Memory / Prototype"
+>>>>>>> origin/main

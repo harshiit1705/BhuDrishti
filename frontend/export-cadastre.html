@@ -333,7 +333,10 @@
 <span class="px-2 py-0.5 rounded bg-surface-container-highest font-label-sm text-label-sm text-on-surface font-mono font-bold uppercase">
             LOCAL-DEMO • scale not validated
           </span>
+<<<<<<< HEAD
 <span id="export-active-target" class="hidden px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold uppercase">ACTIVE TARGET</span>
+=======
+>>>>>>> origin/main
 </div>
 <!-- View Controls & Inspection Pill -->
 <div class="flex items-center gap-space-sm">
@@ -350,10 +353,14 @@
 </div>
 <!-- Vector Map Stage -->
 <div class="relative w-full h-[520px] bg-surface-container-low overflow-hidden select-none" id="cadastralViewport">
+<<<<<<< HEAD
 <div id="export-source-banner" class="absolute left-3 bottom-3 z-20 hidden px-3 py-2 rounded-lg bg-primary text-on-primary font-label-sm shadow-lg">ACTIVE BACKEND RECORD</div>
 <!-- Interactive Synthetic Vector Cadastre SVG -->
 <img id="export-uploaded-orthophoto" class="absolute inset-0 w-full h-full object-contain hidden" alt="Active uploaded orthophoto for the selected extraction" />
 <svg id="export-dynamic-svg" class="absolute inset-0 w-full h-full pointer-events-none hidden" viewbox="0 0 1200 600" preserveAspectRatio="xMidYMid meet"><polygon id="export-active-boundary" fill="rgba(0,99,153,.18)" stroke="#006399" stroke-width="4"></polygon><g id="export-roof-layer"></g><g id="export-candidate-layer"></g></svg>
+=======
+<!-- Interactive Synthetic Vector Cadastre SVG -->
+>>>>>>> origin/main
 <svg class="w-full h-full object-cover" viewbox="0 0 1200 600">
 <!-- Coordinate Grid Lines -->
 <g class="text-surface-container-high" stroke="currentColor" stroke-dasharray="4 4" stroke-width="1">
@@ -676,6 +683,7 @@
 </section>
 <!-- Interactive Client-side Logic for Map and Actions -->
 <script>
+<<<<<<< HEAD
     // Selected EXT-* export view: use the same persisted extraction, source ORI,
     // candidate parcels and roof footprints that were shown in GIS/Field Verification.
     (async function loadSelectedExportTarget(){
@@ -722,6 +730,8 @@
       }catch(err){showApiError(err);}
     })();
 
+=======
+>>>>>>> origin/main
     // Parcel Inspection Interaction
     const parcels = document.querySelectorAll('.parcel');
     const badgeParcelId = document.getElementById('badgeParcelId');
@@ -749,9 +759,13 @@
         downloadBtn.disabled = true;
         downloadBtn.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span><span>Fetching from backend…</span>';
         try {
+<<<<<<< HEAD
           const fullData = await BhuDrishtiAPI.getExportGeojson();
           const target = new URLSearchParams(window.location.search).get('parcel') || new URLSearchParams(window.location.search).get('parcel_id');
           const data = target ? {...fullData, features: fullData.features.filter(f => f.properties.parcel_id === target)} : fullData;
+=======
+          const data = await BhuDrishtiAPI.getExportGeojson();
+>>>>>>> origin/main
           const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/geo+json' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
@@ -786,12 +800,18 @@
           BhuDrishtiAPI.getExportGeojson(),
         ]);
 
+<<<<<<< HEAD
         const params = new URLSearchParams(window.location.search);
         const target = params.get('parcel') || params.get('parcel_id');
         const targetFeatures = target ? exportData.features.filter(f => f.properties.parcel_id === target) : exportData.features;
         const total = target ? targetFeatures.length : exportData.features.length;
         const verifiedCount = targetFeatures.filter(f => f.properties.source === 'surveyor_verified').length;
         const aiCount = Math.max(0, total - verifiedCount);
+=======
+        const total = parcelsRes.count;
+        const verifiedCount = exportData.features.filter(f => f.properties.source === 'surveyor_verified').length;
+        const aiCount = total - verifiedCount;
+>>>>>>> origin/main
         const pct = total ? Math.round((verifiedCount / total) * 100) : 0;
 
         const frac = document.getElementById('metricParcelsFrac');
@@ -800,7 +820,11 @@
         const bar = document.getElementById('metricParcelsBar');
         if (frac) frac.textContent = `${verifiedCount} / ${total}`;
         if (pctEl) pctEl.textContent = `${pct}% Certified`;
+<<<<<<< HEAD
         if (breakdown) breakdown.textContent = target ? `${aiCount} AI Preliminary + ${verifiedCount} Surveyor Certified · selected ${target}` : `${aiCount} AI Preliminary + ${verifiedCount} Surveyor Certified`;
+=======
+        if (breakdown) breakdown.textContent = `${aiCount} AI Preliminary + ${verifiedCount} Surveyor Certified`;
+>>>>>>> origin/main
         if (bar) bar.style.width = `${pct}%`;
 
         const openIssues = topoRes.issues.filter(i => i.status === 'open');

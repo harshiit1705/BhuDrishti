@@ -613,7 +613,11 @@
       const disclosure = document.getElementById('elevationDisclosure');
       if (disclosure) {
         disclosure.innerHTML = '<span class="material-symbols-outlined text-[14px] align-middle">info</span> ' +
+<<<<<<< HEAD
           `Live from /api/elevation/${parcelId} — Synthetic Prototype Elevation. Not a real DSM/DTM, not a real drone elevation survey; vertical accuracy not validated.`;
+=======
+          `Live from /api/elevation/${parcelId} — synthetic demo raster (nDSM = DSM − DTM = ${elev.ndsm_mean_m.toFixed(2)}m mean). Not a real drone survey.`;
+>>>>>>> origin/main
       }
     } catch (err) {
       showApiError(err);

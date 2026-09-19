@@ -259,6 +259,7 @@
 </div>
 <h1 class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight">Create Cadastral Survey Project</h1>
 <p class="font-body-lg text-body-lg text-on-surface-variant max-w-3xl">Upload orthorectified drone imagery, elevation rasters (DSM/DTM), and spatial ground truth for AI parcel extraction.</p>
+<<<<<<< HEAD
 <div class="mt-space-sm rounded-lg border border-outline-variant bg-surface-container-low px-space-md py-space-sm flex flex-col md:flex-row md:items-center md:justify-between gap-space-sm">
   <div>
     <div class="font-label-sm text-label-sm font-bold text-on-surface">SURVEY PROJECT INTAKE</div>
@@ -266,6 +267,8 @@
   </div>
   <div id="datasetWorkflowState" class="shrink-0 px-3 py-2 rounded-lg bg-surface-container font-label-sm text-label-sm font-semibold text-on-surface-variant">No ORI dataset selected</div>
 </div>
+=======
+>>>>>>> origin/main
 </div>
 <div class="flex items-center gap-space-sm self-start md:self-auto">
 <div class="flex items-center gap-space-xs px-space-md py-space-xs bg-surface-container-low rounded-lg shadow-sm">
@@ -360,7 +363,11 @@
 </div>
 <!-- Visual Preview Canvas Container -->
 <div class="relative w-full h-32 rounded-lg overflow-hidden bg-surface-container shadow-inner">
+<<<<<<< HEAD
 <img class="w-full h-full object-cover" id="oriPreviewImage" data-alt="High resolution aerial drone orthomosaic photogrammetry showing geometric urban building footprints, paved roads, and clear property boundaries with sharp contrast under bright midday sun." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQX8dXBarat_mdbUdGK5BRq8FPx2CLnRmoCGjgo9Ze5t_oFaSjJhby2Gbyco6LdjfyhZ9HP-A1vyVVLSLL1an5g_kZNPST3hKJI_c4JCIMCbpiSidgvOtt6ZSfP56k7S6HiXA30tzy0ta3GHXzNXDlTC1FlMKo_rIevJZb8OlyERYfyAXIgKL0MHmwIb2uJ-PqLj846U7U33i5Ja0HZc_6OKjEQHcdqIG-DzWfANlcopB1r-ug_SZs0Q"/>
+=======
+<img class="w-full h-full object-cover" data-alt="High resolution aerial drone orthomosaic photogrammetry showing geometric urban building footprints, paved roads, and clear property boundaries with sharp contrast under bright midday sun." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQX8dXBarat_mdbUdGK5BRq8FPx2CLnRmoCGjgo9Ze5t_oFaSjJhby2Gbyco6LdjfyhZ9HP-A1vyVVLSLL1an5g_kZNPST3hKJI_c4JCIMCbpiSidgvOtt6ZSfP56k7S6HiXA30tzy0ta3GHXzNXDlTC1FlMKo_rIevJZb8OlyERYfyAXIgKL0MHmwIb2uJ-PqLj846U7U33i5Ja0HZc_6OKjEQHcdqIG-DzWfANlcopB1r-ug_SZs0Q"/>
+>>>>>>> origin/main
 <div class="absolute inset-0 bg-gradient-to-t from-primary-container/80 via-transparent to-transparent flex items-end p-space-sm">
 <span class="font-label-sm text-label-sm text-surface font-mono">RGB • 3-Band • GeoTIFF Tile Matrix</span>
 </div>
@@ -368,27 +375,43 @@
 <!-- Upload File Strip -->
 <div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-1">
 <div class="flex items-center justify-between font-label-sm text-label-sm">
+<<<<<<< HEAD
 <span id="oriFileName" class="font-mono font-semibold text-on-surface truncate">No ORI selected</span>
 <span id="oriFileSize" class="font-mono text-secondary font-bold">—</span>
+=======
+<span class="font-mono font-semibold text-on-surface truncate">indore_u04_drone_ortho_2.5cm.tif</span>
+<span class="font-mono text-secondary font-bold">1.42 GB</span>
+>>>>>>> origin/main
 </div>
 <div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
 <span class="flex items-center gap-1 text-on-tertiary-container font-medium">
 <span class="material-symbols-outlined text-[14px]">done_all</span> Valid Pyramids &amp; GeoTIFF Tags
                 </span>
+<<<<<<< HEAD
 <span id="oriStatus">Waiting for upload</span>
 </div>
 <div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden mt-1">
 <div id="oriProgress" class="bg-secondary h-full rounded-full w-0 transition-all"></div>
+=======
+<span class="font-mono">100% Ingested</span>
+</div>
+<div class="w-full bg-surface-container h-1.5 rounded-full overflow-hidden mt-1">
+<div class="bg-secondary h-full rounded-full w-full"></div>
+>>>>>>> origin/main
 </div>
 </div>
 </div>
 <div class="flex items-center justify-between pt-space-xs font-label-sm text-label-sm text-on-surface-variant">
 <span class="truncate">Supported: GeoTIFF, COG, ECW</span>
+<<<<<<< HEAD
 <div class="flex items-center gap-space-sm">
 <button id="btnDatasetUpload" type="button" class="px-space-sm py-1 rounded bg-surface-container text-on-surface font-semibold hover:bg-surface-container-high transition-colors">Upload / Replace</button>
 <input id="datasetFileInput" type="file" accept=".tif,.tiff,.png,.jpg,.jpeg,.geojson,.las,.laz" class="hidden"/>
 <span id="oriDatasetId" class="font-mono text-[10px] text-on-surface-variant">No dataset</span>
 </div>
+=======
+<button class="px-space-sm py-1 rounded bg-surface-container text-on-surface font-semibold hover:bg-surface-container-high transition-colors">Re-upload</button>
+>>>>>>> origin/main
 </div>
 </div>
 <!-- Card 2: Digital Surface Model (DSM) -->
@@ -631,8 +654,13 @@
 <span class="material-symbols-outlined text-[18px] text-secondary">fact_check</span>
 <span>Validate Spatial Alignment &amp; CRS</span>
 </button>
+<<<<<<< HEAD
 <button id="startAiBtn" type="button" disabled class="w-full sm:w-auto px-space-xl py-2 rounded-lg bg-primary hover:bg-primary/90 text-on-primary font-body-md text-body-md font-bold shadow-md transition-all flex items-center justify-center gap-space-sm group">
 <span id="startAiLabel">Continue to AI Feature Extraction</span>
+=======
+<button class="w-full sm:w-auto px-space-xl py-2 rounded-lg bg-primary hover:bg-primary/90 text-on-primary font-body-md text-body-md font-bold shadow-md transition-all flex items-center justify-center gap-space-sm group">
+<span>Start AI Feature Extraction</span>
+>>>>>>> origin/main
 <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
 </button>
 </div>
@@ -665,6 +693,7 @@
       }
     })();
   </script>
+<<<<<<< HEAD
 
 <script>
 (function(){
@@ -738,4 +767,6 @@
  })();
 })();
 </script>
+=======
+>>>>>>> origin/main
 </div></main></div></body></html>
