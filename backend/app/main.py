@@ -37,7 +37,14 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 # In-memory "database" for the prototype, seeded with the deterministic demo set.
 # ---------------------------------------------------------------------------
 PARCELS: dict[str, Parcel] = {p.parcel_id: p for p in build_demo_parcels()}
-DB_PATH = Path(__file__).resolve().parent.parent / "data" / "bhudrishti.db"
+# Vercel serverless functions run from a read-only deployment filesystem.
+# Keep the prototype SQLite file in /tmp there; local development keeps the
+# durable project-local path. /tmp is writable but is not durable across
+# serverless instances, so this is prototype persistence only.
+if __import__("os").environ.get("VERCEL"):
+    DB_PATH = Path("/tmp/bhudrishti") / "bhudrishti.db"
+else:
+    DB_PATH = Path(__file__).resolve().parent.parent / "data" / "bhudrishti.db"
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 UPLOAD_DIR=DB_PATH.parent / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)

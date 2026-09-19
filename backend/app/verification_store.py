@@ -9,7 +9,14 @@ from shapely.geometry import Polygon, mapping
 from shapely import wkt
 from .geometry_engine import validate_surveyor_geometry
 
-DB_PATH = Path(__file__).resolve().parent.parent / "data" / "bhudrishti.db"
+# Vercel serverless functions run from a read-only deployment filesystem.
+# Keep the prototype SQLite file in /tmp there; local development keeps the
+# durable project-local path. /tmp is writable but is not durable across
+# serverless instances, so this is prototype persistence only.
+if __import__("os").environ.get("VERCEL"):
+    DB_PATH = Path("/tmp/bhudrishti") / "bhudrishti.db"
+else:
+    DB_PATH = Path(__file__).resolve().parent.parent / "data" / "bhudrishti.db"
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 def _conn():
