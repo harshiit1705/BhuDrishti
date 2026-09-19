@@ -8,13 +8,15 @@
  * Change API_BASE_URL if the backend runs somewhere other than
  * http://localhost:8000.
  */
+const PRODUCTION_API_BASE = "https://bhudrishti-api.vercel.app";
+
 const API_BASE_URL =
   window.BHUDRISHTI_API_BASE ||
   (window.location.protocol === "file:" ||
    window.location.hostname === "localhost" ||
    window.location.hostname === "127.0.0.1"
     ? "http://localhost:8000"
-    : `${window.location.protocol}//${window.location.host}`);
+    : PRODUCTION_API_BASE);
 
 async function apiRequest(path, options = {}) {
   const url = `${API_BASE_URL}${path}`;

@@ -12,7 +12,7 @@ from __future__ import annotations
 from fastapi import FastAPI, HTTPException, Body, UploadFile, File, Form, Query
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
-from shapely.geometry import mapping, Polygon
+from shapely.geometry import mapping, box, Polygon
 
 from .geometry_engine import Parcel, run_topology_validation, GeometryValidationError
 from .elevation_engine import synth_raster_pair, analyze_parcel_elevation

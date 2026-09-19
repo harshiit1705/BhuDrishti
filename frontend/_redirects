@@ -1,0 +1,2 @@
+# Netlify -> Vercel API proxy.
+/api/*  https://bhudrishti-api.vercel.app/api/:splat  200
