@@ -125,11 +125,23 @@ const BhuDrishtiAPI = {
     }
     return res.json();
   },
-  getExtraction: (extractionId) => apiRequest(`/api/extraction/${encodeURIComponent(extractionId)}`),
+  getExtraction: async (extractionId) => {
+    // EXT-* workflow records are cached locally so the same-browser prototype
+    // remains continuous even when Vercel routes the next request to another
+    // serverless instance. Prefer that exact record before making a backend
+    // request; seeded/non-EXT records still use the backend normally.
+    const local = typeof getWorkflowExtraction === "function" ? getWorkflowExtraction(extractionId) : null;
+    if (local) return local;
+    return apiRequest(`/api/extraction/${encodeURIComponent(extractionId)}`);
+  },
   getExtractions: () => apiRequest("/api/extraction"),
 
   // Verification (human-in-the-loop)
-  getVerification: (parcelId) => apiRequest(`/api/verification/${encodeURIComponent(parcelId)}`),
+  getVerification: async (parcelId) => {
+    const local = typeof getWorkflowVerification === "function" ? getWorkflowVerification(parcelId) : null;
+    if (local) return local;
+    return apiRequest(`/api/verification/${encodeURIComponent(parcelId)}`);
+  },
   submitCorrection: (parcelId, payload) =>
     apiRequest(`/api/verification/${encodeURIComponent(parcelId)}/submit`, {
       method: "POST",
@@ -304,6 +316,60 @@ async function syncSystemStatus() {
 // it does not survive a backend restart's in-memory state being wiped, and
 // a closed tab starts fresh, matching the backend's own in-memory lifetime.
 const LATEST_EXTRACTION_KEY = "bhudrishti.latestExtractionId";
+const WORKFLOW_EXTRACTIONS_KEY = "bhudrishti.workflow.extractions";
+const WORKFLOW_VERIFICATIONS_KEY = "bhudrishti.workflow.verifications";
+
+function _readWorkflowMap(key) {
+  try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch (_) { return {}; }
+}
+function _writeWorkflowMap(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
+}
+function saveWorkflowExtraction(record) {
+  if (!record?.extraction_id) return;
+  const map = _readWorkflowMap(WORKFLOW_EXTRACTIONS_KEY);
+  map[record.extraction_id] = record;
+  _writeWorkflowMap(WORKFLOW_EXTRACTIONS_KEY, map);
+  setLatestExtractionId(record.extraction_id);
+}
+function getWorkflowExtraction(id) {
+  if (!id) return null;
+  return _readWorkflowMap(WORKFLOW_EXTRACTIONS_KEY)[id] || null;
+}
+function saveWorkflowVerification(id, verification) {
+  if (!id || !verification) return;
+  const map = _readWorkflowMap(WORKFLOW_VERIFICATIONS_KEY);
+  map[id] = verification;
+  _writeWorkflowMap(WORKFLOW_VERIFICATIONS_KEY, map);
+}
+function getWorkflowVerification(id) {
+  if (!id) return null;
+  return _readWorkflowMap(WORKFLOW_VERIFICATIONS_KEY)[id] || null;
+}
+function buildLocalExtractionQueueItem(record) {
+  if (!record?.extraction_id) return null;
+  const c = record.confidence || {};
+  const risk = Number.isFinite(Number(c.risk_score)) ? Number(c.risk_score) : Math.max(0, Math.min(100, 100 - Number(record.confidence_heuristic || 0)));
+  const priority = String(c.priority || (risk >= 60 ? 'high' : risk >= 30 ? 'medium' : 'low')).toLowerCase();
+  return {
+    parcel_id: record.extraction_id, is_extraction: true, is_demo_data: false,
+    risk_score: risk, confidence: Number(c.confidence ?? record.confidence_heuristic ?? 0),
+    priority, reasons: Array.isArray(c.reasons) ? c.reasons : ['AI extraction awaiting survey review'],
+    ai_confidence_heuristic: record.confidence_heuristic ?? null,
+    topology_issue_count: Number(record.topology_issue_count || (record.topology_issues || []).length || 0),
+    verification_status: (getWorkflowVerification(record.extraction_id)?.status || record.status || 'unverified'),
+    geometry_source: (getWorkflowVerification(record.extraction_id)?.status === 'verified') ? 'surveyor_verified' : 'ai_extraction'
+  };
+}
+function buildLocalExportGeoJSON(targetId = null) {
+  const map = _readWorkflowMap(WORKFLOW_EXTRACTIONS_KEY);
+  const features = Object.values(map).filter(r => !targetId || r.extraction_id === targetId).map(r => {
+    const v = getWorkflowVerification(r.extraction_id);
+    const geometry = v?.status === 'verified' && v?.verified_geometry ? v.verified_geometry : r.geometry;
+    return { type:'Feature', properties:{ parcel_id:r.extraction_id, area_m2:r.area_m2, source:v?.status === 'verified' ? 'surveyor_verified' : 'ai_extraction', source_filename:r.source_filename, verification_status:v?.status || 'unverified' }, geometry };
+  });
+  return { type:'FeatureCollection', crs:null, coordinate_system:{type:'local_demo',crs:null,units:'meters',georeferenced:false}, features, is_demo_data:false, note:'Browser-local workflow fallback. Uploaded prototype imagery is not georeferenced.' };
+}
 function setLatestExtractionId(id) {
   try { sessionStorage.setItem(LATEST_EXTRACTION_KEY, id); } catch (_) { /* storage unavailable */ }
 }

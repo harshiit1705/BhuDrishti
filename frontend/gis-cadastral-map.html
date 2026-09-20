@@ -193,7 +193,7 @@
         }
       },
     },
-  };</script><script src="js/api-client.js"></script><style id="gis-intelligence-styles">
+  };</script><script src="js/api-client.js?v=20260920-1245"></script><style id="gis-intelligence-styles">
 .gis-layer-btn{min-height:34px;}
 .gis-layer-btn.is-active{background:#131b2e;color:#fff;}
 .gis-layer-btn.is-active .layer-icon{color:#7bc2ff;}
@@ -931,6 +931,13 @@ AI interpretation layers are preliminary prototype CV output. They are not legal
       try { record=await BhuDrishtiAPI.getExtraction(id); }
       catch (backendErr) { record=getWorkflowExtraction(id); if (!record) throw backendErr; }
       state.record=record;
+      // Cache the exact extraction as soon as GIS has successfully loaded it.
+      // This is the hand-off point that guarantees Field Verification can
+      // continue the same EXT-* workflow even if Vercel uses another
+      // serverless instance for the next request.
+      if (record.extraction_id && typeof saveWorkflowExtraction === 'function') {
+        saveWorkflowExtraction(record);
+      }
       const candidates=record.parcel_candidates||[];
       const roofs=record.roof_footprints||[];
       const topo=(record.candidate_topology_issues||record.analysis?.candidate_topology_issues||[]).length + (record.topology_issues||[]).length;
