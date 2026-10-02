@@ -18,6 +18,37 @@ const API_BASE_URL =
     ? "http://localhost:8000"
     : PRODUCTION_API_BASE);
 
+function getAuthToken() {
+  try { return localStorage.getItem("bhudrishti.auth.token"); } catch (_) { return null; }
+}
+
+function getAuthUser() {
+  try {
+    const raw = localStorage.getItem("bhudrishti.auth.user");
+    return raw ? JSON.parse(raw) : null;
+  } catch (_) { return null; }
+}
+
+function setAuthSession(auth) {
+  localStorage.setItem("bhudrishti.auth.token", auth.token);
+  localStorage.setItem("bhudrishti.auth.user", JSON.stringify(auth.user));
+}
+
+function clearAuthSession() {
+  try {
+    localStorage.removeItem("bhudrishti.auth.token");
+    localStorage.removeItem("bhudrishti.auth.user");
+  } catch (_) {}
+}
+
+function redirectToLogin() {
+  const path = window.location.pathname || "";
+  if (!path.endsWith("auth.html")) {
+    const next = `${window.location.pathname}${window.location.search}`;
+    window.location.href = `auth.html?next=${encodeURIComponent(next)}`;
+  }
+}
+
 async function apiRequest(path, options = {}) {
   const url = `${API_BASE_URL}${path}`;
 
@@ -27,6 +58,8 @@ async function apiRequest(path, options = {}) {
       ...(options.headers || {}),
     },
   };
+  const token = getAuthToken();
+  if (token) fetchOptions.headers["Authorization"] = `Bearer ${token}`;
 
   // Only send JSON Content-Type when the request actually has a body.
   // This avoids unnecessary CORS preflight requests for GET requests.
@@ -45,6 +78,10 @@ async function apiRequest(path, options = {}) {
   }
 
   if (!res.ok) {
+    if (res.status === 401) {
+      clearAuthSession();
+      redirectToLogin();
+    }
     let detail = res.statusText;
 
     try {
@@ -65,6 +102,19 @@ async function apiRequest(path, options = {}) {
 const BhuDrishtiAPI = {
   baseUrl: API_BASE_URL,
 
+  // Authentication / RBAC
+  login: async (email, password) => {
+    const result = await apiRequest("/api/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
+    setAuthSession(result);
+    return result;
+  },
+  register: (payload) => apiRequest("/api/auth/register", { method: "POST", body: JSON.stringify(payload) }),
+  me: () => apiRequest("/api/auth/me"),
+  logout: () => { clearAuthSession(); window.location.href = "auth.html"; },
+  getAuthUser,
+  getUsers: () => apiRequest("/api/auth/users"),
+  setUserStatus: (userId, status) => apiRequest(`/api/auth/users/${encodeURIComponent(userId)}/status`, { method: "POST", body: JSON.stringify({ status }) }),
+
   // Projects
   getProjects: () => apiRequest("/api/projects"),
   getProject: (projectId) => apiRequest(`/api/projects/${encodeURIComponent(projectId)}`),
@@ -73,7 +123,9 @@ const BhuDrishtiAPI = {
   validateDataset: (payload) => apiRequest("/api/datasets/validate", { method: "POST", body: JSON.stringify(payload) }),
   uploadDataset: async (file, declaredCrs = "LOCAL-DEMO") => {
     const form = new FormData(); form.append("file", file, file.name); form.append("declared_crs", declaredCrs);
-    const res = await fetch(`${API_BASE_URL}/api/datasets/upload`, {method:"POST", body:form});
+    const headers = {}; const token = getAuthToken(); if (token) headers.Authorization = `Bearer ${token}`;
+    const res = await fetch(`${API_BASE_URL}/api/datasets/upload`, {method:"POST", body:form, headers});
+    if (res.status === 401) { clearAuthSession(); redirectToLogin(); }
     if (!res.ok) { let d=res.statusText; try { const b=await res.json(); d=b.detail||JSON.stringify(b); } catch(_){} throw new Error(`API ${res.status} on /api/datasets/upload: ${d}`); }
     return res.json();
   },
@@ -114,10 +166,12 @@ const BhuDrishtiAPI = {
     if (datasetId) form.append("dataset_id", datasetId);
     let res;
     try {
-      res = await fetch(`${API_BASE_URL}/api/extraction/infer`, { method: "POST", body: form });
+      const headers = {}; const token = getAuthToken(); if (token) headers.Authorization = `Bearer ${token}`;
+      res = await fetch(`${API_BASE_URL}/api/extraction/infer`, { method: "POST", body: form, headers });
     } catch (err) {
       throw new Error(`Could not reach BhuDrishti backend at ${API_BASE_URL}. Is it running? (${err.message})`);
     }
+    if (res.status === 401) { clearAuthSession(); redirectToLogin(); }
     if (!res.ok) {
       let detail = res.statusText;
       try { const body = await res.json(); detail = body.detail || JSON.stringify(body); } catch (_) {}
@@ -405,3 +459,12 @@ if (document.readyState === "loading") {
   syncSystemStatus();
 }
 
+
+
+// Every application screen uses the same session guard. Authentication pages
+// remain public so users can sign in or request access.
+(function enforceAuthentication() {
+  const path = window.location.pathname || "";
+  if (path.endsWith("auth.html") || path.endsWith("/auth.html")) return;
+  if (!getAuthToken()) redirectToLogin();
+})();

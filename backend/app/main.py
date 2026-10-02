@@ -9,8 +9,8 @@ Every response includes `"is_demo_data": true` where the data originates
 from the synthetic demo dataset, per project instructions.
 """
 from __future__ import annotations
-from fastapi import FastAPI, HTTPException, Body, UploadFile, File, Form, Query
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Body, UploadFile, File, Form, Query, Depends, Request
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from shapely.geometry import mapping, box, Polygon
 
@@ -23,6 +23,7 @@ from .verification_store import store, InvalidTransitionError
 from . import extraction_engine
 from .extraction_store import extraction_store, ExtractionRecord
 from .repositories import PERSISTENCE_MODE, PERSISTENCE_LABEL
+from .auth import (ensure_demo_users, authenticate, issue_token, user_from_token, create_registration, list_users, set_user_status, ROLE_LABELS)
 from pathlib import Path
 import sqlite3, json, hashlib
 
@@ -32,6 +33,40 @@ app = FastAPI(
     version="0.1.0-prototype",
 )
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+# Authentication middleware protects API data/actions while leaving health and
+# authentication endpoints public. Role checks are applied on sensitive actions.
+_PUBLIC_API_PATHS = {"/api/auth/login", "/api/auth/register", "/api/health"}
+
+@app.middleware("http")
+async def authentication_middleware(request: Request, call_next):
+    path = request.url.path
+    if path.startswith("/api/") and path not in _PUBLIC_API_PATHS:
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return JSONResponse(status_code=401, content={"detail": "Authentication required"})
+        try:
+            request.state.user = user_from_token(auth_header[7:].strip())
+        except ValueError as exc:
+            return JSONResponse(status_code=401, content={"detail": str(exc)})
+    return await call_next(request)
+
+def current_user(request: Request) -> dict:
+    user = getattr(request.state, "user", None)
+    if not user:
+        raise HTTPException(401, "Authentication required")
+    return user
+
+def require_roles(*roles):
+    allowed = set(roles)
+    def dependency(request: Request) -> dict:
+        user = current_user(request)
+        if user["role"] not in allowed:
+            raise HTTPException(403, f"Role {user['role']} is not authorized for this action")
+        return user
+    return dependency
+
+ensure_demo_users()
 
 # ---------------------------------------------------------------------------
 # In-memory "database" for the prototype, seeded with the deterministic demo set.
@@ -193,6 +228,45 @@ def _confidence_for_geometry(pseudo_id: str, polygon_parcel: Parcel, issues_by_p
 # ---------------------------------------------------------------------------
 # 1. PROJECTS
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# 0. AUTHENTICATION / AUTHORIZATION
+# ---------------------------------------------------------------------------
+@app.post("/api/auth/login")
+def auth_login(payload: dict = Body(...)):
+    try:
+        user = authenticate(str(payload.get("email", "")), str(payload.get("password", "")))
+    except ValueError as exc:
+        raise HTTPException(401, str(exc))
+    return {"status": "ok", "token": issue_token(user), "user": user, "expires_in": 8 * 60 * 60}
+
+@app.post("/api/auth/register")
+def auth_register(payload: dict = Body(...)):
+    try:
+        user = create_registration(
+            str(payload.get("email", "")), str(payload.get("password", "")),
+            str(payload.get("name", "")), str(payload.get("employee_id", "")),
+            str(payload.get("department", "")), str(payload.get("role", "FIELD_SURVEYOR")),
+        )
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+    return {"status": "pending", "message": "Registration submitted. An administrator must activate the account before login.", "user": user}
+
+@app.get("/api/auth/me")
+def auth_me(user: dict = Depends(current_user)):
+    return {"status": "ok", "user": user}
+
+@app.get("/api/auth/users")
+def auth_users(user: dict = Depends(require_roles("ADMIN"))):
+    return {"users": list_users()}
+
+@app.post("/api/auth/users/{user_id}/status")
+def auth_user_status(user_id: str, payload: dict = Body(...), user: dict = Depends(require_roles("ADMIN"))):
+    try:
+        updated = set_user_status(user_id, str(payload.get("status", "")))
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+    return {"status": "ok", "user": updated}
+
 @app.get("/api/projects")
 def list_projects():
     return {
@@ -236,7 +310,7 @@ def validate_dataset(payload: dict = Body(...)):
     return {"valid": not errors, "errors": errors, "coordinate_system": _coordinate_system()}
 
 @app.post("/api/datasets/upload")
-async def upload_dataset(file: UploadFile = File(...), declared_crs: str = Form("LOCAL-DEMO")):
+async def upload_dataset(file: UploadFile = File(...), declared_crs: str = Form("LOCAL-DEMO"), user: dict = Depends(require_roles("ADMIN", "PROJECT_OFFICER", "GIS_OPERATOR"))):
     raw=await file.read()
     ext=Path(file.filename or "upload").suffix.lower().lstrip(".")
     file_type={"tif":"geotiff","tiff":"geotiff","jpg":"image","jpeg":"image","png":"image","geojson":"geojson","las":"las","laz":"laz"}.get(ext,ext or "unknown")
@@ -281,7 +355,7 @@ def get_dataset_file(dataset_id: str):
     return FileResponse(path, media_type=media, filename=filename)
 
 @app.post("/api/datasets/{dataset_id}/infer")
-def infer_dataset(dataset_id: str):
+def infer_dataset(dataset_id: str, user: dict = Depends(require_roles("ADMIN", "PROJECT_OFFICER", "GIS_OPERATOR"))):
     with sqlite3.connect(DB_PATH) as db:
         row=db.execute("SELECT filename FROM datasets WHERE dataset_id=?",(dataset_id,)).fetchone()
     path=UPLOAD_DIR / dataset_id
@@ -426,7 +500,7 @@ def run_demo_extraction(payload: dict = Body(...)):
 # image's actual pixels -- it is never selected from the PARCELS fixture
 # dict, and it is stored in the separate `extraction_store`, not in PARCELS.
 @app.post("/api/extraction/infer")
-async def infer_extraction(image: UploadFile = File(...), dataset_id: str | None = Form(None)):
+async def infer_extraction(image: UploadFile = File(...), dataset_id: str | None = Form(None), user: dict = Depends(require_roles("ADMIN", "PROJECT_OFFICER", "GIS_OPERATOR"))):
     raw = await image.read()
     try:
         img = extraction_engine.decode_image(raw, image.filename or "upload")
@@ -726,41 +800,41 @@ def _target_elevation(target_id: str):
 # 8. VERIFICATION (HITL)
 # ---------------------------------------------------------------------------
 @app.post("/api/verification/{parcel_id}/submit")
-def submit_verification(parcel_id: str, payload: dict = Body(...)):
+def submit_verification(parcel_id: str, payload: dict = Body(...), user: dict = Depends(require_roles("ADMIN", "FIELD_SURVEYOR"))):
     target, existing= _target_geometry(parcel_id)
     if not target: raise HTTPException(404,"Parcel or extraction not found")
     geometry=payload.get("geometry")
     if not geometry: raise HTTPException(400,"geometry (GeoJSON) is required")
     try:
-        rec=store.submit_correction(parcel_id, target.polygon if existing is None or existing.ai_geometry is None else existing.ai_geometry, geometry, payload.get("surveyor_name","Unknown Surveyor"), payload.get("surveyor_license",""), payload.get("statement",""))
+        rec=store.submit_correction(parcel_id, target.polygon if existing is None or existing.ai_geometry is None else existing.ai_geometry, geometry, user["name"], payload.get("surveyor_license", ""), payload.get("statement", ""))
     except GeometryValidationError as e: raise HTTPException(422,f"Geometry validation failed: {e}")
     except InvalidTransitionError as e: raise HTTPException(409,str(e))
     if parcel_id.startswith("EXT-"): extraction_store.update_status(parcel_id,"in_review")
     return {"status":"ok","verification":rec.to_dict()}
 
 @app.post("/api/verification/{parcel_id}/certify")
-def certify_verification(parcel_id: str, payload: dict = Body(...)):
+def certify_verification(parcel_id: str, payload: dict = Body(...), user: dict = Depends(require_roles("ADMIN", "FIELD_SURVEYOR", "REVENUE_OFFICER"))):
     target,existing=_target_geometry(parcel_id)
     if not target: raise HTTPException(404,"Parcel or extraction not found")
-    try: rec=store.certify(parcel_id,payload.get("surveyor_name","Unknown Surveyor"))
+    try: rec=store.certify(parcel_id, user["name"])
     except (InvalidTransitionError,KeyError) as e: raise HTTPException(409,str(e))
     if parcel_id.startswith("EXT-"): extraction_store.update_status(parcel_id,"verified")
     return {"status":"ok","verification":rec.to_dict()}
 
 @app.post("/api/verification/{parcel_id}/accept-preliminary")
-def accept_preliminary(parcel_id: str, payload: dict = Body(...)):
+def accept_preliminary(parcel_id: str, payload: dict = Body(...), user: dict = Depends(require_roles("ADMIN", "REVENUE_OFFICER"))):
     target,existing=_target_geometry(parcel_id)
     if not target: raise HTTPException(404,"Parcel or extraction not found")
-    try: rec=store.accept_preliminary(parcel_id,target.polygon,payload.get("surveyor_name","Unknown Surveyor"))
+    try: rec=store.accept_preliminary(parcel_id,target.polygon,user["name"])
     except InvalidTransitionError as e: raise HTTPException(409,str(e))
     if parcel_id.startswith("EXT-"): extraction_store.update_status(parcel_id,"verified")
     return {"status":"ok","verification":rec.to_dict()}
 
 @app.post("/api/verification/{parcel_id}/reject")
-def reject_verification(parcel_id: str, payload: dict = Body(...)):
+def reject_verification(parcel_id: str, payload: dict = Body(...), user: dict = Depends(require_roles("ADMIN", "FIELD_SURVEYOR", "REVENUE_OFFICER"))):
     target,_=_target_geometry(parcel_id)
     if not target: raise HTTPException(404,"Parcel or extraction not found")
-    try: rec=store.reject(parcel_id,payload.get("surveyor_name","Unknown Surveyor"),payload.get("reason",""))
+    try: rec=store.reject(parcel_id,user["name"],payload.get("reason",""))
     except (InvalidTransitionError,KeyError) as e: raise HTTPException(409,str(e))
     if parcel_id.startswith("EXT-"): extraction_store.update_status(parcel_id,"rejected")
     return {"status":"ok","verification":rec.to_dict()}
@@ -778,7 +852,7 @@ def get_verification(parcel_id: str):
 # 9. EXPORT (uses VERIFIED geometry where present, else AI geometry -- clearly labeled)
 # ---------------------------------------------------------------------------
 @app.get("/api/export/geojson")
-def export_geojson():
+def export_geojson(user: dict = Depends(require_roles("ADMIN", "PROJECT_OFFICER", "FIELD_SURVEYOR", "REVENUE_OFFICER"))):
     features=[]
     for pid in PARCELS:
         p=_authoritative_parcel(pid); features.append({"type":"Feature","properties":{"parcel_id":pid,"area_m2":round(p.polygon.area,2),"source":p.source,"owner":p.owner,"ward":p.ward},"geometry":mapping(p.polygon)})

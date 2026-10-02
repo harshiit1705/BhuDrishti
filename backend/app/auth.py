@@ -1,0 +1,243 @@
+"""Prototype authentication and role-based authorization for BhuDrishti.
+
+This module intentionally uses only Python stdlib primitives so the prototype
+can deploy without a third-party JWT/auth package. Passwords are PBKDF2-hashed
+and sessions are signed, expiring HMAC tokens. Production deployment should
+move the user store to a managed database/identity provider and set
+BHUDRISHTI_AUTH_SECRET as a strong environment secret.
+"""
+from __future__ import annotations
+
+import base64
+import hashlib
+import hmac
+import json
+import os
+import secrets
+import sqlite3
+import time
+from pathlib import Path
+
+AUTH_SECRET = os.environ.get("BHUDRISHTI_AUTH_SECRET", "bhudrishti-prototype-change-me")
+TOKEN_TTL_SECONDS = 8 * 60 * 60
+
+ROLES = {
+    "ADMIN",
+    "PROJECT_OFFICER",
+    "GIS_OPERATOR",
+    "FIELD_SURVEYOR",
+    "REVENUE_OFFICER",
+}
+
+ROLE_LABELS = {
+    "ADMIN": "Administrator",
+    "PROJECT_OFFICER": "Project Officer",
+    "GIS_OPERATOR": "GIS / AI Operator",
+    "FIELD_SURVEYOR": "Field Surveyor",
+    "REVENUE_OFFICER": "Revenue / Land Records Officer",
+}
+
+DEMO_USERS = [
+    ("admin@bhudrishti.gov.in", "Bhu@Admin2026", "BhuDrishti Administrator", "ADMIN", "ADMIN-001"),
+    ("project@bhudrishti.gov.in", "Bhu@Project2026", "Project Officer", "PROJECT_OFFICER", "PROJ-001"),
+    ("gis@bhudrishti.gov.in", "Bhu@GIS2026", "GIS / AI Operator", "GIS_OPERATOR", "GIS-001"),
+    ("surveyor@bhudrishti.gov.in", "Bhu@Survey2026", "Field Surveyor", "FIELD_SURVEYOR", "SURV-001"),
+    ("revenue@bhudrishti.gov.in", "Bhu@Revenue2026", "Revenue Officer", "REVENUE_OFFICER", "REV-001"),
+]
+
+
+def _db_path() -> Path:
+    # Match the prototype's SQLite persistence location. This remains prototype
+    # storage on Vercel; production should use managed persistent storage.
+    if os.environ.get("VERCEL"):
+        return Path("/tmp/bhudrishti") / "bhudrishti.db"
+    return Path(__file__).resolve().parent.parent / "data" / "bhudrishti.db"
+
+
+def _connect():
+    path = _db_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    db = sqlite3.connect(path)
+    db.row_factory = sqlite3.Row
+    db.execute(
+        """CREATE TABLE IF NOT EXISTS users (
+            user_id TEXT PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            employee_id TEXT,
+            department TEXT,
+            role TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'ACTIVE',
+            password_hash TEXT NOT NULL,
+            password_salt TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            last_login_at TEXT
+        )"""
+    )
+    db.commit()
+    return db
+
+
+def _hash_password(password: str, salt: bytes | None = None) -> tuple[str, str]:
+    salt = salt or secrets.token_bytes(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 210_000)
+    return base64.urlsafe_b64encode(digest).decode(), base64.urlsafe_b64encode(salt).decode()
+
+
+def _verify_password(password: str, password_hash: str, password_salt: str) -> bool:
+    salt = base64.urlsafe_b64decode(password_salt.encode())
+    expected = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 210_000)
+    actual = base64.urlsafe_b64decode(password_hash.encode())
+    return hmac.compare_digest(expected, actual)
+
+
+def _b64(value: bytes) -> str:
+    return base64.urlsafe_b64encode(value).decode().rstrip("=")
+
+
+def _unb64(value: str) -> bytes:
+    return base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
+
+
+def _token(payload: dict) -> str:
+    header = {"alg": "HS256", "typ": "JWT"}
+    h = _b64(json.dumps(header, separators=(",", ":")).encode())
+    p = _b64(json.dumps(payload, separators=(",", ":")).encode())
+    signature = _b64(hmac.new(AUTH_SECRET.encode(), f"{h}.{p}".encode(), hashlib.sha256).digest())
+    return f"{h}.{p}.{signature}"
+
+
+def _decode_token(token: str) -> dict:
+    parts = token.split(".")
+    if len(parts) != 3:
+        raise ValueError("Invalid session token")
+    h, p, sig = parts
+    expected = _b64(hmac.new(AUTH_SECRET.encode(), f"{h}.{p}".encode(), hashlib.sha256).digest())
+    if not hmac.compare_digest(sig, expected):
+        raise ValueError("Invalid session signature")
+    payload = json.loads(_unb64(p).decode())
+    if int(payload.get("exp", 0)) < int(time.time()):
+        raise ValueError("Session expired")
+    return payload
+
+
+def _public_user(row: sqlite3.Row | dict) -> dict:
+    data = dict(row)
+    return {
+        "user_id": data["user_id"],
+        "email": data["email"],
+        "name": data["name"],
+        "employee_id": data.get("employee_id"),
+        "department": data.get("department"),
+        "role": data["role"],
+        "role_label": ROLE_LABELS.get(data["role"], data["role"]),
+        "status": data["status"],
+        "created_at": data.get("created_at"),
+        "last_login_at": data.get("last_login_at"),
+    }
+
+
+def ensure_demo_users() -> None:
+    db = _connect()
+    try:
+        for email, password, name, role, employee_id in DEMO_USERS:
+            exists = db.execute("SELECT user_id FROM users WHERE email=?", (email,)).fetchone()
+            if exists:
+                continue
+            password_hash, salt = _hash_password(password)
+            db.execute(
+                "INSERT INTO users(user_id,email,name,employee_id,department,role,status,password_hash,password_salt,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                (secrets.token_hex(8), email, name, employee_id, "BhuDrishti Demo Department", role, "ACTIVE", password_hash, salt, time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),
+            )
+        db.commit()
+    finally:
+        db.close()
+
+
+def authenticate(email: str, password: str) -> dict:
+    ensure_demo_users()
+    db = _connect()
+    try:
+        row = db.execute("SELECT * FROM users WHERE lower(email)=lower(?)", (email.strip(),)).fetchone()
+        if not row or row["status"] != "ACTIVE" or not _verify_password(password, row["password_hash"], row["password_salt"]):
+            raise ValueError("Invalid email/password or inactive account")
+        now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        db.execute("UPDATE users SET last_login_at=? WHERE user_id=?", (now, row["user_id"]))
+        db.commit()
+        user = _public_user(dict(row))
+        user["last_login_at"] = now
+        return user
+    finally:
+        db.close()
+
+
+def issue_token(user: dict) -> str:
+    now = int(time.time())
+    return _token({
+        "sub": user["user_id"],
+        "email": user["email"],
+        "name": user["name"],
+        "role": user["role"],
+        "iat": now,
+        "exp": now + TOKEN_TTL_SECONDS,
+    })
+
+
+def user_from_token(token: str) -> dict:
+    payload = _decode_token(token)
+    db = _connect()
+    try:
+        row = db.execute("SELECT * FROM users WHERE user_id=?", (payload.get("sub"),)).fetchone()
+        if not row or row["status"] != "ACTIVE":
+            raise ValueError("Account is inactive")
+        return _public_user(row)
+    finally:
+        db.close()
+
+
+def create_registration(email: str, password: str, name: str, employee_id: str, department: str, role: str) -> dict:
+    role = role.upper().strip()
+    if role not in ROLES or role == "ADMIN":
+        raise ValueError("Requested role is not allowed")
+    if len(password) < 10:
+        raise ValueError("Password must be at least 10 characters")
+    db = _connect()
+    try:
+        if db.execute("SELECT 1 FROM users WHERE lower(email)=lower(?)", (email.strip(),)).fetchone():
+            raise ValueError("An account with this email already exists")
+        password_hash, salt = _hash_password(password)
+        user_id = secrets.token_hex(8)
+        created = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        db.execute(
+            "INSERT INTO users(user_id,email,name,employee_id,department,role,status,password_hash,password_salt,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
+            (user_id, email.strip().lower(), name.strip(), employee_id.strip(), department.strip(), role, "PENDING", password_hash, salt, created),
+        )
+        db.commit()
+        return {"user_id": user_id, "email": email.strip().lower(), "status": "PENDING", "role": role, "role_label": ROLE_LABELS[role]}
+    finally:
+        db.close()
+
+
+def list_users() -> list[dict]:
+    ensure_demo_users()
+    db = _connect()
+    try:
+        return [_public_user(row) for row in db.execute("SELECT * FROM users ORDER BY created_at DESC").fetchall()]
+    finally:
+        db.close()
+
+
+def set_user_status(user_id: str, status: str) -> dict:
+    status = status.upper().strip()
+    if status not in {"ACTIVE", "SUSPENDED", "PENDING"}:
+        raise ValueError("Invalid user status")
+    db = _connect()
+    try:
+        cur = db.execute("UPDATE users SET status=? WHERE user_id=?", (status, user_id))
+        if cur.rowcount != 1:
+            raise ValueError("User not found")
+        db.commit()
+        row = db.execute("SELECT * FROM users WHERE user_id=?", (user_id,)).fetchone()
+        return _public_user(row)
+    finally:
+        db.close()

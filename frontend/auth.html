@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BhuDrishti — Secure Access</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<script src="js/api-client.js?v=20261001-auth1"></script>
+</head>
+<body class="min-h-screen bg-[#f7f9f7] text-[#18201b]" style="font-family:'DM Sans',sans-serif">
+<div class="min-h-screen grid lg:grid-cols-[1.05fr_.95fr]">
+  <section class="hidden lg:flex flex-col justify-between p-12 bg-[#e8f0e9] border-r border-[#d5dfd6]">
+    <div>
+      <div class="flex items-center gap-3">
+        <div class="h-11 w-11 rounded-xl bg-[#315f43] text-white flex items-center justify-center"><span class="material-symbols-outlined">map</span></div>
+        <div><div class="text-2xl font-bold" style="font-family:'Space Grotesk'">BhuDrishti</div><div class="text-xs uppercase tracking-[.18em] text-[#526458]">Urban Cadastral AI</div></div>
+      </div>
+      <div class="mt-20 max-w-xl">
+        <div class="text-xs uppercase tracking-[.18em] font-semibold text-[#315f43]">SIH 2026 • Secure Workspace</div>
+        <h1 class="mt-4 text-5xl leading-tight font-bold" style="font-family:'Space Grotesk'">AI-assisted cadastral intelligence with accountable human verification.</h1>
+        <p class="mt-6 text-lg leading-8 text-[#526458]">Access is role-based so imagery processing, field verification, certification and administration are performed by the appropriate users.</p>
+      </div>
+    </div>
+    <div class="text-sm text-[#526458]">Prototype authentication • JWT-style signed session • PBKDF2 password hashing • Role-based API authorization</div>
+  </section>
+  <main class="flex items-center justify-center p-6 sm:p-10">
+    <div class="w-full max-w-lg">
+      <div class="lg:hidden flex items-center gap-3 mb-10"><div class="h-10 w-10 rounded-xl bg-[#315f43] text-white flex items-center justify-center"><span class="material-symbols-outlined">map</span></div><div><div class="text-xl font-bold">BhuDrishti</div><div class="text-xs uppercase tracking-widest text-gray-500">Urban Cadastral AI</div></div></div>
+      <div class="bg-white border border-[#dce5dd] rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-8 pb-5"><div class="flex bg-[#f1f5f1] rounded-xl p-1"><button id="loginTab" class="flex-1 py-2.5 rounded-lg bg-white shadow-sm font-semibold">Login</button><button id="registerTab" class="flex-1 py-2.5 rounded-lg text-gray-600">Request Access</button></div></div>
+        <div id="message" class="hidden mx-8 px-4 py-3 rounded-xl text-sm"></div>
+        <form id="loginForm" class="px-8 pb-8 space-y-5">
+          <div><h2 class="text-2xl font-bold" style="font-family:'Space Grotesk'">Sign in</h2><p class="mt-1 text-sm text-gray-500">Use an authorized BhuDrishti account.</p></div>
+          <label class="block"><span class="text-sm font-semibold">Official email</span><input id="loginEmail" required type="email" autocomplete="username" class="mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:ring-2 focus:ring-[#315f43]" placeholder="surveyor@bhudrishti.gov.in"></label>
+          <label class="block"><span class="text-sm font-semibold">Password</span><input id="loginPassword" required type="password" autocomplete="current-password" class="mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:ring-2 focus:ring-[#315f43]" placeholder="••••••••••"></label>
+          <button class="w-full rounded-xl bg-[#315f43] text-white py-3.5 font-semibold hover:bg-[#274e36]">Sign in securely</button>
+          <div class="rounded-xl bg-[#f6f8f6] p-4 text-xs text-gray-600"><strong>SIH demo accounts</strong><div class="mt-2 grid gap-1 font-mono text-[11px]"><div>GIS: gis@bhudrishti.gov.in / Bhu@GIS2026</div><div>Surveyor: surveyor@bhudrishti.gov.in / Bhu@Survey2026</div><div>Revenue: revenue@bhudrishti.gov.in / Bhu@Revenue2026</div><div>Admin: admin@bhudrishti.gov.in / Bhu@Admin2026</div></div><div class="mt-2 text-gray-500">Demo credentials are for the prototype only.</div></div>
+        </form>
+        <form id="registerForm" class="hidden px-8 pb-8 space-y-4">
+          <div><h2 class="text-2xl font-bold" style="font-family:'Space Grotesk'">Request access</h2><p class="mt-1 text-sm text-gray-500">New accounts remain pending until an administrator activates them.</p></div>
+          <div class="grid sm:grid-cols-2 gap-4"><label><span class="text-sm font-semibold">Full name</span><input id="regName" required class="mt-2 w-full rounded-xl border border-gray-300 px-3 py-3"></label><label><span class="text-sm font-semibold">Employee ID</span><input id="regEmployee" required class="mt-2 w-full rounded-xl border border-gray-300 px-3 py-3"></label></div>
+          <label><span class="text-sm font-semibold">Official email</span><input id="regEmail" required type="email" class="mt-2 w-full rounded-xl border border-gray-300 px-3 py-3"></label>
+          <label><span class="text-sm font-semibold">Department</span><input id="regDepartment" required class="mt-2 w-full rounded-xl border border-gray-300 px-3 py-3" placeholder="Municipal / Revenue / Survey Department"></label>
+          <label><span class="text-sm font-semibold">Requested role</span><select id="regRole" class="mt-2 w-full rounded-xl border border-gray-300 px-3 py-3"><option value="FIELD_SURVEYOR">Field Surveyor</option><option value="GIS_OPERATOR">GIS / AI Operator</option><option value="PROJECT_OFFICER">Project Officer</option><option value="REVENUE_OFFICER">Revenue / Land Records Officer</option></select></label>
+          <label><span class="text-sm font-semibold">Password</span><input id="regPassword" required minlength="10" type="password" class="mt-2 w-full rounded-xl border border-gray-300 px-3 py-3"></label>
+          <button class="w-full rounded-xl bg-[#315f43] text-white py-3.5 font-semibold">Submit access request</button>
+        </form>
+      </div>
+      <div id="demoCredentials" class="mt-5 text-xs text-gray-500"></div>
+    </div>
+  </main>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function message(text,type='info'){const el=$('message');el.className='mx-8 px-4 py-3 rounded-xl text-sm '+(type==='error'?'bg-red-50 text-red-700 border border-red-200':type==='success'?'bg-green-50 text-green-700 border border-green-200':'bg-gray-50 text-gray-700 border border-gray-200');el.textContent=text;el.classList.remove('hidden');}
+$('loginTab').onclick=()=>{ $('loginTab').className='flex-1 py-2.5 rounded-lg bg-white shadow-sm font-semibold'; $('registerTab').className='flex-1 py-2.5 rounded-lg text-gray-600'; $('loginForm').classList.remove('hidden'); $('registerForm').classList.add('hidden'); };
+$('registerTab').onclick=()=>{ $('registerTab').className='flex-1 py-2.5 rounded-lg bg-white shadow-sm font-semibold'; $('loginTab').className='flex-1 py-2.5 rounded-lg text-gray-600'; $('registerForm').classList.remove('hidden'); $('loginForm').classList.add('hidden'); };
+$('loginForm').onsubmit=async e=>{e.preventDefault();try{const r=await BhuDrishtiAPI.login($('loginEmail').value,$('loginPassword').value);message(`Signed in as ${r.user.name} • ${r.user.role_label}`,'success');const next=new URLSearchParams(location.search).get('next');setTimeout(()=>location.href=next||'dashboard.html',250);}catch(err){message(err.message,'error');}};
+$('registerForm').onsubmit=async e=>{e.preventDefault();try{const r=await BhuDrishtiAPI.register({name:$('regName').value,email:$('regEmail').value,employee_id:$('regEmployee').value,department:$('regDepartment').value,role:$('regRole').value,password:$('regPassword').value});message(r.message||'Access request submitted.','success');e.target.reset();$('loginTab').click();}catch(err){message(err.message,'error');}};
+</script>
+</body></html>
