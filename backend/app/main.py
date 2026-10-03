@@ -32,7 +32,17 @@ app = FastAPI(
     description="AI-Powered Urban Cadastral Intelligence Platform -- prototype backend for SIH26012.",
     version="0.1.0-prototype",
 )
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://bhudrishti.netlify.app",
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+    ],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Authentication middleware protects API data/actions while leaving health and
 # authentication endpoints public. Role checks are applied on sensitive actions.
@@ -41,6 +51,15 @@ _PUBLIC_API_PATHS = {"/api/auth/login", "/api/auth/register", "/api/health"}
 @app.middleware("http")
 async def authentication_middleware(request: Request, call_next):
     path = request.url.path
+
+    # CORS preflight requests must reach CORSMiddleware before authentication.
+    # Browsers send OPTIONS before authenticated cross-origin requests that
+    # use the Authorization header. The preflight itself carries no bearer
+    # token, so requiring authentication here would return 401 without the
+    # Access-Control-Allow-* headers and the browser would report "Failed to fetch".
+    if request.method == "OPTIONS":
+        return await call_next(request)
+
     if path.startswith("/api/") and path not in _PUBLIC_API_PATHS:
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
