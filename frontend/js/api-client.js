@@ -8,7 +8,12 @@
  * Change API_BASE_URL if the backend runs somewhere other than
  * http://localhost:8000.
  */
-const PRODUCTION_API_BASE = "https://bhudrishti-api.vercel.app";
+const BHUDRISHTI_FRONTEND_BUILD = "20261004-netlify-proxy1";
+
+// In production, use the Netlify same-origin /api proxy.
+// This avoids browser CORS preflight problems while /api/* is forwarded
+// by frontend/_redirects to the Vercel FastAPI backend.
+const PRODUCTION_API_BASE = "";
 
 const API_BASE_URL =
   window.BHUDRISHTI_API_BASE ||
