@@ -1,9 +1,3 @@
-# BhuDrishti Netlify deployment configuration
-# Netlify base directory is already configured as "frontend".
-# Publish "." means publish the contents of frontend/ itself.
 [build]
-  publish = "."
-  command = ""
-
-[functions]
-  directory = "netlify/functions"
+publish = "."
+command = ""

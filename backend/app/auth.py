@@ -141,13 +141,19 @@ def ensure_demo_users() -> None:
     db = _connect()
     try:
         for email, password, name, role, employee_id in DEMO_USERS:
+            # Stable demo IDs are required because Vercel serverless instances
+            # have separate /tmp SQLite files. A random ID would make a valid
+            # session from one instance fail on another instance.
+            stable_id = hashlib.sha256(("demo:" + email.lower().strip()).encode("utf-8")).hexdigest()[:16]
             exists = db.execute("SELECT user_id FROM users WHERE email=?", (email,)).fetchone()
-            if exists:
-                continue
             password_hash, salt = _hash_password(password)
+            if exists:
+                if exists["user_id"] != stable_id:
+                    db.execute("UPDATE users SET user_id=? WHERE email=?", (stable_id, email))
+                continue
             db.execute(
                 "INSERT INTO users(user_id,email,name,employee_id,department,role,status,password_hash,password_salt,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
-                (secrets.token_hex(8), email, name, employee_id, "BhuDrishti Demo Department", role, "ACTIVE", password_hash, salt, time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),
+                (stable_id, email, name, employee_id, "BhuDrishti Demo Department", role, "ACTIVE", password_hash, salt, time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),
             )
         db.commit()
     finally:
@@ -177,6 +183,8 @@ def issue_token(user: dict) -> str:
         "sub": user["user_id"],
         "email": user["email"],
         "name": user["name"],
+        "employee_id": user.get("employee_id"),
+        "department": user.get("department"),
         "role": user["role"],
         "iat": now,
         "exp": now + TOKEN_TTL_SECONDS,
@@ -188,9 +196,31 @@ def user_from_token(token: str) -> dict:
     db = _connect()
     try:
         row = db.execute("SELECT * FROM users WHERE user_id=?", (payload.get("sub"),)).fetchone()
-        if not row or row["status"] != "ACTIVE":
-            raise ValueError("Account is inactive")
-        return _public_user(row)
+        if row:
+            if row["status"] != "ACTIVE":
+                raise ValueError("Account is inactive")
+            return _public_user(row)
+
+        # Demo accounts are intentionally supported across Vercel instances.
+        # Their signed token is portable, while the local /tmp database is not.
+        # Registered accounts still require a real database row.
+        demo_emails = {item[0].lower() for item in DEMO_USERS}
+        if str(payload.get("email", "")).lower() in demo_emails:
+            role = payload.get("role")
+            if role not in ROLES:
+                raise ValueError("Invalid session role")
+            return {
+                "user_id": payload.get("sub"),
+                "email": payload.get("email", ""),
+                "name": payload.get("name", ""),
+                "employee_id": payload.get("employee_id"),
+                "department": payload.get("department", "BhuDrishti Demo Department"),
+                "role": role,
+                "role_label": ROLE_LABELS.get(role, role),
+                "status": "ACTIVE",
+                "last_login_at": None,
+            }
+        raise ValueError("Account is inactive")
     finally:
         db.close()
 
