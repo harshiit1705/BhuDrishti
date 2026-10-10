@@ -141,16 +141,13 @@ def ensure_demo_users() -> None:
     db = _connect()
     try:
         for email, password, name, role, employee_id in DEMO_USERS:
-            # Stable demo IDs are required because Vercel serverless instances
-            # have separate /tmp SQLite files. A random ID would make a valid
-            # session from one instance fail on another instance.
             stable_id = hashlib.sha256(("demo:" + email.lower().strip()).encode("utf-8")).hexdigest()[:16]
             exists = db.execute("SELECT user_id FROM users WHERE email=?", (email,)).fetchone()
-            password_hash, salt = _hash_password(password)
             if exists:
                 if exists["user_id"] != stable_id:
                     db.execute("UPDATE users SET user_id=? WHERE email=?", (stable_id, email))
                 continue
+            password_hash, salt = _hash_password(password)
             db.execute(
                 "INSERT INTO users(user_id,email,name,employee_id,department,role,status,password_hash,password_salt,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
                 (stable_id, email, name, employee_id, "BhuDrishti Demo Department", role, "ACTIVE", password_hash, salt, time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),
@@ -196,28 +193,27 @@ def user_from_token(token: str) -> dict:
     db = _connect()
     try:
         row = db.execute("SELECT * FROM users WHERE user_id=?", (payload.get("sub"),)).fetchone()
-        if row:
-            if row["status"] != "ACTIVE":
-                raise ValueError("Account is inactive")
+        if row and row["status"] == "ACTIVE":
             return _public_user(row)
 
-        # Demo accounts are intentionally supported across Vercel instances.
-        # Their signed token is portable, while the local /tmp database is not.
-        # Registered accounts still require a real database row.
-        demo_emails = {item[0].lower() for item in DEMO_USERS}
-        if str(payload.get("email", "")).lower() in demo_emails:
-            role = payload.get("role")
-            if role not in ROLES:
-                raise ValueError("Invalid session role")
+        # Vercel serverless instances can have different temporary SQLite
+        # files. Built-in demo identities are therefore reconstructible from
+        # the signed token when the local row is missing. Registered users are
+        # never reconstructed this way; their account must exist in persistent
+        # storage before it can authenticate.
+        demo_by_email = {u[0]: u for u in DEMO_USERS}
+        demo = demo_by_email.get(str(payload.get("email", "")).strip().lower())
+        if demo and payload.get("role") == demo[3]:
             return {
                 "user_id": payload.get("sub"),
-                "email": payload.get("email", ""),
-                "name": payload.get("name", ""),
-                "employee_id": payload.get("employee_id"),
-                "department": payload.get("department", "BhuDrishti Demo Department"),
-                "role": role,
-                "role_label": ROLE_LABELS.get(role, role),
+                "email": demo[0],
+                "name": demo[2],
+                "employee_id": demo[4],
+                "department": "BhuDrishti Demo Department",
+                "role": demo[3],
+                "role_label": ROLE_LABELS.get(demo[3], demo[3]),
                 "status": "ACTIVE",
+                "created_at": None,
                 "last_login_at": None,
             }
         raise ValueError("Account is inactive")

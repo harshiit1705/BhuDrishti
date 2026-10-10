@@ -17,6 +17,8 @@ Weights sum to 1.0 and are configurable in RISK_WEIGHTS below.
 from __future__ import annotations
 from dataclasses import dataclass
 
+MODEL_VERSION = "sprint2-v1"
+
 RISK_WEIGHTS = {
     "topology": 0.40,
     "geometric_irregularity": 0.20,
@@ -49,6 +51,7 @@ class ConfidenceBreakdown:
     def to_dict(self):
         return {
             "parcel_id": self.parcel_id,
+            "risk_model_version": MODEL_VERSION,
             "confidence": round(self.confidence, 1),
             "risk_score": round(self.risk_score, 1),
             "priority": self.priority,

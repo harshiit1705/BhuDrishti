@@ -1,4 +1,3 @@
-// BhuDrishti build: 20261004-auth-session1
 /**
  * BhuDrishti API Client
  * ----------------------
@@ -9,7 +8,7 @@
  * Change API_BASE_URL if the backend runs somewhere other than
  * http://localhost:8000.
  */
-const PRODUCTION_API_BASE = "";
+const PRODUCTION_API_BASE = ""; // Netlify same-origin proxy -> Vercel API
 
 const API_BASE_URL =
   window.BHUDRISHTI_API_BASE ||
@@ -40,6 +39,11 @@ function clearAuthSession() {
     localStorage.removeItem("bhudrishti.auth.token");
     localStorage.removeItem("bhudrishti.auth.user");
   } catch (_) {}
+}
+
+function isPublicAuthPage() {
+  const path = window.location.pathname || "";
+  return path.endsWith("auth.html") || path.endsWith("/auth.html");
 }
 
 function redirectToLogin() {
@@ -139,10 +143,52 @@ const BhuDrishtiAPI = {
   getParcel: (parcelId) => apiRequest(`/api/parcels/${encodeURIComponent(parcelId)}`),
 
   // Topology
-  getTopologyIssues: (parcelId = null) => apiRequest(`/api/topology/issues${parcelId ? `?parcel_id=${encodeURIComponent(parcelId)}` : ""}`),
+  getTopologyIssues: async (parcelId = null) => {
+    try {
+      return await apiRequest(`/api/topology/issues${parcelId ? `?parcel_id=${encodeURIComponent(parcelId)}` : ""}`);
+    } catch (err) {
+      // Serverless SQLite can route the next request to an instance that does
+      // not know the just-created EXT record. For an EXT-* workflow, use the
+      // exact browser-cached extraction response as a continuity fallback;
+      // never substitute seeded BD-* topology.
+      if (parcelId && String(parcelId).toUpperCase().startsWith('EXT-')) {
+        const local = getWorkflowExtraction(parcelId);
+        if (local) {
+          const issues = Array.isArray(local.topology_issues) ? local.topology_issues : [];
+          return { issues, count: issues.length, scope: parcelId, is_demo_data: false, coordinate_system: local.coordinate_system || null, continuity_fallback: true };
+        }
+      }
+      throw err;
+    }
+  },
 
   // Elevation
-  getElevation: (parcelId) => apiRequest(`/api/elevation/${encodeURIComponent(parcelId)}`),
+  getElevation: async (parcelId) => {
+    try {
+      return await apiRequest(`/api/elevation/${encodeURIComponent(parcelId)}`);
+    } catch (err) {
+      if (parcelId && String(parcelId).toUpperCase().startsWith('EXT-')) {
+        const local = getWorkflowExtraction(parcelId);
+        if (local?.elevation) return { ...local.elevation, is_demo_data: true, source: 'synthetic_demo', continuity_fallback: true, note: local.elevation_note || 'Prototype elevation cached from the same EXT record.' };
+      }
+      throw err;
+    }
+  },
+  getShadow: async (parcelId, params = {}) => {
+    const q = new URLSearchParams();
+    if (params.sun_azimuth_deg != null) q.set("sun_azimuth_deg", params.sun_azimuth_deg);
+    if (params.sun_elevation_deg != null) q.set("sun_elevation_deg", params.sun_elevation_deg);
+    const suffix = q.toString() ? `?${q.toString()}` : "";
+    try {
+      return await apiRequest(`/api/shadow/${encodeURIComponent(parcelId)}${suffix}`);
+    } catch (err) {
+      if (parcelId && String(parcelId).toUpperCase().startsWith('EXT-')) {
+        const local = getWorkflowExtraction(parcelId);
+        if (local?.shadow_evidence) return { ...local.shadow_evidence, source: 'cached_ext_record', continuity_fallback: true };
+      }
+      throw err;
+    }
+  },
 
   // Confidence / risk
   getConfidence: (parcelId) => apiRequest(`/api/confidence/${encodeURIComponent(parcelId)}`),
@@ -192,11 +238,10 @@ const BhuDrishtiAPI = {
   getExtractions: () => apiRequest("/api/extraction"),
 
   // Verification (human-in-the-loop)
-  getVerification: async (parcelId) => {
-    const local = typeof getWorkflowVerification === "function" ? getWorkflowVerification(parcelId) : null;
-    if (local) return local;
-    return apiRequest(`/api/verification/${encodeURIComponent(parcelId)}`);
-  },
+  // Verification state is authoritative on the backend. Browser-local
+  // verification records are deliberately ignored so a stale/fabricated
+  // local record can never appear as certified after an API failure.
+  getVerification: (parcelId) => apiRequest(`/api/verification/${encodeURIComponent(parcelId)}`),
   submitCorrection: (parcelId, payload) =>
     apiRequest(`/api/verification/${encodeURIComponent(parcelId)}/submit`, {
       method: "POST",
@@ -345,6 +390,7 @@ async function getExtractionImage(extractionId) {
 // Lightweight status strip injected into every Stitch page. It reports the
 // backend's actual operating mode instead of implying production services.
 async function syncSystemStatus() {
+  if (isPublicAuthPage()) return;
   if (document.querySelector("[data-bhudrishti-system-status]")) return;
   const el = document.createElement("div");
   el.setAttribute("data-bhudrishti-system-status", "true");
@@ -392,14 +438,14 @@ function getWorkflowExtraction(id) {
   return _readWorkflowMap(WORKFLOW_EXTRACTIONS_KEY)[id] || null;
 }
 function saveWorkflowVerification(id, verification) {
-  if (!id || !verification) return;
-  const map = _readWorkflowMap(WORKFLOW_VERIFICATIONS_KEY);
-  map[id] = verification;
-  _writeWorkflowMap(WORKFLOW_VERIFICATIONS_KEY, map);
+  // Sprint 1 trust repair: verification must never be created or mutated
+  // in browser storage. Backend responses are the only source of truth.
+  return null;
 }
 function getWorkflowVerification(id) {
-  if (!id) return null;
-  return _readWorkflowMap(WORKFLOW_VERIFICATIONS_KEY)[id] || null;
+  // Ignore legacy browser-local verification records, including stale
+  // "verified" records from older prototype builds.
+  return null;
 }
 function buildLocalExtractionQueueItem(record) {
   if (!record?.extraction_id) return null;
@@ -412,25 +458,112 @@ function buildLocalExtractionQueueItem(record) {
     priority, reasons: Array.isArray(c.reasons) ? c.reasons : ['AI extraction awaiting survey review'],
     ai_confidence_heuristic: record.confidence_heuristic ?? null,
     topology_issue_count: Number(record.topology_issue_count || (record.topology_issues || []).length || 0),
-    verification_status: (getWorkflowVerification(record.extraction_id)?.status || record.status || 'unverified'),
-    geometry_source: (getWorkflowVerification(record.extraction_id)?.status === 'verified') ? 'surveyor_verified' : 'ai_extraction'
+    verification_status: record.status || 'unverified',
+    geometry_source: 'ai_extraction'
   };
 }
 function buildLocalExportGeoJSON(targetId = null) {
   const map = _readWorkflowMap(WORKFLOW_EXTRACTIONS_KEY);
-  const features = Object.values(map).filter(r => !targetId || r.extraction_id === targetId).map(r => {
-    const v = getWorkflowVerification(r.extraction_id);
-    const geometry = v?.status === 'verified' && v?.verified_geometry ? v.verified_geometry : r.geometry;
-    return { type:'Feature', properties:{ parcel_id:r.extraction_id, area_m2:r.area_m2, source:v?.status === 'verified' ? 'surveyor_verified' : 'ai_extraction', source_filename:r.source_filename, verification_status:v?.status || 'unverified' }, geometry };
-  });
-  return { type:'FeatureCollection', crs:null, coordinate_system:{type:'local_demo',crs:null,units:'meters',georeferenced:false}, features, is_demo_data:false, note:'Browser-local workflow fallback. Uploaded prototype imagery is not georeferenced.' };
+  const features = Object.values(map).filter(r => !targetId || r.extraction_id === targetId).map(r => ({
+    type: 'Feature',
+    properties: {
+      parcel_id: r.extraction_id,
+      area_m2: r.area_m2,
+      source: 'ai_preliminary',
+      source_filename: r.source_filename,
+      verification_status: 'unverified'
+    },
+    geometry: r.geometry
+  }));
+  return {
+    type: 'FeatureCollection',
+    crs: null,
+    coordinate_system: {type:'local_demo', crs:null, units:'meters', georeferenced:false},
+    features,
+    is_demo_data: false,
+    note: 'Browser-local preliminary extraction fallback only. Certification/export authority remains on the backend.'
+  };
 }
 function setLatestExtractionId(id) {
-  try { sessionStorage.setItem(LATEST_EXTRACTION_KEY, id); } catch (_) { /* storage unavailable */ }
+  try {
+    if (id) {
+      sessionStorage.setItem(LATEST_EXTRACTION_KEY, id);
+      localStorage.setItem(LATEST_EXTRACTION_KEY, id);
+    } else {
+      sessionStorage.removeItem(LATEST_EXTRACTION_KEY);
+      localStorage.removeItem(LATEST_EXTRACTION_KEY);
+    }
+  } catch (_) { /* storage unavailable */ }
+  // The sidebar links are rendered before an extraction is created. Re-apply
+  // the active context immediately so the NEXT click carries the new EXT-*
+  // record instead of falling back to the page's seeded href.
+  if (id && typeof applyActiveWorkflowNavigation === 'function' && document.readyState !== 'loading') {
+    applyActiveWorkflowNavigation();
+  }
 }
 function getLatestExtractionId() {
-  try { return sessionStorage.getItem(LATEST_EXTRACTION_KEY); } catch (_) { return null; }
+  try { return sessionStorage.getItem(LATEST_EXTRACTION_KEY) || localStorage.getItem(LATEST_EXTRACTION_KEY); } catch (_) { return null; }
 }
+
+const LATEST_DATASET_KEY = "bhudrishti.latestDatasetId";
+function setLatestDatasetId(id) {
+  try {
+    if (id) localStorage.setItem(LATEST_DATASET_KEY, id);
+    else localStorage.removeItem(LATEST_DATASET_KEY);
+  } catch (_) {}
+}
+function getLatestDatasetId() {
+  try { return localStorage.getItem(LATEST_DATASET_KEY); } catch (_) { return null; }
+}
+
+
+// --- Active workflow context ------------------------------------------------
+// Keep the Stitch sidebar/navigation on the same EXT-* record after an upload.
+// URL parameters always win; otherwise the latest real extraction ID from this
+// browser session is used. This prevents silently falling back to seeded BD-*
+// data when moving between GIS, Topology, and Elevation screens.
+function getActiveWorkflowExtractionId() {
+  const fromUrl = getExtractionIdFromQuery();
+  if (fromUrl) return fromUrl;
+  const params = new URLSearchParams(window.location.search);
+  const parcel = params.get('parcel') || params.get('parcel_id');
+  if (parcel && String(parcel).toUpperCase().startsWith('EXT-')) return parcel;
+  return typeof getLatestExtractionId === 'function' ? getLatestExtractionId() : null;
+}
+
+function applyActiveWorkflowNavigation() {
+  if (isPublicAuthPage()) return;
+  const active = getActiveWorkflowExtractionId();
+  const dataset = typeof getLatestDatasetId === 'function' ? getLatestDatasetId() : null;
+  const encoded = active ? encodeURIComponent(active) : null;
+  const datasetEncoded = dataset ? encodeURIComponent(dataset) : null;
+
+  document.querySelectorAll('a[href]').forEach(a => {
+    const raw = a.getAttribute('href') || '';
+    // Do not rewrite external links or action links that already target a
+    // specific record. Sidebar links are intentionally normalized here.
+    const base = raw.split('?')[0];
+    if (base === 'gis-cadastral-map.html' && encoded) {
+      a.setAttribute('href', `gis-cadastral-map.html?extraction=${encoded}`);
+    } else if (base === 'topology-validation.html' && encoded) {
+      a.setAttribute('href', `topology-validation.html?parcel=${encoded}`);
+    } else if (base === 'elevation-analysis.html' && encoded) {
+      a.setAttribute('href', `elevation-analysis.html?parcel=${encoded}`);
+    } else if (base === 'survey-priority.html' && encoded) {
+      a.setAttribute('href', `survey-priority.html?extraction=${encoded}`);
+    } else if (base === 'survey-projects.html' && (datasetEncoded || encoded)) {
+      const qs = [];
+      if (datasetEncoded) qs.push(`dataset=${datasetEncoded}`);
+      if (encoded) qs.push(`extraction=${encoded}`);
+      a.setAttribute('href', `survey-projects.html?${qs.join('&')}`);
+    }
+  });
+
+  document.querySelectorAll('[data-active-workflow-context]').forEach(el => {
+    el.textContent = active || dataset || 'No active upload';
+  });
+}
+
 
 // --- Step 0 polish: shared sidebar topology badge -----------------------
 // The shared Stitch sidebar shows a topology-issue badge on every screen.
@@ -442,10 +575,12 @@ function getLatestExtractionId() {
 // "Gaps" because the backend count spans all topology issue types
 // (overlaps, gaps, self-intersections, invalid geometry), not gaps alone.
 async function syncTopologyBadge() {
+  if (isPublicAuthPage()) return;
   const badges = document.querySelectorAll("[data-topology-badge]");
   if (!badges.length) return;
   try {
-    const data = await BhuDrishtiAPI.getTopologyIssues();
+    const active = typeof getActiveWorkflowExtractionId === "function" ? getActiveWorkflowExtractionId() : null;
+    const data = await BhuDrishtiAPI.getTopologyIssues(active || null);
     const count = (data && typeof data.count === "number") ? data.count : (data.issues || []).length;
     badges.forEach((el) => { el.textContent = `${count} Issue${count === 1 ? "" : "s"}`; });
   } catch (err) {
@@ -454,8 +589,10 @@ async function syncTopologyBadge() {
   }
 }
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => { syncTopologyBadge(); syncSystemStatus(); });
-} else {
+  document.addEventListener("DOMContentLoaded", () => {
+    if (!isPublicAuthPage()) { syncTopologyBadge(); syncSystemStatus(); }
+  });
+} else if (!isPublicAuthPage()) {
   syncTopologyBadge();
   syncSystemStatus();
 }
@@ -466,6 +603,9 @@ if (document.readyState === "loading") {
 // remain public so users can sign in or request access.
 (function enforceAuthentication() {
   const path = window.location.pathname || "";
-  if (path.endsWith("auth.html") || path.endsWith("/auth.html")) return;
+  if (isPublicAuthPage()) return;
   if (!getAuthToken()) redirectToLogin();
 })();
+
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyActiveWorkflowNavigation); else applyActiveWorkflowNavigation();

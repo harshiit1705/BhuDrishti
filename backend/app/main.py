@@ -16,7 +16,8 @@ from shapely.geometry import mapping, box, Polygon
 
 from .geometry_engine import Parcel, run_topology_validation, GeometryValidationError
 from .elevation_engine import synth_raster_pair, analyze_parcel_elevation
-from .confidence_engine import compute_confidence, PRIORITY_THRESHOLDS, priority_for_score
+from .shadow_engine import (analyze_shadow, prototype_surface_from_pixel_polygon, DEFAULT_SUN_AZIMUTH_DEG, DEFAULT_SUN_ELEVATION_DEG, DEFAULT_GSD_M_PER_PX)
+from .confidence_engine import compute_confidence, PRIORITY_THRESHOLDS, priority_for_score, MODEL_VERSION
 from .demo_data import build_demo_parcels, ELEVATION_DEMO_CONFIG, HISTORICAL_SHIFT_DEMO_M, \
     PROJECT_ID, PROJECT_NAME, CRS, CRS_LABEL
 from .verification_store import store, InvalidTransitionError
@@ -26,6 +27,7 @@ from .repositories import PERSISTENCE_MODE, PERSISTENCE_LABEL
 from .auth import (ensure_demo_users, authenticate, issue_token, user_from_token, create_registration, list_users, set_user_status, ROLE_LABELS)
 from pathlib import Path
 import sqlite3, json, hashlib
+import numpy as np
 
 app = FastAPI(
     title="BhuDrishti API",
@@ -122,9 +124,56 @@ def _authoritative_parcels() -> list[Parcel]:
     return [_authoritative_parcel(pid) for pid in PARCELS]
 
 
-def _coordinate_system() -> dict:
-    return {"type": "local_demo", "crs": None, "units": "meters", "georeferenced": False,
-            "label": CRS_LABEL}
+def _coordinate_system(declared_crs: str | None = None, source: str = "local_demo") -> dict:
+    """Return explicit spatial semantics; never imply an unverified CRS is authoritative."""
+    declared = (declared_crs or "").strip() or None
+    if declared and declared.upper() != "LOCAL-DEMO":
+        return {
+            "type": "declared_crs_unverified",
+            "crs": declared,
+            "declared_crs": declared,
+            "crs_status": "DECLARED_NOT_VERIFIED",
+            "georeferenced": False,
+            "units": "unknown_until_crs_verified",
+            "area_semantics": "PIXEL_OR_LOCAL_DERIVED_NOT_AUTHORITATIVE",
+            "gsd_m_per_pixel": None,
+            "gsd_status": "not_verified_from_sensor_metadata",
+            "source": source,
+            "label": f"Declared {declared} • not verified",
+        }
+    return {
+        "type": "local_demo",
+        "crs": None,
+        "declared_crs": "LOCAL-DEMO",
+        "crs_status": "NOT_GEOREFERENCED",
+        "georeferenced": False,
+        "units": "meters",
+        "area_semantics": "LOCAL_DEMO_SQUARE_METRES",
+        "gsd_m_per_pixel": extraction_engine.DEMO_GSD_M_PER_PX,
+        "gsd_status": "DEMO_CONSTANT_NOT_SENSOR_METADATA",
+        "source": source,
+        "label": CRS_LABEL,
+    }
+
+def _dataset_spatial_metadata(dataset_id: str | None) -> dict:
+    if not dataset_id:
+        return _coordinate_system()
+    try:
+        with sqlite3.connect(DB_PATH) as db:
+            row = db.execute("SELECT declared_crs, file_type FROM datasets WHERE dataset_id=?", (dataset_id,)).fetchone()
+        if row:
+            return _coordinate_system(row[0], source=f"dataset:{dataset_id}") | {"file_type": row[1]}
+    except sqlite3.Error:
+        pass
+    return _coordinate_system()
+
+def _geometry_semantics(spatial: dict, source: str) -> dict:
+    return {
+        "area_m2": "local/demo square metres" if spatial.get("area_semantics") == "LOCAL_DEMO_SQUARE_METRES" else "derived area; not authoritative until CRS/georeferencing is verified",
+        "authoritative": source == "surveyor_verified" and spatial.get("georeferenced") is True,
+        "geometry_status": "SURVEYOR_VERIFIED" if source == "surveyor_verified" else "AI_PRELIMINARY",
+        "spatial_reference_status": spatial.get("crs_status"),
+    }
 
 
 def _candidate_topology_issues(record: ExtractionRecord) -> list[dict]:
@@ -194,19 +243,9 @@ def _elevation_for(parcel_id: str):
 
 
 def _confidence_for(parcel_id: str, issues_by_parcel: dict):
+    """Authoritative risk/confidence evaluation for seeded parcels."""
     p = PARCELS[parcel_id]
-    pissues = issues_by_parcel.get(parcel_id, [])
-    has_overlap = any(i.issue_type == "overlap" for i in pissues)
-    has_gap = any(i.issue_type == "gap" and i.status == "open" for i in pissues)
-    has_invalid = any(i.issue_type in ("invalid_geometry", "self_intersection") for i in pissues)
-    elev = _elevation_for(parcel_id) if parcel_id in ELEVATION_DEMO_CONFIG else None
-    ndsm_dis = abs(elev.overhang_offset_m) if elev else 0.0
-    hist_shift = HISTORICAL_SHIFT_DEMO_M.get(parcel_id, 0.0)
-    return compute_confidence(
-        parcel_id, has_overlap=has_overlap, has_gap=has_gap, has_invalid_geometry=has_invalid,
-        irregularity_ratio=_irregularity_ratio(p), ndsm_disagreement_m=ndsm_dis,
-        historical_shift_m=hist_shift,
-    )
+    return _confidence_for_geometry(parcel_id, p, issues_by_parcel)
 
 
 def _issues_by_parcel(issues):
@@ -218,29 +257,29 @@ def _issues_by_parcel(issues):
 
 
 def _confidence_for_geometry(pseudo_id: str, polygon_parcel: Parcel, issues_by_parcel: dict):
-    """
-    Same confidence math as `_confidence_for`, generalized to work on any
-    `Parcel` object -- including a freshly generated AI-extraction record
-    that is NOT in the seeded `PARCELS` dict and has no synthetic DSM/DTM
-    config (extraction records get ndsm_disagreement_m=0.0 and
-    historical_shift_m=0.0 -- there is no elevation model or legacy-map
-    record for an ad-hoc uploaded image in this prototype).
+    """Single authoritative risk/confidence calculation used by every API path.
+
+    Topology, geometric irregularity, elevation disagreement and historical
+    mismatch all enter the same weighted model. Elevation is computed from
+    the configured deterministic demo surface for seeded parcels and from a
+    deterministic prototype surface for EXT-* records. Historical comparison
+    is only available for seeded demo parcels, so missing historical evidence
+    contributes 0 rather than being invented.
     """
     pissues = issues_by_parcel.get(pseudo_id, [])
     has_overlap = any(i.issue_type == "overlap" for i in pissues)
     has_gap = any(i.issue_type == "gap" and i.status == "open" for i in pissues)
     has_invalid = any(i.issue_type in ("invalid_geometry", "self_intersection") for i in pissues)
+
+    elev = _target_elevation(pseudo_id)
+    ndsm_dis = abs(float(elev.overhang_offset_m)) if elev is not None else 0.0
+    hist_shift = float(HISTORICAL_SHIFT_DEMO_M.get(pseudo_id, 0.0))
+
     conf = compute_confidence(
         pseudo_id, has_overlap=has_overlap, has_gap=has_gap, has_invalid_geometry=has_invalid,
-        irregularity_ratio=_irregularity_ratio(polygon_parcel), ndsm_disagreement_m=0.0,
-        historical_shift_m=0.0,
+        irregularity_ratio=_irregularity_ratio(polygon_parcel), ndsm_disagreement_m=ndsm_dis,
+        historical_shift_m=hist_shift,
     )
-    # Ad-hoc uploads do not have DSM/DTM or legacy-map context. Keep the
-    # primary reason precise instead of implying those datasets were checked.
-    if conf.reasons == ["No topology, elevation, or historical conflicts detected"]:
-        conf.reasons = [
-            "No detected topology issue; elevation and historical comparison are not available for this upload."
-        ]
     return conf
 
 
@@ -321,12 +360,14 @@ def validate_dataset(payload: dict = Body(...)):
     if missing:
         return {"valid": False, "errors": [f"Missing field: {m}" for m in missing]}
     errors=[]
-    if CRS is None and payload.get("declared_crs") not in (None, "", "LOCAL-DEMO"):
-        errors.append("CRS validation is unavailable for the local-demo coordinate space.")
-    allowed={"geotiff","cog","las","laz","geojson","shapefile","image","orthophoto"}
-    if str(payload.get("file_type","")).lower() not in allowed:
-        errors.append(f"Unsupported file_type: {payload.get('file_type')}")
-    return {"valid": not errors, "errors": errors, "coordinate_system": _coordinate_system()}
+    declared = str(payload.get("declared_crs") or "LOCAL-DEMO").strip()
+    if declared.upper() != "LOCAL-DEMO" and not (declared.upper().startswith("EPSG:") and declared[5:].isdigit()):
+        errors.append("declared_crs must be LOCAL-DEMO or an EPSG:<code> identifier.")
+    allowed={"geotiff","image","orthophoto"}
+    file_type = str(payload.get("file_type","")).lower()
+    if file_type not in allowed:
+        errors.append(f"Unsupported for current inference pipeline: {payload.get('file_type')}. Supported: GeoTIFF/TIFF, PNG/JPEG image, orthophoto image.")
+    return {"valid": not errors, "errors": errors, "coordinate_system": _coordinate_system(declared)}
 
 @app.post("/api/datasets/upload")
 async def upload_dataset(file: UploadFile = File(...), declared_crs: str = Form("LOCAL-DEMO"), user: dict = Depends(require_roles("ADMIN", "PROJECT_OFFICER", "GIS_OPERATOR"))):
@@ -342,7 +383,7 @@ async def upload_dataset(file: UploadFile = File(...), declared_crs: str = Form(
         (UPLOAD_DIR / dataset_id).write_bytes(raw)
         db.execute("INSERT OR REPLACE INTO datasets VALUES (?,?,?,?,?,?,?)",(dataset_id,file.filename or "upload",file_type,len(raw),declared_crs,"ready",datetime.now(timezone.utc).isoformat()))
         db.commit()
-    return {"dataset_id":dataset_id,"filename":file.filename,"file_type":file_type,"size_bytes":len(raw),"status":"ready","validation":validation,"is_demo_data":False}
+    return {"dataset_id":dataset_id,"filename":file.filename,"file_type":file_type,"size_bytes":len(raw),"status":"ready","validation":validation,"coordinate_system":_coordinate_system(declared_crs, source=f"dataset:{dataset_id}"),"is_demo_data":False}
 
 @app.get("/api/datasets")
 def list_datasets():
@@ -353,7 +394,7 @@ def list_datasets():
 
 
 @app.get("/api/datasets/{dataset_id}/file")
-def get_dataset_file(dataset_id: str):
+def get_dataset_file(dataset_id: str, user: dict = Depends(require_roles("ADMIN", "PROJECT_OFFICER", "GIS_OPERATOR"))):
     """Serve the persisted source file so the frontend can display the active dataset.
 
     This does not replace the authoritative backend inference path; it only lets the
@@ -391,7 +432,10 @@ def infer_dataset(dataset_id: str, user: dict = Depends(require_roles("ADMIN", "
 def _extraction_response(record):
     temp=Parcel(record.extraction_id,record.geometry,source="ai_extraction")
     issues=run_topology_validation([temp]); by=_issues_by_parcel(issues); conf=_confidence_for_geometry(record.extraction_id,temp,by)
-    return {**record.to_dict(),"confidence":conf.to_dict(),"topology_issues":[i.to_dict() for i in by.get(record.extraction_id,[])],"topology_issue_count":len(by.get(record.extraction_id,[])),"priority":conf.priority,"compared_against":[],"elevation":None,"elevation_note":"Synthetic elevation can be opened for this extraction as a prototype; no real DEM is attached.","analysis":{"parcel_candidates":record.parcel_candidates,"roof_footprints":record.roof_footprints,"georeferencing":{"available":False,"note":"Uploaded dataset has no verified project georeferencing in this prototype."},"model_adapter":{"current":"opencv_contour_pipeline","future":"segmentation_model","future_implemented":False}}}
+    elev=_target_elevation(record.extraction_id)
+    shadow=_shadow_for(record.extraction_id)
+    spatial=_dataset_spatial_metadata(record.dataset_id)
+    return {**record.to_dict(),"confidence":conf.to_dict(),"topology_issues":[i.to_dict() for i in by.get(record.extraction_id,[])],"topology_issue_count":len(by.get(record.extraction_id,[])),"priority":conf.priority,"compared_against":[],"elevation":elev.__dict__ if elev else None,"shadow_evidence":shadow.__dict__ if shadow else None,"elevation_note":"Deterministic synthetic prototype elevation is evaluated by the same risk engine; it is not a real surveyed DSM/DTM.","risk_model":{"version":"sprint2-v1","elevation_wired":True,"historical_wired":False},"coordinate_system":spatial,"geometry_semantics":_geometry_semantics(spatial,"ai_extraction"),"analysis":{"parcel_candidates":record.parcel_candidates,"roof_footprints":record.roof_footprints,"georeferencing":{"available":False,"crs":spatial.get("crs"),"status":spatial.get("crs_status"),"note":"CRS may be declared on ingestion, but this prototype does not verify/transform image georeferencing."},"model_adapter":{"current":"opencv_contour_pipeline","future":"segmentation_model","future_implemented":False}}}
 
 
 # ---------------------------------------------------------------------------
@@ -417,9 +461,12 @@ def list_parcels():
             "confidence": round(conf.confidence, 1),
             "risk_score": round(conf.risk_score, 1),
             "priority": conf.priority,
+            "coordinate_system": _coordinate_system(),
+            "geometry_semantics": _geometry_semantics(_coordinate_system(), p.source),
             "verification_status": rec.status if rec else "unverified",
             "geometry_source": p.source,
             "coordinate_system": p.coordinate_metadata(),
+            "risk_model": {"version": MODEL_VERSION, "elevation_wired": True, "historical_wired": True},
             "is_demo_data": True,
         })
     return {"parcels": out, "count": len(out), "coordinate_system": _coordinate_system()}
@@ -450,6 +497,7 @@ def get_parcel(parcel_id: str):
         "verification": rec.to_dict() if rec else None,
         "geometry_source": p.source,
         "coordinate_system": p.coordinate_metadata(),
+        "risk_model": {"version": MODEL_VERSION, "elevation_wired": True, "historical_wired": True},
         "is_demo_data": True,
     }
 
@@ -557,17 +605,24 @@ async def infer_extraction(image: UploadFile = File(...), dataset_id: str | None
     issues = run_topology_validation([temp_parcel])
     by_parcel = _issues_by_parcel(issues)
     conf = _confidence_for_geometry(record.extraction_id, temp_parcel, by_parcel)
+    elev = _target_elevation(record.extraction_id)
+    shadow = _shadow_for(record.extraction_id)
     own_issues = by_parcel.get(record.extraction_id, [])
 
+    spatial = _dataset_spatial_metadata(record.dataset_id)
     return {
         **record.to_dict(),
+        "coordinate_system": spatial,
+        "geometry_semantics": _geometry_semantics(spatial, "ai_extraction"),
         "confidence": conf.to_dict(),
         "topology_issues": [i.to_dict() for i in own_issues],
         "topology_issue_count": len(own_issues),
         "priority": conf.priority,
         "compared_against": [],
-        "elevation": None,
-        "elevation_note": "No real DEM is attached. The Elevation Analysis screen can show a deterministic synthetic prototype surface for this extraction.",
+        "elevation": elev.__dict__ if elev else None,
+        "shadow_evidence": shadow.__dict__ if shadow else None,
+        "elevation_note": "Deterministic synthetic prototype elevation is evaluated by the same risk engine; it is not a real surveyed DSM/DTM.",
+        "risk_model": {"version": MODEL_VERSION, "elevation_wired": True, "historical_wired": False},
         "analysis": {
             "parcel_candidates": record.parcel_candidates,
             "roof_footprints": record.roof_footprints,
@@ -576,7 +631,7 @@ async def infer_extraction(image: UploadFile = File(...), dataset_id: str | None
                 "method": "prototype pixel-mask erosion; roof footprint is not a legal cadastral boundary",
                 "status": "prototype_inference" if record.roof_footprints else "not_available",
             },
-            "georeferencing": {"available": False, "note": "Uploaded image has no embedded project georeferencing in this prototype."},
+            "georeferencing": {"available": False, "crs": spatial.get("crs"), "status": spatial.get("crs_status"), "note": "CRS/georeferencing is not verified or transformed by this prototype."},
             "model_adapter": {"current": "opencv_contour_pipeline", "future": "segmentation_model", "future_implemented": False},
             "candidate_topology_issues": _candidate_topology_issues(record),
             "layer_summary": {
@@ -605,10 +660,14 @@ def get_extraction(extraction_id: str):
     issues = run_topology_validation([temp_parcel])
     by_parcel = _issues_by_parcel(issues)
     conf = _confidence_for_geometry(record.extraction_id, temp_parcel, by_parcel)
+    elev = _target_elevation(record.extraction_id)
     own_issues = by_parcel.get(record.extraction_id, [])
+    spatial = _dataset_spatial_metadata(record.dataset_id)
     return {
         **record.to_dict(),
         "geometry": mapping(current_geometry),
+        "coordinate_system": spatial,
+        "geometry_semantics": _geometry_semantics(spatial, current_source),
         "area_m2": round(current_geometry.area, 2),
         "status": vr.status if vr else record.status,
         "geometry_source": current_source,
@@ -617,8 +676,9 @@ def get_extraction(extraction_id: str):
         "topology_issue_count": len(own_issues),
         "priority": conf.priority,
         "compared_against": [],
-        "elevation": None,
-        "elevation_note": "No real DEM is attached. The Elevation Analysis screen can show a deterministic synthetic prototype surface for this extraction.",
+        "elevation": elev.__dict__ if elev else None,
+        "elevation_note": "Deterministic synthetic prototype elevation is evaluated by the same risk engine; it is not a real surveyed DSM/DTM.",
+        "risk_model": {"version": MODEL_VERSION, "elevation_wired": True, "historical_wired": False},
         "analysis": {
             "parcel_candidates": record.parcel_candidates,
             "roof_footprints": record.roof_footprints,
@@ -634,7 +694,7 @@ def get_extraction(extraction_id: str):
                 "method": "prototype pixel-mask erosion; roof footprint is not a legal cadastral boundary",
                 "status": "prototype_inference" if record.roof_footprints else "not_available",
             },
-            "georeferencing": {"available": False, "note": "Uploaded image has no embedded project georeferencing in this prototype."},
+            "georeferencing": {"available": False, "crs": spatial.get("crs"), "status": spatial.get("crs_status"), "note": "CRS/georeferencing is not verified or transformed by this prototype."},
             "model_adapter": {"current": "opencv_contour_pipeline", "future": "segmentation_model", "future_implemented": False},
         },
     }
@@ -696,6 +756,26 @@ def get_elevation(parcel_id: str):
 # ---------------------------------------------------------------------------
 # 6. CONFIDENCE / RISK
 # ---------------------------------------------------------------------------
+@app.get("/api/shadow/{parcel_id}")
+def get_shadow(parcel_id: str, sun_azimuth_deg: float = Query(DEFAULT_SUN_AZIMUTH_DEG),
+               sun_elevation_deg: float = Query(DEFAULT_SUN_ELEVATION_DEG)):
+    if not (0.0 <= sun_azimuth_deg < 360.0):
+        raise HTTPException(400, "sun_azimuth_deg must be in [0, 360)")
+    if not (1.0 < sun_elevation_deg < 89.9):
+        raise HTTPException(400, "sun_elevation_deg must be between 1 and 89.9 degrees")
+    result = _shadow_for(parcel_id, sun_azimuth_deg, sun_elevation_deg)
+    if result is None:
+        raise HTTPException(404, "No shadow/elevation evidence is available for this parcel")
+    payload = result.__dict__.copy()
+    payload.update({
+        "source": "sprint4_shadow_evidence",
+        "model_status": "PROTOTYPE_PHYSICS_INSPIRED",
+        "authoritative_boundary": False,
+        "note": result.notes,
+    })
+    return payload
+
+
 @app.get("/api/confidence/{parcel_id}")
 def get_confidence(parcel_id: str):
     if parcel_id in PARCELS:
@@ -815,6 +895,65 @@ def _target_elevation(target_id: str):
             return analyze_parcel_elevation(target_id,dsm,dtm,overhang_offset_m=0.0)
     return None
 
+
+def _shadow_for(target_id: str, sun_azimuth_deg: float = DEFAULT_SUN_AZIMUTH_DEG,
+                sun_elevation_deg: float = DEFAULT_SUN_ELEVATION_DEG):
+    """Return Sprint-4 shadow/elevation evidence for a seeded parcel or EXT record."""
+    if target_id in ELEVATION_DEMO_CONFIG:
+        cfg = ELEVATION_DEMO_CONFIG[target_id]
+        # Use a dedicated simulation raster scale so a physically plausible
+        # shadow can fit inside the small synthetic analysis tile. This is not
+        # sensor metadata and is reported as demo-only by the shadow engine.
+        raster_gsd = 0.25
+        dsm, dtm = synth_raster_pair(cfg["seed"], cfg["ground_m"], cfg["height_m"], size=128, overhang_px=cfg["overhang_px"])
+        ndsm = dsm - dtm
+        mask = ndsm >= 1.0
+        ys, xs = np.where(mask)
+        roof = box(float(xs.min()) * raster_gsd, float(ys.min()) * raster_gsd, float(xs.max()) * raster_gsd, float(ys.max()) * raster_gsd) if len(xs) else None
+        return analyze_shadow(target_id, dsm, dtm, sun_azimuth_deg=sun_azimuth_deg,
+                              sun_elevation_deg=sun_elevation_deg, gsd_m_per_px=raster_gsd,
+                              roof_polygon=roof, source_mode="synthetic_paired_demo")
+
+    if target_id.startswith("EXT-"):
+        rec = extraction_store.get(target_id)
+        if not rec:
+            return None
+        seed = int(hashlib.sha1(target_id.encode()).hexdigest()[:8], 16)
+        ground = 180.0 + (seed % 300) / 100.0
+        height = 2.5 + (rec.area_m2 % 45) / 10.0
+        luminance = None
+        source_mode = "synthetic_paired_demo"
+        # When the source dataset file is available, use its actual pixels as
+        # the luminance evidence. The elevation surface remains explicitly
+        # synthetic because no measured DSM is ingested in Sprint 4.
+        if rec.dataset_id:
+            try:
+                with sqlite3.connect(DB_PATH) as db:
+                    row = db.execute("SELECT filename FROM datasets WHERE dataset_id=?", (rec.dataset_id,)).fetchone()
+                path = UPLOAD_DIR / rec.dataset_id
+                if row and path.exists():
+                    from PIL import Image
+                    from io import BytesIO
+                    image = Image.open(BytesIO(path.read_bytes())).convert("L").resize((64, 64))
+                    luminance = np.asarray(image, dtype=float)
+                    source_mode = "uploaded_orthophoto_plus_synthetic_elevation"
+            except Exception:
+                luminance = None
+        try:
+            dsm, dtm = prototype_surface_from_pixel_polygon(rec.pixel_polygon, rec.image_width, rec.image_height,
+                                                               size=64, ground_m=ground, height_m=height)
+            pts = np.asarray(rec.pixel_polygon, dtype=float)
+            sx = 63.0 / max(1.0, float(rec.image_width - 1))
+            sy = 63.0 / max(1.0, float(rec.image_height - 1))
+            roof_pts = [(float(x * sx * DEFAULT_GSD_M_PER_PX), float(y * sy * DEFAULT_GSD_M_PER_PX)) for x, y in pts]
+            roof = Polygon(roof_pts) if len(roof_pts) >= 3 else None
+            return analyze_shadow(target_id, dsm, dtm, sun_azimuth_deg=sun_azimuth_deg,
+                                  sun_elevation_deg=sun_elevation_deg, gsd_m_per_px=DEFAULT_GSD_M_PER_PX,
+                                  luminance=luminance, roof_polygon=roof, source_mode=source_mode)
+        except Exception:
+            return None
+    return None
+
 # ---------------------------------------------------------------------------
 # 8. VERIFICATION (HITL)
 # ---------------------------------------------------------------------------
@@ -874,11 +1013,12 @@ def get_verification(parcel_id: str):
 def export_geojson(user: dict = Depends(require_roles("ADMIN", "PROJECT_OFFICER", "FIELD_SURVEYOR", "REVENUE_OFFICER"))):
     features=[]
     for pid in PARCELS:
-        p=_authoritative_parcel(pid); features.append({"type":"Feature","properties":{"parcel_id":pid,"area_m2":round(p.polygon.area,2),"source":p.source,"owner":p.owner,"ward":p.ward},"geometry":mapping(p.polygon)})
+        p=_authoritative_parcel(pid); features.append({"type":"Feature","properties":{"parcel_id":pid,"area_m2":round(p.polygon.area,2),"source":p.source,"owner":p.owner,"ward":p.ward,"crs_status":"NOT_GEOREFERENCED","area_semantics":"LOCAL_DEMO_SQUARE_METRES","authoritative":False},"geometry":mapping(p.polygon)})
     for rec in extraction_store.all():
         target,_=_target_geometry(rec.extraction_id); vr=store.get(rec.extraction_id)
-        p=target; features.append({"type":"Feature","properties":{"parcel_id":rec.extraction_id,"area_m2":round(p.polygon.area,2),"source":p.source,"source_filename":rec.source_filename,"verification_status":vr.status if vr else "unverified"},"geometry":mapping(p.polygon)})
-    return {"type":"FeatureCollection","crs":None,"coordinate_system":_coordinate_system(),"features":features,"is_demo_data":False,"note":"AI extraction features are preliminary until surveyor verification; verified geometry is exported when available."}
+        p=target; spatial=_dataset_spatial_metadata(rec.dataset_id)
+        features.append({"type":"Feature","properties":{"parcel_id":rec.extraction_id,"area_m2":round(p.polygon.area,2),"source":p.source,"source_filename":rec.source_filename,"verification_status":vr.status if vr else "unverified","crs_status":spatial.get("crs_status"),"declared_crs":spatial.get("declared_crs"),"area_semantics":spatial.get("area_semantics"),"authoritative":False},"geometry":mapping(p.polygon)})
+    return {"type":"FeatureCollection","crs":None,"coordinate_system":_coordinate_system(),"features":features,"is_demo_data":False,"note":"Coordinates are LOCAL-DEMO unless a future verified georeferencing transform is applied. AI extraction areas are preliminary and not authoritative cadastral areas.","export_semantics":{"crs_embedded":False,"georeferenced":False,"area_authority":"not_authoritative","verified_geometry_source":"surveyor_verified_when_present"}}
 
 
 # ---------------------------------------------------------------------------
@@ -891,8 +1031,9 @@ def system_status():
         "project": PROJECT_ID,
         "extraction": {"mode": "opencv_prototype", "is_demo_data": False, "model": "classical_cv"},
         "elevation": {"mode": "synthetic_demo", "is_demo_data": True},
+        "shadow_analysis": {"mode": "physics_inspired_prototype", "is_demo_data": True, "authoritative_boundary": False},
         "persistence": {"mode": PERSISTENCE_MODE, "label": PERSISTENCE_LABEL},
-        "georeferencing": {"mode": "local_demo_coordinates", "crs": None, "georeferenced": False},
+        "georeferencing": {**_coordinate_system(), "mode": "local_demo_coordinates"},
         "architecture": {"repository_abstraction": True, "production_storage": "not_connected"},
     }
 
@@ -909,7 +1050,7 @@ def root():
         "docs": "/docs",
         "endpoints": [
             "/api/projects", "/api/parcels", "/api/parcels/{id}",
-            "/api/system/status", "/api/extraction/infer", "/api/extraction/demo", "/api/topology/issues", "/api/elevation/{id}",
+            "/api/system/status", "/api/extraction/infer", "/api/extraction/demo", "/api/topology/issues", "/api/elevation/{id}", "/api/shadow/{id}",
             "/api/confidence/{id}", "/api/survey-queue", "/api/verification/{id}",
             "/api/export/geojson",
         ],
