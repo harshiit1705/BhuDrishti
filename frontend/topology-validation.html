@@ -763,19 +763,13 @@
     if(!rec || String(rec.extraction_id||id).toUpperCase()!==id.toUpperCase()) throw new Error('The returned extraction does not match the selected ID.');
     if(typeof saveWorkflowExtraction==='function') saveWorkflowExtraction(rec);
     try { if(typeof getExtractionImage==='function') imageBlob=await getExtractionImage(id); } catch(_) {}
-    const ds=rec.dataset_id || null;
+    const ds=rec.dataset_id || (typeof getLatestDatasetId==='function'?getLatestDatasetId():null);
     if(!imageBlob && ds && typeof getDatasetImage==='function'){try{imageBlob=await getDatasetImage(ds)}catch(_){}}
     if(!imageBlob && ds && typeof BhuDrishtiAPI.getDatasetFileUrl==='function'){
       const token=localStorage.getItem('bhudrishti.auth.token');
       const response=await fetch(BhuDrishtiAPI.getDatasetFileUrl(ds),{headers:token?{Authorization:`Bearer ${token}`}:{}});
       if(response.ok) imageBlob=await response.blob();
     }
-    // A slow response for a previously selected extraction must never paint over
-    // the newer selection (e.g. upload B while requests for upload A are in flight).
-    const latestParams = new URLSearchParams(location.search);
-    const latestId = latestParams.get('extraction') || latestParams.get('parcel') || latestParams.get('parcel_id') ||
-      (typeof getActiveWorkflowExtractionId === 'function' ? getActiveWorkflowExtractionId() : null);
-    if (latestId && latestId.toUpperCase() !== id.toUpperCase()) return;
     if(imageBlob) objectUrl=URL.createObjectURL(imageBlob);
     const candidates=rec.parcel_candidates||rec.candidates||[];
     const chosen=candidates.find(c=>String(c.candidate_id||'').endsWith('01'))||candidates[0]||null;

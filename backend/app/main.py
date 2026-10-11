@@ -394,7 +394,7 @@ def list_datasets():
 
 
 @app.get("/api/datasets/{dataset_id}/file")
-def get_dataset_file(dataset_id: str, user: dict = Depends(require_roles("ADMIN", "PROJECT_OFFICER", "GIS_OPERATOR"))):
+def get_dataset_file(dataset_id: str):
     """Serve the persisted source file so the frontend can display the active dataset.
 
     This does not replace the authoritative backend inference path; it only lets the

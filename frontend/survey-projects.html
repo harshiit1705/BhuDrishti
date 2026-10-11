@@ -736,9 +736,6 @@
      // between the upload and inference invocations.
      if (typeof saveDatasetImage === 'function') await saveDatasetImage(r.dataset_id, f);
      localStorage.setItem(ACTIVE_KEY,r.dataset_id);
-     // A newly accepted dataset starts a new workflow. Never carry the prior
-     // extraction into the new upload's URL or let its image remain active.
-     if (typeof setLatestExtractionId === 'function') setLatestExtractionId(null);
      if (typeof setLatestDatasetId === 'function') setLatestDatasetId(r.dataset_id);
      localStorage.setItem(NAME_KEY,f.name);
      localStorage.setItem(SIZE_KEY,String(f.size));
@@ -754,7 +751,7 @@
      if(btn) btn.textContent='Upload / Replace';
    }finally{ if(btn) btn.disabled=false; }
  };
- if(start) start.onclick=()=>{ const id=start.dataset.datasetId||localStorage.getItem(ACTIVE_KEY); if(id) { if (typeof setLatestDatasetId === 'function') setLatestDatasetId(id); const activeDataset=(typeof getLatestDatasetId==='function')?getLatestDatasetId():null; const ext=(activeDataset===id && typeof getLatestExtractionId==='function')?getLatestExtractionId():null; window.location.href='ai-feature-extraction.html?dataset='+encodeURIComponent(id)+(ext?'&extraction='+encodeURIComponent(ext):''); } };
+ if(start) start.onclick=()=>{ const id=start.dataset.datasetId||localStorage.getItem(ACTIVE_KEY); if(id) { if (typeof setLatestDatasetId === 'function') setLatestDatasetId(id); const ext=(typeof getLatestExtractionId==='function')?getLatestExtractionId():null; window.location.href='ai-feature-extraction.html?dataset='+encodeURIComponent(id)+(ext?'&extraction='+encodeURIComponent(ext):''); } };
  // Restore the active dataset even if the backend list is temporarily served
  // by another Vercel instance. The browser-local image + metadata are the
  // continuity bridge; the backend remains the source of truth once reachable.

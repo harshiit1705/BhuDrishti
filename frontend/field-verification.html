@@ -746,14 +746,92 @@
       } catch (err) { if (topoNote) topoNote.textContent='Backend topology unavailable.'; }
     }
 
+    let authoritativeStatus = null;
+    let authoritativeVerification = null;
+    const exportLink = document.getElementById('after-certification-link');
+    const user = typeof BhuDrishtiAPI.getAuthUser === 'function' ? BhuDrishtiAPI.getAuthUser() : null;
+    const canAcceptPreliminary = !!user && ['ADMIN', 'REVENUE_OFFICER'].includes(String(user.role || '').toUpperCase());
+
+    function showWorkflowMessage(message, isError = false) {
+      let el = document.getElementById('verification-workflow-message');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'verification-workflow-message';
+        el.className = 'mx-space-lg mt-space-sm px-space-md py-space-sm rounded font-body-sm text-body-sm';
+        const header = document.querySelector('main > div');
+        if (header) header.prepend(el);
+        else document.body.prepend(el);
+      }
+      el.className = 'mx-space-lg mt-space-sm px-space-md py-space-sm rounded font-body-sm text-body-sm ' +
+        (isError ? 'bg-error-container text-on-error-container' : 'bg-surface-container text-on-surface');
+      el.textContent = message;
+    }
+
+    function renderActionState(status) {
+      if (!certifyBtn) return;
+      certifyBtn.disabled = false;
+      certifyBtn.classList.remove('bg-tertiary-container', 'text-on-tertiary-container');
+      certifyBtn.classList.add('bg-primary');
+      if (exportLink) {
+        exportLink.classList.toggle('hidden', status !== 'verified');
+        exportLink.href = `export-cadastre.html?parcel=${encodeURIComponent(parcelId)}`;
+      }
+      if (status === 'verified') {
+        certifyBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">check_circle</span><span>Already Certified — View Export</span>';
+        certifyBtn.classList.remove('bg-primary');
+        certifyBtn.classList.add('bg-tertiary-container', 'text-on-tertiary-container');
+        if (draftBtn) draftBtn.disabled = true;
+        if (rejectBtn) rejectBtn.disabled = true;
+        showWorkflowMessage('This boundary is already certified. The authoritative verification record has been refreshed; no new certification or audit event was created. Continue to Export to review the certified geometry.');
+      } else {
+        if (draftBtn) draftBtn.disabled = false;
+        if (rejectBtn) rejectBtn.disabled = status !== 'in_review';
+        if (status === 'unverified') {
+          certifyBtn.disabled = !canAcceptPreliminary;
+          certifyBtn.innerHTML = canAcceptPreliminary
+            ? '<span class="material-symbols-outlined text-[20px]">verified</span><span>Accept AI Preliminary (No Edits)</span>'
+            : '<span class="material-symbols-outlined text-[20px]">rate_review</span><span>Review Required Before Certification</span>';
+          showWorkflowMessage(canAcceptPreliminary
+            ? 'This boundary is unverified. You may explicitly accept the AI preliminary geometry without edits, or use Save Draft to submit a reviewed boundary.'
+            : 'This boundary is unverified. Submit a boundary with Save Draft for review. Your current role cannot accept AI preliminary geometry directly.', !canAcceptPreliminary);
+        } else if (status === 'in_review') {
+          certifyBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">verified</span><span>Certify Reviewed Boundary</span>';
+          showWorkflowMessage('A boundary correction is in review. Certification will use the submitted geometry.');
+        } else if (status === 'rejected') {
+          certifyBtn.disabled = true;
+          certifyBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">edit_note</span><span>Correction Required</span>';
+          showWorkflowMessage('This boundary was rejected. Submit a new corrected boundary with Save Draft; certification is unavailable until the correction is resubmitted and enters review.', true);
+        } else {
+          certifyBtn.disabled = true;
+          showWorkflowMessage(`Unsupported verification status: ${status}. Refresh the record or contact an administrator.`, true);
+        }
+      }
+    }
+
     async function refreshStatus() {
       try {
+        // Backend GET is authoritative; never convert an API failure into
+        // an apparent unverified record or use cached extraction.status.
         const rec = await BhuDrishtiAPI.getVerification(parcelId);
+        if (!rec || !['unverified', 'in_review', 'verified', 'rejected'].includes(rec.status)) {
+          throw new Error('The backend returned a missing or unsupported verification record.');
+        }
+        authoritativeVerification = rec;
+        authoritativeStatus = rec.status;
         renderStatus(rec.status);
+        renderActionState(rec.status);
         return rec;
       } catch (err) {
+        authoritativeVerification = null;
+        authoritativeStatus = null;
+        if (certifyBtn) certifyBtn.disabled = true;
+        if (draftBtn) draftBtn.disabled = true;
+        if (rejectBtn) rejectBtn.disabled = true;
+        if (exportLink) exportLink.classList.add('hidden');
+        showWorkflowMessage(`Could not load authoritative verification state: ${err.message}. No certification action is available until the backend record can be loaded.`, true);
         showApiError(err);
-        renderStatus('unverified');
+        if (statusBadge) statusBadge.textContent = 'STATE UNAVAILABLE';
+        return null;
       }
     }
 
@@ -790,32 +868,71 @@
         } catch (err) {
           showApiError(err);
           restore(draftBtn);
+          await refreshStatus();
         }
       });
     }
 
-    // "Sign & Certify Boundary" -> POST /api/verification/{id}/certify
+    // Certification is a state-machine action, not a generic button action.
     if (certifyBtn) {
       certifyBtn.addEventListener('click', async function () {
-        busy(certifyBtn, 'Submitting certification…');
+        // Always fetch backend state immediately before acting. A stale badge
+        // or extraction status must never authorize a transition.
+        busy(certifyBtn, 'Checking status…');
         try {
           const current = await BhuDrishtiAPI.getVerification(parcelId);
-          let response;
-          if((current?.status || 'unverified') === 'unverified') response = await BhuDrishtiAPI.acceptPreliminary(parcelId,{});
-          else response = await BhuDrishtiAPI.certifyVerification(parcelId,{});
-          let rec=response.verification;
+          if (!current || !['unverified', 'in_review', 'verified', 'rejected'].includes(current.status)) {
+            throw new Error('The backend returned a missing or unsupported verification record.');
+          }
+          authoritativeVerification = current;
+          authoritativeStatus = current.status;
+          renderStatus(current.status);
+
+          if (current.status === 'verified') {
+            await refreshStatus();
+            showWorkflowMessage('This boundary is already certified. No new certification request was sent.');
+            window.location.href = `export-cadastre.html?parcel=${encodeURIComponent(parcelId)}`;
+            return;
+          }
+          if (current.status === 'rejected') {
+            await refreshStatus();
+            showWorkflowMessage('Certification is blocked because this boundary was rejected. Submit a new corrected geometry with Save Draft before certifying.', true);
+            return;
+          }
+          if (current.status === 'unverified') {
+            if (!canAcceptPreliminary) {
+              await refreshStatus();
+              showWorkflowMessage('This boundary has not been submitted for review. Use Save Draft to submit the geometry. Your role is not authorized to accept AI preliminary geometry directly.', true);
+              return;
+            }
+            const confirmed = window.confirm('This boundary is still unverified. Accept the AI preliminary geometry without edits? This is an explicit acceptance action and will record it in the audit trail.');
+            if (!confirmed) { await refreshStatus(); return; }
+            const response = await BhuDrishtiAPI.acceptPreliminary(parcelId, {});
+            if (!response || !response.verification || response.verification.status !== 'verified') {
+              throw new Error('The backend did not confirm preliminary acceptance.');
+            }
+            await refreshStatus();
+            window.location.href = `export-cadastre.html?parcel=${encodeURIComponent(parcelId)}`;
+            return;
+          }
+
+          // Only in_review is eligible for the certification endpoint.
+          const response = await BhuDrishtiAPI.certifyVerification(parcelId, {});
+          if (!response || !response.verification || response.verification.status !== 'verified') {
+            throw new Error('The backend did not confirm certification.');
+          }
           const refreshed = await refreshStatus();
-          rec = refreshed || rec;
-          certifyBtn.innerHTML =
-            '<span class="material-symbols-outlined text-[20px] text-tertiary-fixed">check_circle</span>' +
-            '<span>Boundary Certified — status: ' + (rec ? rec.status : 'verified') + '</span>';
-          certifyBtn.classList.remove('bg-primary');
-          certifyBtn.classList.add('bg-tertiary-container', 'text-on-tertiary-container');
-          certifyBtn.disabled = false;
+          if (!refreshed || refreshed.status !== 'verified') {
+            throw new Error('Certification response was not confirmed by a subsequent authoritative read.');
+          }
           window.location.href = `export-cadastre.html?parcel=${encodeURIComponent(parcelId)}`;
         } catch (err) {
           showApiError(err);
-          restore(certifyBtn);
+          showWorkflowMessage(`Certification was not completed: ${err.message}`, true);
+          await refreshStatus();
+        } finally {
+          if (certifyBtn && authoritativeStatus !== null) renderActionState(authoritativeStatus);
+          else if (certifyBtn) certifyBtn.disabled = true;
         }
       });
     }
@@ -830,10 +947,10 @@
           verification=(await BhuDrishtiAPI.rejectVerification(parcelId,{reason})).verification;
           await refreshStatus();
           rejectBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">cancel</span><span>Rejected</span>';
-          rejectBtn.disabled = false;
         } catch (err) {
           showApiError(err);
           restore(rejectBtn);
+          await refreshStatus();
         }
       });
     }

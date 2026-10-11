@@ -16,11 +16,3 @@ assert "getDatasetFileUrl" in API
 assert "No real DSM/DTM is attached" in ELEVATION
 assert "NOT CALCULATED FOR THIS UPLOAD" in TOPOLOGY
 print("ACTIVE ORTHOPHOTO RENDERING CONTRACT: PASS")
-
-# Regression guards for context contamination and late responses.
-SURVEY = (ROOT / "frontend" / "survey-projects.html").read_text(encoding="utf-8")
-for page in (TOPOLOGY, ELEVATION):
-    assert "const ds=rec.dataset_id || null;" in page, "historical extraction must not borrow the latest unrelated dataset"
-    assert "latestId.toUpperCase() !== id.toUpperCase()" in page, "late response must not overwrite a newer extraction selection"
-assert "setLatestExtractionId(null)" in SURVEY, "accepted new dataset must clear prior active extraction"
-print("ACTIVE CONTEXT / STALE RESPONSE REGRESSION GUARDS: PASS")

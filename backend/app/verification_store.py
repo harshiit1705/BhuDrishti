@@ -78,8 +78,14 @@ class PersistentVerificationRepository:
     def certify(self,pid,surveyor_name):
         rec=self.get(pid)
         if not rec: raise KeyError(pid)
+        # A retry after a successful certification is safe: return the existing
+        # authoritative record unchanged. In particular, do not replace its
+        # certified geometry or append a second audit event.
+        if rec.status == "verified":
+            return rec
         if rec.status not in ALLOWED_CERTIFY_FROM: raise InvalidTransitionError(rec.status,"certify")
-        if rec.verified_geometry is None: rec.verified_geometry=rec.ai_geometry
+        if rec.verified_geometry is None:
+            raise InvalidTransitionError(rec.status,"certify without submitted review geometry")
         rec.status="verified"; rec.log(surveyor_name,"certified","Boundary certified in prototype workflow"); return self._save(rec)
     def reject(self,pid,surveyor_name,reason):
         rec=self.get(pid)
