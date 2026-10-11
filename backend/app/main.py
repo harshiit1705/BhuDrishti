@@ -93,17 +93,8 @@ ensure_demo_users()
 # In-memory "database" for the prototype, seeded with the deterministic demo set.
 # ---------------------------------------------------------------------------
 PARCELS: dict[str, Parcel] = {p.parcel_id: p for p in build_demo_parcels()}
-# Vercel serverless functions run from a read-only deployment filesystem.
-# Keep the prototype SQLite file in /tmp there; local development keeps the
-# durable project-local path. /tmp is writable but is not durable across
-# serverless instances, so this is prototype persistence only.
-if __import__("os").environ.get("VERCEL"):
-    DB_PATH = Path("/tmp/bhudrishti") / "bhudrishti.db"
-else:
-    DB_PATH = Path(__file__).resolve().parent.parent / "data" / "bhudrishti.db"
-DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-UPLOAD_DIR=DB_PATH.parent / "uploads"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+from .persistence import DB_PATH, UPLOAD_DIR
+
 
 with sqlite3.connect(DB_PATH) as _db:
     _db.execute("""CREATE TABLE IF NOT EXISTS datasets (dataset_id TEXT PRIMARY KEY, filename TEXT, file_type TEXT, size_bytes INTEGER, declared_crs TEXT, status TEXT, created_at TEXT)""")

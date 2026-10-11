@@ -33,5 +33,6 @@ class InMemoryRepository(Generic[T]):
     def all(self) -> list[T]:
         return list(self._items.values())
 
-PERSISTENCE_MODE = "sqlite_file"
-PERSISTENCE_LABEL = "SQLite File / Prototype Persistence"
+from .persistence import DB_PATH, IS_VERCEL, ALLOW_EPHEMERAL
+PERSISTENCE_MODE = "sqlite_ephemeral_opt_in" if IS_VERCEL and ALLOW_EPHEMERAL else "sqlite_shared_file"
+PERSISTENCE_LABEL = f"SQLite prototype file ({DB_PATH})"

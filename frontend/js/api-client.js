@@ -227,12 +227,9 @@ const BhuDrishtiAPI = {
     return res.json();
   },
   getExtraction: async (extractionId) => {
-    // EXT-* workflow records are cached locally so the same-browser prototype
-    // remains continuous even when Vercel routes the next request to another
-    // serverless instance. Prefer that exact record before making a backend
-    // request; seeded/non-EXT records still use the backend normally.
-    const local = typeof getWorkflowExtraction === "function" ? getWorkflowExtraction(extractionId) : null;
-    if (local) return local;
+    // Browser workflow storage is a display/cache aid only. Verification,
+    // certification and export must operate on an extraction confirmed by the
+    // same authoritative API; a missing backend record must remain a 404.
     return apiRequest(`/api/extraction/${encodeURIComponent(extractionId)}`);
   },
   getExtractions: () => apiRequest("/api/extraction"),

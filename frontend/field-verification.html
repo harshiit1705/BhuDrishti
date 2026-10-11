@@ -634,8 +634,8 @@
     };
 
     async function loadExtractionTarget(){
-      extractionRecord=await BhuDrishtiAPI.getExtraction(targetId).catch(()=>getWorkflowExtraction(targetId));
-      if(!extractionRecord) throw new Error('Extraction record is unavailable. Return to AI Feature Extraction and run inference again.');
+      extractionRecord=await BhuDrishtiAPI.getExtraction(targetId);
+      if(!extractionRecord) throw new Error('The extraction is not present in the authoritative backend. Return to AI Feature Extraction, confirm the backend extraction list, and rerun inference only if the source dataset is still available.');
       const verification=await BhuDrishtiAPI.getVerification(targetId);
       const activeGeom=verification?.verified_geometry || verification?.ai_geometry || extractionRecord.geometry;
       const primaryPixels=extractionRecord.pixel_polygon||[];
@@ -654,15 +654,26 @@
       if(sourceLabel) sourceLabel.textContent=verification?.status==='verified'?'CERTIFIED TARGET':'AI PRELIMINARY TARGET';
       if(sourceBanner) sourceBanner.classList.remove('hidden');
       if(sourceMeta) sourceMeta.textContent=`${extractionRecord.source_filename||'uploaded ORI'} · ${targetId} · ${verification?.status||extractionRecord.status||'unverified'}`;
-      const imageUrl=extractionRecord.dataset_id && typeof BhuDrishtiAPI.getDatasetFileUrl==='function' ? BhuDrishtiAPI.getDatasetFileUrl(extractionRecord.dataset_id) : null;
-      let blob=null;
-      try{ blob=await getExtractionImage(targetId); }catch(_){ }
-      const url=blob?URL.createObjectURL(blob):imageUrl;
-      if(url){
+      const datasetId=extractionRecord.dataset_id || null;
+      const imageUrl=datasetId && typeof BhuDrishtiAPI.getDatasetFileUrl==='function' ? BhuDrishtiAPI.getDatasetFileUrl(datasetId) : null;
+      let cachedDatasetBlob=null, cachedDatasetUrl=null;
+      // Image cache is keyed by stable dataset ID, never by an EXT ID that could
+      // collide across isolated serverless instances. The backend URL wins.
+      try{ if(datasetId && typeof getDatasetImage==='function') cachedDatasetBlob=await getDatasetImage(datasetId); }catch(_){ }
+      if(cachedDatasetBlob) cachedDatasetUrl=URL.createObjectURL(cachedDatasetBlob);
+      if(demoBg) demoBg.classList.add('hidden');
+      if(imageUrl || cachedDatasetUrl){
         imageEl.onload=()=>{setMapView(Number(extractionRecord.image_width)||imageEl.naturalWidth||1200,Number(extractionRecord.image_height)||imageEl.naturalHeight||800);if(demoBg)demoBg.classList.add('hidden');imageEl.classList.remove('hidden');};
-        imageEl.onerror=()=>{if(demoBg)demoBg.classList.remove('hidden');imageEl.classList.add('hidden');if(sourceMeta)sourceMeta.textContent+=' · image preview unavailable';};
-        imageEl.src=url; sourceImage=url;
-      } else { if(demoBg)demoBg.classList.add('hidden'); }
+        imageEl.onerror=()=>{
+          if(imageUrl && cachedDatasetUrl && imageEl.src!==cachedDatasetUrl){ imageEl.src=cachedDatasetUrl; return; }
+          imageEl.classList.add('hidden'); if(demoBg)demoBg.classList.add('hidden');
+          if(sourceMeta)sourceMeta.textContent+=' · original orthophoto unavailable from backend and dataset cache';
+        };
+        imageEl.src=imageUrl || cachedDatasetUrl; sourceImage=imageEl.src;
+      } else {
+        imageEl.classList.add('hidden'); if(demoBg)demoBg.classList.add('hidden');
+        if(sourceMeta)sourceMeta.textContent+=' · original orthophoto unavailable';
+      }
       const disclosure=document.getElementById('field-map-disclosure');
       if(disclosure) disclosure.textContent=`ACTIVE ORTHOPHOTO · ${extractionRecord.source_filename||'uploaded image'} · image-derived prototype boundary · local-demo coordinates (not georeferenced)`;
     }
@@ -677,9 +688,14 @@
       renderPolygonAndHandles();
     }
 
+    // Fail closed until the target is confirmed by the backend.
+    if (draftBtn) draftBtn.disabled = true;
+    if (certifyBtn) certifyBtn.disabled = true;
+    if (rejectBtn) rejectBtn.disabled = true;
+
     (async function init(){
-      try { if(isExtraction) await loadExtractionTarget(); else await loadSeededTarget(); }
-      catch(err){ console.error(err); showApiError(err); }
+      try { if(isExtraction) await loadExtractionTarget(); else await loadSeededTarget(); window.__fieldVerificationTargetReady = true; window.dispatchEvent(new Event('bhudrishti-target-ready')); }
+      catch(err){ console.error(err); showApiError(err); window.__fieldVerificationTargetReady = false; }
     })();
   })();
 </script>
@@ -700,6 +716,11 @@
     const notesEl = document.getElementById('field-notes');
 
     if (targetLabel) targetLabel.textContent = parcelId;
+    [draftBtn, certifyBtn, rejectBtn].filter(Boolean).forEach(btn => { btn.disabled = true; });
+    window.addEventListener('bhudrishti-target-ready', () => {
+      if (window.__fieldVerificationTargetReady) [draftBtn, certifyBtn, rejectBtn].filter(Boolean).forEach(btn => { btn.disabled = false; });
+    });
+    if (window.__fieldVerificationTargetReady) [draftBtn, certifyBtn, rejectBtn].filter(Boolean).forEach(btn => { btn.disabled = false; });
 
     const STATUS_STYLES = {
       unverified: 'bg-surface-container-high text-on-surface',
@@ -746,92 +767,16 @@
       } catch (err) { if (topoNote) topoNote.textContent='Backend topology unavailable.'; }
     }
 
-    let authoritativeStatus = null;
-    let authoritativeVerification = null;
-    const exportLink = document.getElementById('after-certification-link');
-    const user = typeof BhuDrishtiAPI.getAuthUser === 'function' ? BhuDrishtiAPI.getAuthUser() : null;
-    const canAcceptPreliminary = !!user && ['ADMIN', 'REVENUE_OFFICER'].includes(String(user.role || '').toUpperCase());
-
-    function showWorkflowMessage(message, isError = false) {
-      let el = document.getElementById('verification-workflow-message');
-      if (!el) {
-        el = document.createElement('div');
-        el.id = 'verification-workflow-message';
-        el.className = 'mx-space-lg mt-space-sm px-space-md py-space-sm rounded font-body-sm text-body-sm';
-        const header = document.querySelector('main > div');
-        if (header) header.prepend(el);
-        else document.body.prepend(el);
-      }
-      el.className = 'mx-space-lg mt-space-sm px-space-md py-space-sm rounded font-body-sm text-body-sm ' +
-        (isError ? 'bg-error-container text-on-error-container' : 'bg-surface-container text-on-surface');
-      el.textContent = message;
-    }
-
-    function renderActionState(status) {
-      if (!certifyBtn) return;
-      certifyBtn.disabled = false;
-      certifyBtn.classList.remove('bg-tertiary-container', 'text-on-tertiary-container');
-      certifyBtn.classList.add('bg-primary');
-      if (exportLink) {
-        exportLink.classList.toggle('hidden', status !== 'verified');
-        exportLink.href = `export-cadastre.html?parcel=${encodeURIComponent(parcelId)}`;
-      }
-      if (status === 'verified') {
-        certifyBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">check_circle</span><span>Already Certified — View Export</span>';
-        certifyBtn.classList.remove('bg-primary');
-        certifyBtn.classList.add('bg-tertiary-container', 'text-on-tertiary-container');
-        if (draftBtn) draftBtn.disabled = true;
-        if (rejectBtn) rejectBtn.disabled = true;
-        showWorkflowMessage('This boundary is already certified. The authoritative verification record has been refreshed; no new certification or audit event was created. Continue to Export to review the certified geometry.');
-      } else {
-        if (draftBtn) draftBtn.disabled = false;
-        if (rejectBtn) rejectBtn.disabled = status !== 'in_review';
-        if (status === 'unverified') {
-          certifyBtn.disabled = !canAcceptPreliminary;
-          certifyBtn.innerHTML = canAcceptPreliminary
-            ? '<span class="material-symbols-outlined text-[20px]">verified</span><span>Accept AI Preliminary (No Edits)</span>'
-            : '<span class="material-symbols-outlined text-[20px]">rate_review</span><span>Review Required Before Certification</span>';
-          showWorkflowMessage(canAcceptPreliminary
-            ? 'This boundary is unverified. You may explicitly accept the AI preliminary geometry without edits, or use Save Draft to submit a reviewed boundary.'
-            : 'This boundary is unverified. Submit a boundary with Save Draft for review. Your current role cannot accept AI preliminary geometry directly.', !canAcceptPreliminary);
-        } else if (status === 'in_review') {
-          certifyBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">verified</span><span>Certify Reviewed Boundary</span>';
-          showWorkflowMessage('A boundary correction is in review. Certification will use the submitted geometry.');
-        } else if (status === 'rejected') {
-          certifyBtn.disabled = true;
-          certifyBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">edit_note</span><span>Correction Required</span>';
-          showWorkflowMessage('This boundary was rejected. Submit a new corrected boundary with Save Draft; certification is unavailable until the correction is resubmitted and enters review.', true);
-        } else {
-          certifyBtn.disabled = true;
-          showWorkflowMessage(`Unsupported verification status: ${status}. Refresh the record or contact an administrator.`, true);
-        }
-      }
-    }
-
     async function refreshStatus() {
       try {
-        // Backend GET is authoritative; never convert an API failure into
-        // an apparent unverified record or use cached extraction.status.
         const rec = await BhuDrishtiAPI.getVerification(parcelId);
-        if (!rec || !['unverified', 'in_review', 'verified', 'rejected'].includes(rec.status)) {
-          throw new Error('The backend returned a missing or unsupported verification record.');
-        }
-        authoritativeVerification = rec;
-        authoritativeStatus = rec.status;
         renderStatus(rec.status);
-        renderActionState(rec.status);
         return rec;
       } catch (err) {
-        authoritativeVerification = null;
-        authoritativeStatus = null;
-        if (certifyBtn) certifyBtn.disabled = true;
-        if (draftBtn) draftBtn.disabled = true;
-        if (rejectBtn) rejectBtn.disabled = true;
-        if (exportLink) exportLink.classList.add('hidden');
-        showWorkflowMessage(`Could not load authoritative verification state: ${err.message}. No certification action is available until the backend record can be loaded.`, true);
         showApiError(err);
-        if (statusBadge) statusBadge.textContent = 'STATE UNAVAILABLE';
-        return null;
+        if (draftBtn) draftBtn.disabled = true;
+        if (certifyBtn) certifyBtn.disabled = true;
+        if (rejectBtn) rejectBtn.disabled = true;
       }
     }
 
@@ -868,71 +813,51 @@
         } catch (err) {
           showApiError(err);
           restore(draftBtn);
-          await refreshStatus();
         }
       });
     }
 
-    // Certification is a state-machine action, not a generic button action.
+    // Certification follows the backend state machine; never auto-accept AI geometry.
     if (certifyBtn) {
       certifyBtn.addEventListener('click', async function () {
-        // Always fetch backend state immediately before acting. A stale badge
-        // or extraction status must never authorize a transition.
-        busy(certifyBtn, 'Checking status…');
+        busy(certifyBtn, 'Checking verification…');
         try {
           const current = await BhuDrishtiAPI.getVerification(parcelId);
-          if (!current || !['unverified', 'in_review', 'verified', 'rejected'].includes(current.status)) {
-            throw new Error('The backend returned a missing or unsupported verification record.');
-          }
-          authoritativeVerification = current;
-          authoritativeStatus = current.status;
-          renderStatus(current.status);
-
-          if (current.status === 'verified') {
-            await refreshStatus();
-            showWorkflowMessage('This boundary is already certified. No new certification request was sent.');
+          const status = current && current.status;
+          if (status === 'verified') {
+            const authoritative = await BhuDrishtiAPI.getVerification(parcelId);
+            if (authoritative.status !== 'verified') throw new Error('Verification status changed. Refresh the record before continuing.');
+            certifyBtn.innerHTML = '<span class="material-symbols-outlined text-[20px] text-tertiary-fixed">check_circle</span><span>Already Certified · Continue to Export</span>';
+            certifyBtn.classList.remove('bg-primary');
+            certifyBtn.classList.add('bg-tertiary-container', 'text-on-tertiary-container');
+            certifyBtn.disabled = false;
             window.location.href = `export-cadastre.html?parcel=${encodeURIComponent(parcelId)}`;
             return;
           }
-          if (current.status === 'rejected') {
-            await refreshStatus();
-            showWorkflowMessage('Certification is blocked because this boundary was rejected. Submit a new corrected geometry with Save Draft before certifying.', true);
-            return;
+          if (status === 'unverified') {
+            throw new Error('This boundary is not in review. Use Save Draft to submit the edited geometry first. Preliminary AI acceptance is restricted to an authorized Admin or Revenue Officer.');
           }
-          if (current.status === 'unverified') {
-            if (!canAcceptPreliminary) {
-              await refreshStatus();
-              showWorkflowMessage('This boundary has not been submitted for review. Use Save Draft to submit the geometry. Your role is not authorized to accept AI preliminary geometry directly.', true);
-              return;
-            }
-            const confirmed = window.confirm('This boundary is still unverified. Accept the AI preliminary geometry without edits? This is an explicit acceptance action and will record it in the audit trail.');
-            if (!confirmed) { await refreshStatus(); return; }
-            const response = await BhuDrishtiAPI.acceptPreliminary(parcelId, {});
-            if (!response || !response.verification || response.verification.status !== 'verified') {
-              throw new Error('The backend did not confirm preliminary acceptance.');
-            }
-            await refreshStatus();
-            window.location.href = `export-cadastre.html?parcel=${encodeURIComponent(parcelId)}`;
-            return;
+          if (status === 'rejected') {
+            throw new Error('This boundary was rejected. Correct the geometry and use Save Draft to resubmit it for review before certification.');
           }
-
-          // Only in_review is eligible for the certification endpoint.
+          if (status !== 'in_review') {
+            throw new Error('The backend returned an unsupported verification status. Refresh the record before continuing.');
+          }
+          busy(certifyBtn, 'Certifying…');
           const response = await BhuDrishtiAPI.certifyVerification(parcelId, {});
-          if (!response || !response.verification || response.verification.status !== 'verified') {
-            throw new Error('The backend did not confirm certification.');
+          const rec = response.verification;
+          const refreshed = await BhuDrishtiAPI.getVerification(parcelId);
+          if (refreshed.status !== 'verified' || rec.status !== 'verified') {
+            throw new Error('The certification request did not produce an authoritative verified state.');
           }
-          const refreshed = await refreshStatus();
-          if (!refreshed || refreshed.status !== 'verified') {
-            throw new Error('Certification response was not confirmed by a subsequent authoritative read.');
-          }
+          certifyBtn.innerHTML = '<span class="material-symbols-outlined text-[20px] text-tertiary-fixed">check_circle</span><span>Boundary Certified · Continue to Export</span>';
+          certifyBtn.classList.remove('bg-primary');
+          certifyBtn.classList.add('bg-tertiary-container', 'text-on-tertiary-container');
+          certifyBtn.disabled = false;
           window.location.href = `export-cadastre.html?parcel=${encodeURIComponent(parcelId)}`;
         } catch (err) {
           showApiError(err);
-          showWorkflowMessage(`Certification was not completed: ${err.message}`, true);
-          await refreshStatus();
-        } finally {
-          if (certifyBtn && authoritativeStatus !== null) renderActionState(authoritativeStatus);
-          else if (certifyBtn) certifyBtn.disabled = true;
+          restore(certifyBtn);
         }
       });
     }
@@ -947,10 +872,10 @@
           verification=(await BhuDrishtiAPI.rejectVerification(parcelId,{reason})).verification;
           await refreshStatus();
           rejectBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">cancel</span><span>Rejected</span>';
+          rejectBtn.disabled = false;
         } catch (err) {
           showApiError(err);
           restore(rejectBtn);
-          await refreshStatus();
         }
       });
     }

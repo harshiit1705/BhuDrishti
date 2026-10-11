@@ -9,15 +9,7 @@ from shapely.geometry import Polygon, mapping
 from shapely import wkt
 from .geometry_engine import validate_surveyor_geometry
 
-# Vercel serverless functions run from a read-only deployment filesystem.
-# Keep the prototype SQLite file in /tmp there; local development keeps the
-# durable project-local path. /tmp is writable but is not durable across
-# serverless instances, so this is prototype persistence only.
-if __import__("os").environ.get("VERCEL"):
-    DB_PATH = Path("/tmp/bhudrishti") / "bhudrishti.db"
-else:
-    DB_PATH = Path(__file__).resolve().parent.parent / "data" / "bhudrishti.db"
-DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+from .persistence import DB_PATH
 
 def _conn():
     c=sqlite3.connect(DB_PATH); c.row_factory=sqlite3.Row; return c
@@ -78,14 +70,12 @@ class PersistentVerificationRepository:
     def certify(self,pid,surveyor_name):
         rec=self.get(pid)
         if not rec: raise KeyError(pid)
-        # A retry after a successful certification is safe: return the existing
-        # authoritative record unchanged. In particular, do not replace its
-        # certified geometry or append a second audit event.
+        # Idempotent repeat: preserve certified geometry and audit history.
+        # Other states remain constrained by the explicit state machine.
         if rec.status == "verified":
             return rec
         if rec.status not in ALLOWED_CERTIFY_FROM: raise InvalidTransitionError(rec.status,"certify")
-        if rec.verified_geometry is None:
-            raise InvalidTransitionError(rec.status,"certify without submitted review geometry")
+        if rec.verified_geometry is None: rec.verified_geometry=rec.ai_geometry
         rec.status="verified"; rec.log(surveyor_name,"certified","Boundary certified in prototype workflow"); return self._save(rec)
     def reject(self,pid,surveyor_name,reason):
         rec=self.get(pid)

@@ -46,13 +46,10 @@ DEMO_USERS = [
 ]
 
 
-def _db_path() -> Path:
-    # Match the prototype's SQLite persistence location. This remains prototype
-    # storage on Vercel; production should use managed persistent storage.
-    if os.environ.get("VERCEL"):
-        return Path("/tmp/bhudrishti") / "bhudrishti.db"
-    return Path(__file__).resolve().parent.parent / "data" / "bhudrishti.db"
+from .persistence import DB_PATH
 
+def _db_path() -> Path:
+    return DB_PATH
 
 def _connect():
     path = _db_path()
