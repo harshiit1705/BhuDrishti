@@ -26,8 +26,10 @@ from .extraction_store import extraction_store, ExtractionRecord
 from .repositories import PERSISTENCE_MODE, PERSISTENCE_LABEL
 from .auth import (ensure_demo_users, authenticate, issue_token, user_from_token, create_registration, list_users, set_user_status, ROLE_LABELS)
 from pathlib import Path
-import sqlite3, json, hashlib
+import sqlite3, json, hashlib, logging, uuid
 import numpy as np
+
+logger = logging.getLogger("bhudrishti.api")
 
 app = FastAPI(
     title="BhuDrishti API",
@@ -792,16 +794,18 @@ def get_confidence(parcel_id: str):
 # ---------------------------------------------------------------------------
 # 7. SURVEY PRIORITY QUEUE
 # ---------------------------------------------------------------------------
-@app.get("/api/survey-queue")
-def get_survey_queue():
+def _build_survey_queue():
     # The queue is the single source of truth for ALL priority tiers. Seeded
     # demo parcels use the seeded cadastral spatial context. Ad-hoc uploaded
     # EXT-* records have no georeferencing, so each extraction is evaluated
     # in isolation for geometry validity; it is not treated as a neighboring
     # parcel merely because the prototype CV transform uses a common local
     # coordinate convention.
+    # Read extraction records once so the geometry pass and metadata pass use
+    # the same snapshot and do not observe different repository states.
+    all_extractions = extraction_store.all()
     extraction_parcels = []
-    for r in extraction_store.all():
+    for r in all_extractions:
         vr = store.get(r.extraction_id)
         geom = vr.verified_geometry if vr and vr.verified_geometry is not None else r.geometry
         source = "surveyor_verified" if vr and vr.verified_geometry is not None else "ai_extraction"
@@ -827,7 +831,7 @@ def get_survey_queue():
             "verification_status": rec.status if rec else "unverified",
             "geometry_source": p.source,
         })
-    extraction_lookup = {r.extraction_id: r for r in extraction_store.all()}
+    extraction_lookup = {r.extraction_id: r for r in all_extractions}
     for ep in extraction_parcels:
         conf = _confidence_for_geometry(ep.parcel_id, ep, by_parcel)
         rec = extraction_lookup.get(ep.parcel_id)
@@ -858,6 +862,28 @@ def get_survey_queue():
         "contains_seeded_demo_data": bool(PARCELS),
         "contains_ai_extractions": bool(extraction_parcels),
     }
+
+
+@app.get("/api/survey-queue")
+def get_survey_queue(request: Request):
+    """Return the queue, logging actionable server diagnostics without leaking internals."""
+    diagnostic_id = uuid.uuid4().hex[:12]
+    try:
+        return _build_survey_queue()
+    except HTTPException:
+        raise
+    except Exception as exc:
+        # Do not turn data/repository failures into an empty or seeded-only 200.
+        # Full traceback stays in function logs; clients receive only a correlation ID.
+        logger.exception(
+            "survey_queue_failed diagnostic_id=%s method=%s path=%s exception_type=%s",
+            diagnostic_id, request.method, request.url.path, type(exc).__name__
+        )
+        raise HTTPException(
+            status_code=500,
+            detail={"message": "Survey queue could not be generated. Check server logs using diagnostic_id.",
+                    "diagnostic_id": diagnostic_id},
+        ) from exc
 
 
 # ---------------------------------------------------------------------------

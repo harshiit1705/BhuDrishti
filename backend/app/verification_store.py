@@ -47,7 +47,16 @@ class PersistentVerificationRepository:
         with _conn() as c:
             c.execute("""CREATE TABLE IF NOT EXISTS verifications (
               parcel_id TEXT PRIMARY KEY,status TEXT,ai_geometry_wkt TEXT,verified_geometry_wkt TEXT,
-              surveyor_name TEXT,surveyor_license TEXT,statement TEXT,audit_json TEXT)"""); c.commit()
+              surveyor_name TEXT,surveyor_license TEXT,statement TEXT,audit_json TEXT)""")
+            c.execute("""CREATE TABLE IF NOT EXISTS schema_migrations (
+              component TEXT NOT NULL, version INTEGER NOT NULL,
+              applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY(component, version))""")
+            # Additive migration framework for legacy SQLite files. Current
+            # verification columns are stable; record the schema version so
+            # later deployments can extend this migration sequence safely.
+            c.execute("INSERT OR IGNORE INTO schema_migrations(component, version) VALUES ('verifications', 1)")
+            c.commit()
     def _row(self,row):
         if not row:return None
         audits=[AuditEntry(**a) for a in json.loads(row["audit_json"] or "[]")]

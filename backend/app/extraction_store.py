@@ -81,6 +81,19 @@ class PersistentExtractionRepository:
                 roof_footprints_json TEXT, created_at TEXT, status TEXT, is_demo_data INTEGER,
                 dataset_id TEXT
             )""")
+            # SQLite CREATE TABLE IF NOT EXISTS does not update an existing
+            # table. Earlier deployments omitted dataset_id; _row() then raised
+            # IndexError while the survey queue enumerated extraction records.
+            # Apply additive, data-preserving migrations in place.
+            c.execute("""CREATE TABLE IF NOT EXISTS schema_migrations (
+                component TEXT NOT NULL, version INTEGER NOT NULL,
+                applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY(component, version)
+            )""")
+            columns = {row[1] for row in c.execute("PRAGMA table_info(extractions)").fetchall()}
+            if "dataset_id" not in columns:
+                c.execute("ALTER TABLE extractions ADD COLUMN dataset_id TEXT")
+            c.execute("INSERT OR IGNORE INTO schema_migrations(component, version) VALUES ('extractions', 2)")
             c.commit()
 
     def new_id(self) -> str:
