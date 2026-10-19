@@ -48,6 +48,16 @@ def is_postgres() -> bool:
     return bool(DATABASE_URL)
 
 
+def lock_schema_initialization(db) -> None:
+    """Serialize DDL/migrations across concurrently cold-started serverless workers.
+
+    The lock is transaction-scoped and shared by all schema initializers. SQLite
+    already serializes writes through its database locking.
+    """
+    if is_postgres():
+        db.execute("SELECT pg_advisory_xact_lock(1842052026)")
+
+
 def check_database() -> dict:
     """Perform a real connection and SELECT 1; never infer connected from config alone."""
     try:

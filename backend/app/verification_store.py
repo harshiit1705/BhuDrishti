@@ -7,7 +7,7 @@ import json
 from shapely.geometry import Polygon, mapping
 from shapely import wkt
 from .geometry_engine import validate_surveyor_geometry
-from .database import connect_db, is_postgres
+from .database import connect_db, is_postgres, lock_schema_initialization
 from .persistence import DB_PATH
 
 
@@ -52,6 +52,7 @@ ALLOWED_ACCEPT_PRELIMINARY_FROM={"unverified"}
 class PersistentVerificationRepository:
     def __init__(self):
         with _conn() as c:
+            lock_schema_initialization(c)
             c.execute("""CREATE TABLE IF NOT EXISTS verifications (
               parcel_id TEXT PRIMARY KEY,status TEXT,ai_geometry_wkt TEXT,verified_geometry_wkt TEXT,
               surveyor_name TEXT,surveyor_license TEXT,statement TEXT,audit_json TEXT)""")

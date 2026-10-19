@@ -49,32 +49,56 @@ DEMO_USERS = [
 
 
 from .persistence import DB_PATH
-from .database import connect_db
+from .database import connect_db, is_postgres, lock_schema_initialization
 
 def _db_path() -> Path:
     return DB_PATH
 
 def _connect():
     db = connect_db()
-    db.execute(
-        """CREATE TABLE IF NOT EXISTS users (
-            user_id TEXT PRIMARY KEY,
-            email TEXT UNIQUE NOT NULL,
-            name TEXT NOT NULL,
-            employee_id TEXT,
-            department TEXT,
-            role TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'ACTIVE',
-            password_hash TEXT NOT NULL,
-            password_salt TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            last_login_at TEXT
-        )"""
-    )
-    db.execute("CREATE TABLE IF NOT EXISTS schema_migrations (component TEXT NOT NULL, version INTEGER NOT NULL, applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(component, version))")
-    db.execute("INSERT INTO schema_migrations(component, version) VALUES ('auth_users', 1) ON CONFLICT(component, version) DO NOTHING")
-    db.commit()
-    return db
+    try:
+        lock_schema_initialization(db)
+        db.execute(
+            """CREATE TABLE IF NOT EXISTS users (
+                user_id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, name TEXT NOT NULL,
+                employee_id TEXT, department TEXT, role TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'ACTIVE', password_hash TEXT NOT NULL,
+                password_salt TEXT NOT NULL, created_at TEXT NOT NULL, last_login_at TEXT
+            )"""
+        )
+        # Earlier deployed versions may already have created `users` with a
+        # different column set. CREATE TABLE IF NOT EXISTS does not migrate it.
+        # Add expected fields in-place and preserve existing rows/data.
+        required = {
+            "user_id": "TEXT", "email": "TEXT", "name": "TEXT",
+            "employee_id": "TEXT", "department": "TEXT", "role": "TEXT",
+            "status": "TEXT DEFAULT 'ACTIVE'", "password_hash": "TEXT DEFAULT ''",
+            "password_salt": "TEXT DEFAULT ''", "created_at": "TEXT DEFAULT ''",
+            "last_login_at": "TEXT",
+        }
+        if is_postgres():
+            for column, definition in required.items():
+                db.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {column} {definition}")
+        else:
+            columns = {row[1] for row in db.execute("PRAGMA table_info(users)").fetchall()}
+            for column, definition in required.items():
+                if column not in columns:
+                    db.execute(f"ALTER TABLE users ADD COLUMN {column} {definition}")
+        # Backfill stable IDs for pre-existing accounts before any code queries
+        # or updates by user_id. Do not overwrite IDs already in use.
+        rows = db.execute("SELECT email, user_id FROM users WHERE user_id IS NULL OR user_id='' ").fetchall()
+        for row in rows:
+            email = row["email"]
+            stable_id = hashlib.sha256(("legacy:" + str(email).lower().strip()).encode("utf-8")).hexdigest()[:16]
+            db.execute("UPDATE users SET user_id=? WHERE email=? AND (user_id IS NULL OR user_id='')", (stable_id, email))
+        db.execute("CREATE TABLE IF NOT EXISTS schema_migrations (component TEXT NOT NULL, version INTEGER NOT NULL, applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(component, version))")
+        db.execute("INSERT INTO schema_migrations(component, version) VALUES ('auth_users', 2) ON CONFLICT(component, version) DO NOTHING")
+        db.commit()
+        return db
+    except Exception:
+        db.rollback()
+        db.close()
+        raise
 
 
 def _hash_password(password: str, salt: bytes | None = None) -> tuple[str, str]:
@@ -142,11 +166,15 @@ def ensure_demo_users() -> None:
         for email, password, name, role, employee_id in DEMO_USERS:
             stable_id = hashlib.sha256(("demo:" + email.lower().strip()).encode("utf-8")).hexdigest()[:16]
             exists = db.execute("SELECT user_id FROM users WHERE email=?", (email,)).fetchone()
-            if exists:
-                if exists["user_id"] != stable_id:
-                    db.execute("UPDATE users SET user_id=? WHERE email=?", (stable_id, email))
-                continue
             password_hash, salt = _hash_password(password)
+            if exists:
+                # Repair pre-existing demo rows as well as their schema. This
+                # makes seeded credentials usable after a schema migration.
+                db.execute(
+                    "UPDATE users SET user_id=?, name=?, employee_id=?, department=?, role=?, status='ACTIVE', password_hash=?, password_salt=? WHERE email=?",
+                    (stable_id, name, employee_id, "BhuDrishti Demo Department", role, password_hash, salt, email),
+                )
+                continue
             db.execute(
                 "INSERT INTO users(user_id,email,name,employee_id,department,role,status,password_hash,password_salt,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
                 (stable_id, email, name, employee_id, "BhuDrishti Demo Department", role, "ACTIVE", password_hash, salt, time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),

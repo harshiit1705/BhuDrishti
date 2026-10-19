@@ -95,10 +95,11 @@ ensure_demo_users()
 # ---------------------------------------------------------------------------
 PARCELS: dict[str, Parcel] = {p.parcel_id: p for p in build_demo_parcels()}
 from .persistence import DB_PATH, UPLOAD_DIR, PERSISTENCE_MODE, PERSISTENCE_LABEL
-from .database import connect_db, is_postgres, check_database
+from .database import connect_db, is_postgres, check_database, lock_schema_initialization
 
 
 with connect_db() as _db:
+    lock_schema_initialization(_db)
     _db.execute("""CREATE TABLE IF NOT EXISTS datasets (
         dataset_id TEXT PRIMARY KEY, filename TEXT, file_type TEXT, size_bytes INTEGER,
         declared_crs TEXT, status TEXT, created_at TEXT, content BYTEA

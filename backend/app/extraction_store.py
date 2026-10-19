@@ -11,7 +11,7 @@ from shapely.geometry import Polygon, mapping
 from shapely import wkt
 
 from .persistence import DB_PATH
-from .database import connect_db, is_postgres
+from .database import connect_db, is_postgres, lock_schema_initialization
 
 
 def _conn():
@@ -70,6 +70,7 @@ class PersistentExtractionRepository:
 
     def _init_db(self):
         with _conn() as c:
+            lock_schema_initialization(c)
             c.execute("""CREATE TABLE IF NOT EXISTS extractions (
                 extraction_id TEXT PRIMARY KEY, source_filename TEXT NOT NULL,
                 geometry_wkt TEXT NOT NULL, image_width INTEGER, image_height INTEGER,
