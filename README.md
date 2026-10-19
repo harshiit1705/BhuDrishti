@@ -643,3 +643,8 @@ For the standalone `bhudrishti-api` Vercel project, deploy from the repository r
 
 ## End-to-end demo continuity
 The prototype keeps the uploaded ORI in browser IndexedDB and the active EXT extraction/verification state in browser-local workflow storage so the Survey Projects → AI → GIS → Survey Priority → Field Verification → Export flow remains continuous even when Vercel serverless invocations do not share `/tmp`. Backend calls are still attempted first. This is a prototype continuity mechanism, not durable production storage. See `CHANGELOG-WORKFLOW-END-TO-END-FIX.md`.
+
+
+## Managed PostgreSQL / Vercel deployment
+
+Production Vercel deployments require a managed PostgreSQL/Supabase database. Configure `DATABASE_URL` and `BHUDRISHTI_AUTH_SECRET`, set Vercel Root Directory to the repository root, and follow [`POSTGRES_DEPLOYMENT_AND_MIGRATION.md`](POSTGRES_DEPLOYMENT_AND_MIGRATION.md) to import the existing SQLite data without deleting it and verify the live deployment. The source changes and local tests do not by themselves mean production is connected.

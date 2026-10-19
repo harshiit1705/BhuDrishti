@@ -10,7 +10,7 @@ from the synthetic demo dataset, per project instructions.
 """
 from __future__ import annotations
 from fastapi import FastAPI, HTTPException, Body, UploadFile, File, Form, Query, Depends, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from shapely.geometry import mapping, box, Polygon
 
@@ -23,10 +23,9 @@ from .demo_data import build_demo_parcels, ELEVATION_DEMO_CONFIG, HISTORICAL_SHI
 from .verification_store import store, InvalidTransitionError
 from . import extraction_engine
 from .extraction_store import extraction_store, ExtractionRecord
-from .repositories import PERSISTENCE_MODE, PERSISTENCE_LABEL
 from .auth import (ensure_demo_users, authenticate, issue_token, user_from_token, create_registration, list_users, set_user_status, ROLE_LABELS)
 from pathlib import Path
-import sqlite3, json, hashlib, logging, uuid
+import json, hashlib, logging, uuid
 import numpy as np
 
 logger = logging.getLogger("bhudrishti.api")
@@ -95,11 +94,26 @@ ensure_demo_users()
 # In-memory "database" for the prototype, seeded with the deterministic demo set.
 # ---------------------------------------------------------------------------
 PARCELS: dict[str, Parcel] = {p.parcel_id: p for p in build_demo_parcels()}
-from .persistence import DB_PATH, UPLOAD_DIR
+from .persistence import DB_PATH, UPLOAD_DIR, PERSISTENCE_MODE, PERSISTENCE_LABEL
+from .database import connect_db, is_postgres, check_database
 
 
-with sqlite3.connect(DB_PATH) as _db:
-    _db.execute("""CREATE TABLE IF NOT EXISTS datasets (dataset_id TEXT PRIMARY KEY, filename TEXT, file_type TEXT, size_bytes INTEGER, declared_crs TEXT, status TEXT, created_at TEXT)""")
+with connect_db() as _db:
+    _db.execute("""CREATE TABLE IF NOT EXISTS datasets (
+        dataset_id TEXT PRIMARY KEY, filename TEXT, file_type TEXT, size_bytes INTEGER,
+        declared_crs TEXT, status TEXT, created_at TEXT, content BYTEA
+    )""" if is_postgres() else """CREATE TABLE IF NOT EXISTS datasets (
+        dataset_id TEXT PRIMARY KEY, filename TEXT, file_type TEXT, size_bytes INTEGER,
+        declared_crs TEXT, status TEXT, created_at TEXT, content BLOB
+    )""")
+    if is_postgres():
+        _db.execute("ALTER TABLE datasets ADD COLUMN IF NOT EXISTS content BYTEA")
+    else:
+        columns = {row[1] for row in _db.execute("PRAGMA table_info(datasets)").fetchall()}
+        if "content" not in columns:
+            _db.execute("ALTER TABLE datasets ADD COLUMN content BLOB")
+    _db.execute("CREATE TABLE IF NOT EXISTS schema_migrations (component TEXT NOT NULL, version INTEGER NOT NULL, applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(component, version))")
+    _db.execute("INSERT INTO schema_migrations(component, version) VALUES ('datasets', 2) ON CONFLICT(component, version) DO NOTHING")
     _db.commit()
 
 
@@ -152,12 +166,15 @@ def _dataset_spatial_metadata(dataset_id: str | None) -> dict:
     if not dataset_id:
         return _coordinate_system()
     try:
-        with sqlite3.connect(DB_PATH) as db:
+        with connect_db() as db:
             row = db.execute("SELECT declared_crs, file_type FROM datasets WHERE dataset_id=?", (dataset_id,)).fetchone()
         if row:
-            return _coordinate_system(row[0], source=f"dataset:{dataset_id}") | {"file_type": row[1]}
-    except sqlite3.Error:
-        pass
+            declared_crs = row["declared_crs"] if isinstance(row, dict) else row[0]
+            file_type = row["file_type"] if isinstance(row, dict) else row[1]
+            return _coordinate_system(declared_crs, source=f"dataset:{dataset_id}") | {"file_type": file_type}
+    except Exception:
+        logger.exception("dataset_spatial_metadata_lookup_failed dataset_id=%s", dataset_id)
+        raise
     return _coordinate_system()
 
 def _geometry_semantics(spatial: dict, source: str) -> dict:
@@ -372,54 +389,61 @@ async def upload_dataset(file: UploadFile = File(...), declared_crs: str = Form(
     digest=hashlib.sha1(raw).hexdigest()[:10]
     dataset_id=f"DS-{digest.upper()}"
     from datetime import datetime, timezone
-    with sqlite3.connect(DB_PATH) as db:
+    with connect_db() as db:
+        db.execute("""INSERT INTO datasets (dataset_id,filename,file_type,size_bytes,declared_crs,status,created_at,content)
+            VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(dataset_id) DO UPDATE SET filename=excluded.filename,
+            file_type=excluded.file_type,size_bytes=excluded.size_bytes,declared_crs=excluded.declared_crs,
+            status=excluded.status,created_at=excluded.created_at,content=excluded.content""",
+            (dataset_id,file.filename or "upload",file_type,len(raw),declared_crs,"ready",datetime.now(timezone.utc).isoformat(),raw))
+    if not is_postgres():
         (UPLOAD_DIR / dataset_id).write_bytes(raw)
-        db.execute("INSERT OR REPLACE INTO datasets VALUES (?,?,?,?,?,?,?)",(dataset_id,file.filename or "upload",file_type,len(raw),declared_crs,"ready",datetime.now(timezone.utc).isoformat()))
-        db.commit()
     return {"dataset_id":dataset_id,"filename":file.filename,"file_type":file_type,"size_bytes":len(raw),"status":"ready","validation":validation,"coordinate_system":_coordinate_system(declared_crs, source=f"dataset:{dataset_id}"),"is_demo_data":False}
 
 @app.get("/api/datasets")
 def list_datasets():
-    with sqlite3.connect(DB_PATH) as db:
+    with connect_db() as db:
         rows=db.execute("SELECT dataset_id,filename,file_type,size_bytes,declared_crs,status,created_at FROM datasets ORDER BY created_at DESC").fetchall()
     keys=["dataset_id","filename","file_type","size_bytes","declared_crs","status","created_at"]
-    return {"datasets":[dict(zip(keys,r)) for r in rows],"count":len(rows)}
+    datasets=[dict(r) if isinstance(r, dict) else dict(zip(keys,r)) for r in rows]
+    return {"datasets":datasets,"count":len(datasets)}
 
 
 @app.get("/api/datasets/{dataset_id}/file")
 def get_dataset_file(dataset_id: str):
-    """Serve the persisted source file so the frontend can display the active dataset.
-
-    This does not replace the authoritative backend inference path; it only lets the
-    surveyor see the exact ORI file that was uploaded from Survey Projects.
-    """
-    with sqlite3.connect(DB_PATH) as db:
-        row=db.execute("SELECT filename FROM datasets WHERE dataset_id=?",(dataset_id,)).fetchone()
-    path=UPLOAD_DIR / dataset_id
-    if not row or not path.exists():
+    """Serve the exact uploaded source from shared database storage."""
+    with connect_db() as db:
+        row=db.execute("SELECT filename, content FROM datasets WHERE dataset_id=?",(dataset_id,)).fetchone()
+    if not row:
         raise HTTPException(404, "Dataset file not found")
-    filename=row[0] or dataset_id
+    filename = (row["filename"] if isinstance(row, dict) else row[0]) or dataset_id
+    content = row["content"] if isinstance(row, dict) else row[1]
+    if content is None and not is_postgres():
+        path=UPLOAD_DIR / dataset_id
+        content=path.read_bytes() if path.exists() else None
+    if content is None:
+        raise HTTPException(404, "Dataset file content is not available; run the data import procedure")
     ext=Path(filename).suffix.lower()
-    media={
-        ".png":"image/png", ".jpg":"image/jpeg", ".jpeg":"image/jpeg",
-        ".webp":"image/webp", ".tif":"image/tiff", ".tiff":"image/tiff",
-        ".geojson":"application/geo+json", ".json":"application/json",
-    }.get(ext, "application/octet-stream")
-    return FileResponse(path, media_type=media, filename=filename)
+    media={".png":"image/png", ".jpg":"image/jpeg", ".jpeg":"image/jpeg", ".webp":"image/webp", ".tif":"image/tiff", ".tiff":"image/tiff", ".geojson":"application/geo+json", ".json":"application/json"}.get(ext, "application/octet-stream")
+    return Response(content=bytes(content), media_type=media, headers={"Content-Disposition": f'inline; filename="{Path(filename).name}"'})
+
 
 @app.post("/api/datasets/{dataset_id}/infer")
 def infer_dataset(dataset_id: str, user: dict = Depends(require_roles("ADMIN", "PROJECT_OFFICER", "GIS_OPERATOR"))):
-    with sqlite3.connect(DB_PATH) as db:
-        row=db.execute("SELECT filename FROM datasets WHERE dataset_id=?",(dataset_id,)).fetchone()
-    path=UPLOAD_DIR / dataset_id
-    if not row or not path.exists(): raise HTTPException(404,"Dataset not found")
-    raw=path.read_bytes()
+    with connect_db() as db:
+        row=db.execute("SELECT filename, content FROM datasets WHERE dataset_id=?",(dataset_id,)).fetchone()
+    if not row: raise HTTPException(404,"Dataset not found")
+    filename = (row["filename"] if isinstance(row, dict) else row[0]) or dataset_id
+    raw = row["content"] if isinstance(row, dict) else row[1]
+    if raw is None and not is_postgres():
+        path=UPLOAD_DIR / dataset_id
+        raw=path.read_bytes() if path.exists() else None
+    if raw is None: raise HTTPException(404,"Dataset content not found; run the data import procedure")
     try:
-        img=extraction_engine.decode_image(raw,row[0] or dataset_id)
+        img=extraction_engine.decode_image(bytes(raw),filename)
         result=extraction_engine.run_cv_inference(img)
     except extraction_engine.ImageDecodeError as e: raise HTTPException(400,f"Image decode error: {e}")
     except extraction_engine.InferenceError as e: raise HTTPException(422,f"Inference could not produce a usable geometry: {e}")
-    record=extraction_store.save(ExtractionRecord(extraction_id=extraction_store.new_id(),source_filename=row[0],geometry=result.geometry,image_width=result.image_width,image_height=result.image_height,image_format=result.image_format,confidence_heuristic=result.confidence_heuristic,pixel_polygon=result.pixel_polygon,parcel_candidates=result.parcel_candidates,roof_footprints=result.roof_footprints,inference_mode=result.inference_mode,notes=result.notes,is_demo_data=False,dataset_id=dataset_id))
+    record=extraction_store.save(ExtractionRecord(extraction_id=extraction_store.new_id(),source_filename=filename,geometry=result.geometry,image_width=result.image_width,image_height=result.image_height,image_format=result.image_format,confidence_heuristic=result.confidence_heuristic,pixel_polygon=result.pixel_polygon,parcel_candidates=result.parcel_candidates,roof_footprints=result.roof_footprints,inference_mode=result.inference_mode,notes=result.notes,is_demo_data=False,dataset_id=dataset_id))
     return _extraction_response(record)
 
 def _extraction_response(record):
@@ -945,13 +969,16 @@ def _shadow_for(target_id: str, sun_azimuth_deg: float = DEFAULT_SUN_AZIMUTH_DEG
         # synthetic because no measured DSM is ingested in Sprint 4.
         if rec.dataset_id:
             try:
-                with sqlite3.connect(DB_PATH) as db:
-                    row = db.execute("SELECT filename FROM datasets WHERE dataset_id=?", (rec.dataset_id,)).fetchone()
-                path = UPLOAD_DIR / rec.dataset_id
-                if row and path.exists():
+                with connect_db() as db:
+                    row = db.execute("SELECT content FROM datasets WHERE dataset_id=?", (rec.dataset_id,)).fetchone()
+                content = (row["content"] if isinstance(row, dict) else row[0]) if row else None
+                if content is None and not is_postgres():
+                    path = UPLOAD_DIR / rec.dataset_id
+                    content = path.read_bytes() if path.exists() else None
+                if content is not None:
                     from PIL import Image
                     from io import BytesIO
-                    image = Image.open(BytesIO(path.read_bytes())).convert("L").resize((64, 64))
+                    image = Image.open(BytesIO(bytes(content))).convert("L").resize((64, 64))
                     luminance = np.asarray(image, dtype=float)
                     source_mode = "uploaded_orthophoto_plus_synthetic_elevation"
             except Exception:
@@ -1043,21 +1070,26 @@ def export_geojson(user: dict = Depends(require_roles("ADMIN", "PROJECT_OFFICER"
 # ---------------------------------------------------------------------------
 @app.get("/api/system/status")
 def system_status():
+    db_status = check_database()
+    connected = bool(db_status.get("connected"))
     return {
-        "backend": "online",
+        "backend": "online" if connected else "degraded",
         "project": PROJECT_ID,
         "extraction": {"mode": "opencv_prototype", "is_demo_data": False, "model": "classical_cv"},
         "elevation": {"mode": "synthetic_demo", "is_demo_data": True},
         "shadow_analysis": {"mode": "physics_inspired_prototype", "is_demo_data": True, "authoritative_boundary": False},
-        "persistence": {"mode": PERSISTENCE_MODE, "label": PERSISTENCE_LABEL},
+        "persistence": {"mode": PERSISTENCE_MODE, "label": PERSISTENCE_LABEL, **db_status},
         "georeferencing": {**_coordinate_system(), "mode": "local_demo_coordinates"},
-        "architecture": {"repository_abstraction": True, "production_storage": "not_connected"},
+        "architecture": {"repository_abstraction": True, "production_storage": "connected" if connected and is_postgres() else ("local_sqlite" if connected else "unavailable")},
     }
 
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "project": PROJECT_ID, "parcel_count": len(PARCELS), "persistence": PERSISTENCE_MODE}
+    db_status = check_database()
+    payload = {"status": "ok" if db_status["connected"] else "degraded", "project": PROJECT_ID,
+               "parcel_count": len(PARCELS), "persistence": db_status}
+    return payload if db_status["connected"] else JSONResponse(status_code=503, content=payload)
 
 
 @app.get("/")

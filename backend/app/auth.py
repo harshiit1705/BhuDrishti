@@ -19,6 +19,8 @@ import time
 from pathlib import Path
 
 AUTH_SECRET = os.environ.get("BHUDRISHTI_AUTH_SECRET", "bhudrishti-prototype-change-me")
+if os.environ.get("VERCEL") and (not os.environ.get("BHUDRISHTI_AUTH_SECRET") or AUTH_SECRET == "bhudrishti-prototype-change-me"):
+    raise RuntimeError("BHUDRISHTI_AUTH_SECRET must be configured to a strong random secret on Vercel.")
 TOKEN_TTL_SECONDS = 8 * 60 * 60
 
 ROLES = {
@@ -47,15 +49,13 @@ DEMO_USERS = [
 
 
 from .persistence import DB_PATH
+from .database import connect_db
 
 def _db_path() -> Path:
     return DB_PATH
 
 def _connect():
-    path = _db_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    db = sqlite3.connect(path)
-    db.row_factory = sqlite3.Row
+    db = connect_db()
     db.execute(
         """CREATE TABLE IF NOT EXISTS users (
             user_id TEXT PRIMARY KEY,
@@ -71,6 +71,8 @@ def _connect():
             last_login_at TEXT
         )"""
     )
+    db.execute("CREATE TABLE IF NOT EXISTS schema_migrations (component TEXT NOT NULL, version INTEGER NOT NULL, applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(component, version))")
+    db.execute("INSERT INTO schema_migrations(component, version) VALUES ('auth_users', 1) ON CONFLICT(component, version) DO NOTHING")
     db.commit()
     return db
 

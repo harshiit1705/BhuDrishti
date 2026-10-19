@@ -6,3 +6,4 @@ pydantic==2.13.5
 Pillow==11.0.0
 opencv-python-headless==4.10.0.84
 python-multipart==0.0.20
+psycopg[binary]==3.2.9

@@ -1,43 +1,36 @@
-"""Shared persistence configuration for all BhuDrishti backend stores.
+"""Database configuration for local SQLite and managed PostgreSQL deployments.
 
-Local development uses the bundled project database unless BHUDRISHTI_DB_PATH
-is supplied. Vercel serverless instances MUST NOT silently use /tmp: this build
-has no PostgreSQL driver/repository adapter, so deployment fails closed unless
-an operator explicitly opts into unsafe prototype-only ephemeral storage.
+Vercel is deliberately fail-closed: DATABASE_URL (or BHUDRISHTI_DATABASE_URL)
+must point at a managed PostgreSQL/Supabase database. There is no ephemeral
+SQLite production fallback.
 """
 from __future__ import annotations
 import os
 from pathlib import Path
-import warnings
 
 IS_VERCEL = bool(os.environ.get("VERCEL"))
-DATABASE_URL = os.environ.get("DATABASE_URL") or os.environ.get("BHUDRISHTI_DATABASE_URL")
-ALLOW_EPHEMERAL = os.environ.get("BHUDRISHTI_ALLOW_EPHEMERAL_SQLITE", "").strip().lower() in {"1", "true", "yes"}
+DATABASE_URL = (os.environ.get("DATABASE_URL") or os.environ.get("BHUDRISHTI_DATABASE_URL") or "").strip()
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgres://"):]
 
-if IS_VERCEL and DATABASE_URL:
+if IS_VERCEL and not DATABASE_URL:
     raise RuntimeError(
-        "BhuDrishti production persistence is not configured: DATABASE_URL is present, "
-        "but this build does not include a PostgreSQL repository adapter. Refusing to "
-        "silently ignore DATABASE_URL and use per-instance SQLite. Deploy a build with "
-        "the managed PostgreSQL adapter before setting DATABASE_URL."
+        "BhuDrishti requires managed PostgreSQL on Vercel. Set DATABASE_URL "
+        "(recommended: Supabase Session pooler connection string) before deployment. "
+        "Ephemeral SQLite is not supported in production."
     )
-if IS_VERCEL and not ALLOW_EPHEMERAL:
-    raise RuntimeError(
-        "BhuDrishti cannot start on Vercel with ephemeral SQLite persistence. "
-        "Configure a managed PostgreSQL/Supabase database and deploy a PostgreSQL-capable "
-        "build. For a temporary demo only, explicitly set BHUDRISHTI_ALLOW_EPHEMERAL_SQLITE=1; "
-        "records and uploads may disappear or differ between instances."
-    )
-if IS_VERCEL and ALLOW_EPHEMERAL:
-    warnings.warn("UNSAFE PROTOTYPE MODE: Vercel /tmp SQLite is not shared or durable.", RuntimeWarning)
+if DATABASE_URL and not DATABASE_URL.startswith(("postgresql://", "postgresql+psycopg://")):
+    raise RuntimeError("DATABASE_URL must be a PostgreSQL connection URL; SQLite is not a production adapter.")
+if DATABASE_URL.startswith("postgresql+psycopg://"):
+    DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgresql+psycopg://"):]
 
-if os.environ.get("BHUDRISHTI_DB_PATH"):
-    DB_PATH = Path(os.environ["BHUDRISHTI_DB_PATH"]).expanduser().resolve()
-elif IS_VERCEL:
-    DB_PATH = Path("/tmp/bhudrishti") / "bhudrishti.db"
-else:
-    DB_PATH = Path(__file__).resolve().parent.parent / "data" / "bhudrishti.db"
-
+DB_PATH = Path(os.environ.get("BHUDRISHTI_DB_PATH", Path(__file__).resolve().parent.parent / "data" / "bhudrishti.db")).expanduser().resolve()
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 UPLOAD_DIR = DB_PATH.parent / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+PERSISTENCE_MODE = "postgresql" if DATABASE_URL else "sqlite_local"
+PERSISTENCE_LABEL = "Managed PostgreSQL/Supabase" if DATABASE_URL else f"Local SQLite file ({DB_PATH})"
+
+
+def database_configured() -> bool:
+    return bool(DATABASE_URL) or not IS_VERCEL

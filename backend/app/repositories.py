@@ -1,12 +1,6 @@
-"""Lightweight persistence abstractions for the BhuDrishti prototype.
-
-The current implementation intentionally remains in-memory for the SIH demo.
-API code depends on small repository contracts so the storage layer can later
-be replaced by SQLite/PostgreSQL/PostGIS without rewriting the API workflows.
-"""
-from __future__ import annotations
+"""Repository metadata; authoritative stores use the shared DB adapter."""
 from typing import Protocol, TypeVar, Generic
-
+from .persistence import PERSISTENCE_MODE, PERSISTENCE_LABEL
 T = TypeVar("T")
 
 class Repository(Protocol, Generic[T]):
@@ -15,24 +9,12 @@ class Repository(Protocol, Generic[T]):
     def all(self) -> list[T]: ...
 
 class InMemoryRepository(Generic[T]):
-    """Legacy generic helper retained for compatibility; workflow stores use SQLite."""
-    def __init__(self):
-        self._items: dict[str, T] = {}
-
-    def get(self, key: str) -> T | None:
-        return self._items.get(key)
-
+    """Legacy helper for non-authoritative tests only; not used by API stores."""
+    def __init__(self): self._items: dict[str, T] = {}
+    def get(self, key: str) -> T | None: return self._items.get(key)
     def save(self, value: T, key: str | None = None) -> T:
-        if key is None:
-            key = getattr(value, "extraction_id", None) or getattr(value, "parcel_id", None)
-        if not key:
-            raise ValueError("Repository item needs extraction_id or parcel_id")
+        if key is None: key = getattr(value, "extraction_id", None) or getattr(value, "parcel_id", None)
+        if not key: raise ValueError("Repository item needs extraction_id or parcel_id")
         self._items[key] = value
         return value
-
-    def all(self) -> list[T]:
-        return list(self._items.values())
-
-from .persistence import DB_PATH, IS_VERCEL, ALLOW_EPHEMERAL
-PERSISTENCE_MODE = "sqlite_ephemeral_opt_in" if IS_VERCEL and ALLOW_EPHEMERAL else "sqlite_shared_file"
-PERSISTENCE_LABEL = f"SQLite prototype file ({DB_PATH})"
+    def all(self) -> list[T]: return list(self._items.values())
