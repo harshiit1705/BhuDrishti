@@ -19,8 +19,8 @@ import time
 from pathlib import Path
 
 AUTH_SECRET = os.environ.get("BHUDRISHTI_AUTH_SECRET", "bhudrishti-prototype-change-me")
-if os.environ.get("VERCEL") and (not os.environ.get("BHUDRISHTI_AUTH_SECRET") or AUTH_SECRET == "bhudrishti-prototype-change-me"):
-    raise RuntimeError("BHUDRISHTI_AUTH_SECRET must be configured to a strong random secret on Vercel.")
+if os.environ.get("VERCEL") and (not os.environ.get("BHUDRISHTI_AUTH_SECRET") or AUTH_SECRET == "bhudrishti-prototype-change-me" or len(AUTH_SECRET) < 32):
+    raise RuntimeError("BHUDRISHTI_AUTH_SECRET must be configured with at least 32 characters on Vercel.")
 TOKEN_TTL_SECONDS = 8 * 60 * 60
 
 ROLES = {
@@ -48,57 +48,18 @@ DEMO_USERS = [
 ]
 
 
-from .persistence import DB_PATH
-from .database import connect_db, is_postgres, lock_schema_initialization
+from .persistence import DB_PATH, IS_VERCEL
+from .database import connect_db
 
 def _db_path() -> Path:
     return DB_PATH
 
+DEMO_USERS_ENABLED = not IS_VERCEL
+
+
 def _connect():
-    db = connect_db()
-    try:
-        lock_schema_initialization(db)
-        db.execute(
-            """CREATE TABLE IF NOT EXISTS users (
-                user_id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, name TEXT NOT NULL,
-                employee_id TEXT, department TEXT, role TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'ACTIVE', password_hash TEXT NOT NULL,
-                password_salt TEXT NOT NULL, created_at TEXT NOT NULL, last_login_at TEXT
-            )"""
-        )
-        # Earlier deployed versions may already have created `users` with a
-        # different column set. CREATE TABLE IF NOT EXISTS does not migrate it.
-        # Add expected fields in-place and preserve existing rows/data.
-        required = {
-            "user_id": "TEXT", "email": "TEXT", "name": "TEXT",
-            "employee_id": "TEXT", "department": "TEXT", "role": "TEXT",
-            "status": "TEXT DEFAULT 'ACTIVE'", "password_hash": "TEXT DEFAULT ''",
-            "password_salt": "TEXT DEFAULT ''", "created_at": "TEXT DEFAULT ''",
-            "last_login_at": "TEXT",
-        }
-        if is_postgres():
-            for column, definition in required.items():
-                db.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {column} {definition}")
-        else:
-            columns = {row[1] for row in db.execute("PRAGMA table_info(users)").fetchall()}
-            for column, definition in required.items():
-                if column not in columns:
-                    db.execute(f"ALTER TABLE users ADD COLUMN {column} {definition}")
-        # Backfill stable IDs for pre-existing accounts before any code queries
-        # or updates by user_id. Do not overwrite IDs already in use.
-        rows = db.execute("SELECT email, user_id FROM users WHERE user_id IS NULL OR user_id='' ").fetchall()
-        for row in rows:
-            email = row["email"]
-            stable_id = hashlib.sha256(("legacy:" + str(email).lower().strip()).encode("utf-8")).hexdigest()[:16]
-            db.execute("UPDATE users SET user_id=? WHERE email=? AND (user_id IS NULL OR user_id='')", (stable_id, email))
-        db.execute("CREATE TABLE IF NOT EXISTS schema_migrations (component TEXT NOT NULL, version INTEGER NOT NULL, applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(component, version))")
-        db.execute("INSERT INTO schema_migrations(component, version) VALUES ('auth_users', 2) ON CONFLICT(component, version) DO NOTHING")
-        db.commit()
-        return db
-    except Exception:
-        db.rollback()
-        db.close()
-        raise
+    # All DDL belongs to the explicit migration runner, not auth requests.
+    return connect_db(DB_PATH)
 
 
 def _hash_password(password: str, salt: bytes | None = None) -> tuple[str, str]:
@@ -161,23 +122,23 @@ def _public_user(row: sqlite3.Row | dict) -> dict:
 
 
 def ensure_demo_users() -> None:
+    """Seed local demo identities once; never reset existing passwords.
+
+    Production demo identities are disabled. Existing demo passwords are never
+    reset by application startup or authentication requests.
+    """
+    if not DEMO_USERS_ENABLED:
+        return
     db = _connect()
     try:
         for email, password, name, role, employee_id in DEMO_USERS:
             stable_id = hashlib.sha256(("demo:" + email.lower().strip()).encode("utf-8")).hexdigest()[:16]
-            exists = db.execute("SELECT user_id FROM users WHERE email=?", (email,)).fetchone()
             password_hash, salt = _hash_password(password)
-            if exists:
-                # Repair pre-existing demo rows as well as their schema. This
-                # makes seeded credentials usable after a schema migration.
-                db.execute(
-                    "UPDATE users SET user_id=?, name=?, employee_id=?, department=?, role=?, status='ACTIVE', password_hash=?, password_salt=? WHERE email=?",
-                    (stable_id, name, employee_id, "BhuDrishti Demo Department", role, password_hash, salt, email),
-                )
-                continue
             db.execute(
-                "INSERT INTO users(user_id,email,name,employee_id,department,role,status,password_hash,password_salt,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
-                (stable_id, email, name, employee_id, "BhuDrishti Demo Department", role, "ACTIVE", password_hash, salt, time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),
+                """INSERT INTO users(user_id,email,name,employee_id,department,role,status,password_hash,password_salt,created_at)
+                   VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING""",
+                (stable_id, email, name, employee_id, "BhuDrishti Demo Department", role, "ACTIVE", password_hash, salt,
+                 time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),
             )
         db.commit()
     finally:
@@ -185,7 +146,10 @@ def ensure_demo_users() -> None:
 
 
 def authenticate(email: str, password: str) -> dict:
-    ensure_demo_users()
+    normalized_email = email.strip().lower()
+    demo_emails = {u[0] for u in DEMO_USERS}
+    if IS_VERCEL and normalized_email in demo_emails and not DEMO_USERS_ENABLED:
+        raise ValueError("Invalid email/password or inactive account")
     db = _connect()
     try:
         row = db.execute("SELECT * FROM users WHERE lower(email)=lower(?)", (email.strip(),)).fetchone()
@@ -217,6 +181,8 @@ def issue_token(user: dict) -> str:
 
 def user_from_token(token: str) -> dict:
     payload = _decode_token(token)
+    if IS_VERCEL and str(payload.get("email", "")).strip().lower() in {u[0] for u in DEMO_USERS}:
+        raise ValueError("Invalid session token")
     db = _connect()
     try:
         row = db.execute("SELECT * FROM users WHERE user_id=?", (payload.get("sub"),)).fetchone()
@@ -228,7 +194,7 @@ def user_from_token(token: str) -> dict:
         # the signed token when the local row is missing. Registered users are
         # never reconstructed this way; their account must exist in persistent
         # storage before it can authenticate.
-        demo_by_email = {u[0]: u for u in DEMO_USERS}
+        demo_by_email = {u[0]: u for u in DEMO_USERS} if DEMO_USERS_ENABLED else {}
         demo = demo_by_email.get(str(payload.get("email", "")).strip().lower())
         if demo and payload.get("role") == demo[3]:
             return {
@@ -272,7 +238,6 @@ def create_registration(email: str, password: str, name: str, employee_id: str, 
 
 
 def list_users() -> list[dict]:
-    ensure_demo_users()
     db = _connect()
     try:
         return [_public_user(row) for row in db.execute("SELECT * FROM users ORDER BY created_at DESC").fetchall()]

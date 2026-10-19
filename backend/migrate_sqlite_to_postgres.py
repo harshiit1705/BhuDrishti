@@ -10,9 +10,15 @@ It prints counts and conflict candidates, never the database URL.
 """
 from __future__ import annotations
 import argparse
+import hashlib
 import os
 import sqlite3
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 
 def main():
@@ -30,30 +36,34 @@ def main():
     source=Path(args.sqlite).expanduser().resolve()
     if not source.is_file(): raise SystemExit(f"SQLite source file not found: {source}")
     uploads=Path(args.uploads).expanduser().resolve() if args.uploads else source.parent / "uploads"
+    # Create/upgrade destination schema through the same serialized migration
+    # path used by deployment, before importing any user data.
+    from backend.app.database import initialize_schema
+    initialize_schema()
     src=sqlite3.connect(source); src.row_factory=sqlite3.Row
     dst=psycopg.connect(dsn, row_factory=dict_row, connect_timeout=10)
     inserted={}; conflicts={}
     try:
         with dst.transaction():
-            dst.execute("CREATE TABLE IF NOT EXISTS schema_migrations (component TEXT NOT NULL, version INTEGER NOT NULL, applied_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(component, version))")
-            dst.execute("""CREATE TABLE IF NOT EXISTS users (user_id TEXT PRIMARY KEY,email TEXT UNIQUE NOT NULL,name TEXT NOT NULL,employee_id TEXT,department TEXT,role TEXT NOT NULL,status TEXT NOT NULL DEFAULT 'ACTIVE',password_hash TEXT NOT NULL,password_salt TEXT NOT NULL,created_at TEXT NOT NULL,last_login_at TEXT)""")
-            dst.execute("""CREATE TABLE IF NOT EXISTS extractions (extraction_id TEXT PRIMARY KEY,source_filename TEXT NOT NULL,geometry_wkt TEXT NOT NULL,image_width INTEGER,image_height INTEGER,image_format TEXT,confidence_heuristic DOUBLE PRECISION,pixel_polygon_json TEXT,inference_mode TEXT,notes TEXT,parcel_candidates_json TEXT,roof_footprints_json TEXT,created_at TEXT,status TEXT,is_demo_data INTEGER,dataset_id TEXT)""")
-            dst.execute("""CREATE TABLE IF NOT EXISTS verifications (parcel_id TEXT PRIMARY KEY,status TEXT,ai_geometry_wkt TEXT,verified_geometry_wkt TEXT,surveyor_name TEXT,surveyor_license TEXT,statement TEXT,audit_json TEXT)""")
-            dst.execute("""CREATE TABLE IF NOT EXISTS datasets (dataset_id TEXT PRIMARY KEY,filename TEXT,file_type TEXT,size_bytes BIGINT,declared_crs TEXT,status TEXT,created_at TEXT,content BYTEA)""")
-            dst.execute("ALTER TABLE datasets ADD COLUMN IF NOT EXISTS content BYTEA")
-
-            table_columns={}
             for table in ("users","extractions","verifications","datasets"):
                 try:
                     cols=[r["name"] for r in src.execute(f"PRAGMA table_info({table})").fetchall()]
                 except sqlite3.Error: cols=[]
-                table_columns[table]=cols
                 if not cols:
                     inserted[table]=0; conflicts[table]=0; continue
                 rows=src.execute(f"SELECT * FROM {table}").fetchall()
                 n=0; conflict=0
                 for row in rows:
                     data=dict(row)
+                    if table == "users" and not data.get("user_id"):
+                        if data.get("id") is not None:
+                            data["user_id"] = str(data["id"])
+                        else:
+                            email = str(data.get("email") or "").strip().lower()
+                            if email:
+                                data["user_id"] = hashlib.sha256(("legacy:" + email).encode("utf-8")).hexdigest()[:16]
+                            else:
+                                raise RuntimeError("Cannot safely import a legacy user row without user_id/id/email; source data was not modified.")
                     if table=="datasets":
                         if "content" not in data or data.get("content") is None:
                             legacy=uploads / str(data.get("dataset_id", ""))
@@ -68,14 +78,12 @@ def main():
                     if not cols_insert: continue
                     placeholders=", ".join(["%s"]*len(cols_insert))
                     colsql=", ".join(cols_insert)
-                    conflict_key={"users":"user_id","extractions":"extraction_id","verifications":"parcel_id","datasets":"dataset_id"}[table]
-                    cur=dst.execute(f"INSERT INTO {table} ({colsql}) VALUES ({placeholders}) ON CONFLICT ({conflict_key}) DO NOTHING",tuple(data.get(c) for c in cols_insert))
+                    cur=dst.execute(f"INSERT INTO {table} ({colsql}) VALUES ({placeholders}) ON CONFLICT DO NOTHING",tuple(data.get(c) for c in cols_insert))
                     if cur.rowcount: n+=1
                     else: conflict+=1
                 inserted[table]=n; conflicts[table]=conflict
-            for component,version in (("auth_users",1),("extractions",2),("verifications",2),("datasets",2)):
-                dst.execute("INSERT INTO schema_migrations(component,version) VALUES (%s,%s) ON CONFLICT DO NOTHING",(component,version))
-            dst.execute("CREATE SEQUENCE IF NOT EXISTS extraction_id_seq START WITH 1")
+            # Schema migrations are recorded by initialize_schema(); only sync
+            # the sequence after importing existing extraction IDs.
             max_row=dst.execute("SELECT COALESCE(MAX(CAST(substring(extraction_id from 5) AS BIGINT)),0) AS max_id FROM extractions WHERE extraction_id ~ '^EXT-[0-9]+$'").fetchone()
             max_id=int(max_row["max_id"] or 0)
             seq=dst.execute("SELECT last_value,is_called FROM extraction_id_seq").fetchone()

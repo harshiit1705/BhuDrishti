@@ -1,7 +1,7 @@
-"""Persistent extraction repository for the prototype.
+"""Persistent extraction repository backed by local SQLite or managed PostgreSQL.
 
-Uses SQLite so uploaded extraction records survive page navigation, refresh,
-and backend restarts. Geometry is stored as WKT and rich candidate metadata as JSON.
+Geometry is stored as WKT and rich candidate metadata as JSON. Schema changes are
+owned by the explicit migration runner, not repository construction.
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
@@ -11,7 +11,7 @@ from shapely.geometry import Polygon, mapping
 from shapely import wkt
 
 from .persistence import DB_PATH
-from .database import connect_db, is_postgres, lock_schema_initialization
+from .database import connect_db, is_postgres
 
 
 def _conn():
@@ -65,43 +65,13 @@ class ExtractionRecord:
 
 class PersistentExtractionRepository:
     def __init__(self):
+        # Schema is initialized centrally (locally at app startup; in production
+        # by the explicit migration command). Constructors must never issue DDL.
         self.db_path = DB_PATH
-        self._init_db()
-
-    def _init_db(self):
-        with _conn() as c:
-            lock_schema_initialization(c)
-            c.execute("""CREATE TABLE IF NOT EXISTS extractions (
-                extraction_id TEXT PRIMARY KEY, source_filename TEXT NOT NULL,
-                geometry_wkt TEXT NOT NULL, image_width INTEGER, image_height INTEGER,
-                image_format TEXT, confidence_heuristic REAL, pixel_polygon_json TEXT,
-                inference_mode TEXT, notes TEXT, parcel_candidates_json TEXT,
-                roof_footprints_json TEXT, created_at TEXT, status TEXT, is_demo_data INTEGER,
-                dataset_id TEXT
-            )""")
-            c.execute("""CREATE TABLE IF NOT EXISTS schema_migrations (
-                component TEXT NOT NULL, version INTEGER NOT NULL,
-                applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                PRIMARY KEY(component, version)
-            )""")
-            if is_postgres():
-                c.execute("ALTER TABLE extractions ADD COLUMN IF NOT EXISTS dataset_id TEXT")
-            else:
-                columns = {row[1] for row in c.execute("PRAGMA table_info(extractions)").fetchall()}
-                if "dataset_id" not in columns:
-                    c.execute("ALTER TABLE extractions ADD COLUMN dataset_id TEXT")
-            c.execute("INSERT INTO schema_migrations(component, version) VALUES ('extractions', 2) ON CONFLICT(component, version) DO NOTHING")
-            c.commit()
 
     def new_id(self) -> str:
         with _conn() as c:
             if is_postgres():
-                c.execute("CREATE SEQUENCE IF NOT EXISTS extraction_id_seq START WITH 1")
-                max_row = c.execute("SELECT COALESCE(MAX(CAST(substring(extraction_id from 5) AS BIGINT)), 0) AS max_id FROM extractions WHERE extraction_id ~ '^EXT-[0-9]+$'").fetchone()
-                seq_row = c.execute("SELECT last_value, is_called FROM extraction_id_seq").fetchone()
-                max_id = int(max_row["max_id"] or 0)
-                if int(seq_row["last_value"]) < max_id or (not seq_row["is_called"] and max_id >= int(seq_row["last_value"])):
-                    c.execute("SELECT setval('extraction_id_seq', ?, true)", (max_id,))
                 row = c.execute("SELECT nextval('extraction_id_seq') AS next_id").fetchone()
                 return f"EXT-{int(row['next_id']):04d}"
             row = c.execute("SELECT extraction_id FROM extractions WHERE extraction_id GLOB 'EXT-[0-9]*' ORDER BY CAST(substr(extraction_id,5) AS INTEGER) DESC LIMIT 1").fetchone()

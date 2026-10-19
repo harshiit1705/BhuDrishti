@@ -1,0 +1,30 @@
+BhuDrishti PostgreSQL startup/schema repair patch
+
+MODIFIED FILES
+AUTH-RBAC-PROTOTYPE.md
+backend/app/auth.py
+backend/app/database.py
+backend/app/extraction_store.py
+backend/app/main.py
+backend/app/persistence.py
+backend/app/verification_store.py
+backend/migrate_sqlite_to_postgres.py
+backend/test_persistence_shared_instances.py
+backend/test_postgres_integration.py
+backend/test_survey_queue_regressions.py
+frontend/auth.html
+
+NEW FILES
+PATCH-MANIFEST.txt
+PATCH-REPORT.md
+POSTGRES-MIGRATION-RUNBOOK.md
+backend/bootstrap_admin_user.py
+backend/migrate_postgres_schema.py
+backend/test_schema_migrations.py
+
+DELETION TO APPLY IN THE GIT REPOSITORY
+backend/vercel.json
+
+Unchanged dependencies/config files are intentionally not included in this patch ZIP:
+requirements.txt, backend/requirements.txt, vercel.json, api/index.py.
+The existing root vercel.json already points to api/index.py; set Vercel Root Directory to the repository root (.).

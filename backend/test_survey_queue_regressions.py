@@ -5,13 +5,22 @@ Run from repository root with: PYTHONPATH=. python backend/test_survey_queue_reg
 """
 from __future__ import annotations
 import json
+import os
 import sqlite3
 import tempfile
 from pathlib import Path
 
+# Isolate the import-time local SQLite initialization from the bundled project DB.
+_BOOTSTRAP_TEMP = tempfile.TemporaryDirectory(prefix="bhudrishti-queue-bootstrap-")
+os.environ.pop("VERCEL", None)
+os.environ.pop("DATABASE_URL", None)
+os.environ.pop("BHUDRISHTI_DATABASE_URL", None)
+os.environ["BHUDRISHTI_DB_PATH"] = str(Path(_BOOTSTRAP_TEMP.name) / "bootstrap.sqlite3")
+
 from shapely.geometry import Polygon
 
 from backend.app import main, extraction_store as extraction_module, verification_store as verification_module
+from backend.app import database as database_module, persistence as persistence_module, auth as auth_module
 from backend.app.extraction_store import ExtractionRecord, PersistentExtractionRepository
 from backend.app.verification_store import PersistentVerificationRepository
 
@@ -30,6 +39,7 @@ def make_record(repo, extraction_id="EXT-TEST-001"):
 
 def main_test():
     original = (extraction_module.DB_PATH, verification_module.DB_PATH, main.DB_PATH,
+                database_module.DB_PATH, persistence_module.DB_PATH, auth_module.DB_PATH,
                 main.extraction_store, main.store)
     try:
         with tempfile.TemporaryDirectory(prefix="bhudrishti-queue-test-") as td:
@@ -53,6 +63,10 @@ def main_test():
             extraction_module.DB_PATH = db_path
             verification_module.DB_PATH = db_path
             main.DB_PATH = db_path
+            database_module.DB_PATH = db_path
+            persistence_module.DB_PATH = db_path
+            auth_module.DB_PATH = db_path
+            database_module.initialize_schema()
             ext_repo = PersistentExtractionRepository()
             ver_repo = PersistentVerificationRepository()
             # Migration preserves the existing record and makes the new field readable.
@@ -114,6 +128,7 @@ def main_test():
             print("SURVEY QUEUE REGRESSIONS: PASS (legacy schema migration, existing record preservation, empty/valid/verified queue, missing ID, diagnostic 500)")
     finally:
         (extraction_module.DB_PATH, verification_module.DB_PATH, main.DB_PATH,
+         database_module.DB_PATH, persistence_module.DB_PATH, auth_module.DB_PATH,
          main.extraction_store, main.store) = original
 
 

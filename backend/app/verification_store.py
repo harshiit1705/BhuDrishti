@@ -7,11 +7,11 @@ import json
 from shapely.geometry import Polygon, mapping
 from shapely import wkt
 from .geometry_engine import validate_surveyor_geometry
-from .database import connect_db, is_postgres, lock_schema_initialization
+from .database import connect_db, is_postgres
 from .persistence import DB_PATH
 
 
-def _conn(): return connect_db()
+def _conn(): return connect_db(DB_PATH)
 
 @dataclass
 class AuditEntry:
@@ -51,16 +51,9 @@ ALLOWED_ACCEPT_PRELIMINARY_FROM={"unverified"}
 
 class PersistentVerificationRepository:
     def __init__(self):
-        with _conn() as c:
-            lock_schema_initialization(c)
-            c.execute("""CREATE TABLE IF NOT EXISTS verifications (
-              parcel_id TEXT PRIMARY KEY,status TEXT,ai_geometry_wkt TEXT,verified_geometry_wkt TEXT,
-              surveyor_name TEXT,surveyor_license TEXT,statement TEXT,audit_json TEXT)""")
-            c.execute("""CREATE TABLE IF NOT EXISTS schema_migrations (
-              component TEXT NOT NULL, version INTEGER NOT NULL,
-              applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              PRIMARY KEY(component, version))""")
-            c.execute("INSERT INTO schema_migrations(component, version) VALUES ('verifications', 2) ON CONFLICT(component, version) DO NOTHING")
+        # Schema DDL is centralized in database.initialize_schema(); never race
+        # CREATE TABLE statements from module/repository construction.
+        pass
 
     def _row(self,row):
         if not row: return None

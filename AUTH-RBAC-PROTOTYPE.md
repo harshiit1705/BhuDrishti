@@ -23,14 +23,8 @@
 
 ## Demo accounts
 
-- `admin@bhudrishti.gov.in` / `Bhu@Admin2026`
-- `project@bhudrishti.gov.in` / `Bhu@Project2026`
-- `gis@bhudrishti.gov.in` / `Bhu@GIS2026`
-- `surveyor@bhudrishti.gov.in` / `Bhu@Survey2026`
-- `revenue@bhudrishti.gov.in` / `Bhu@Revenue2026`
-
-These credentials are prototype-only and must be replaced before any real deployment.
+Built-in demo identities are for isolated local development only. The production backend refuses authentication for those known demo email addresses, does not reconstruct their sessions from JWT claims, and does not reseed or reset their passwords. The hosted login page does not publish the built-in demo passwords. Create a real production administrator using the controlled bootstrap command in `POSTGRES-MIGRATION-RUNBOOK.md`.
 
 ## Important production limitation
 
-The current prototype user store is SQLite and therefore inherits the same Vercel `/tmp` limitation as the rest of the prototype. It is suitable for a controlled SIH demonstration but is **not** a production identity system. A production deployment should use a managed persistent database or government/enterprise identity provider, a strong environment-managed signing secret, HTTPS-only cookies or another secure token strategy, audit logging, account recovery, MFA where required, and server-side session revocation.
+Authentication users are stored through the shared SQLite-local/PostgreSQL-production adapter. Production requires a managed PostgreSQL database and a strong `BHUDRISHTI_AUTH_SECRET`; the app fails closed when these configuration requirements are missing. This remains a prototype authentication system: a real deployment should additionally consider an enterprise identity provider, secure session strategy, account recovery, MFA where required, and server-side session revocation.

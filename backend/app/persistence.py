@@ -39,7 +39,7 @@ if not IS_VERCEL:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 PERSISTENCE_MODE = "postgresql" if DATABASE_URL else "sqlite_local"
-PERSISTENCE_LABEL = "Managed PostgreSQL/Supabase" if DATABASE_URL else f"Local SQLite file ({DB_PATH})"
+PERSISTENCE_LABEL = "Managed PostgreSQL/Supabase" if DATABASE_URL else "Local SQLite file (development only)"
 
 
 def database_configured() -> bool:

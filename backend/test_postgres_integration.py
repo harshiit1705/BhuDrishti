@@ -15,7 +15,7 @@ if not DSN:
     raise SystemExit(0)
 record_id="EXT-PGTEST-"+uuid.uuid4().hex[:12].upper()
 dataset_id="DS-PGTEST-"+uuid.uuid4().hex[:10].upper()
-env=os.environ.copy(); env["DATABASE_URL"]=DSN; env["BHUDRISHTI_AUTH_SECRET"]=env.get("BHUDRISHTI_AUTH_SECRET", "pg-integration-test-secret-only")
+env=os.environ.copy(); env["DATABASE_URL"]=DSN; env["BHUDRISHTI_AUTH_SECRET"]=env.get("BHUDRISHTI_AUTH_SECRET", "pg-integration-test-secret-only-32-bytes-minimum")
 env.pop("VERCEL",None); env["PYTHONPATH"]=str(ROOT)+os.pathsep+env.get("PYTHONPATH","")
 create=f'''from shapely.geometry import Polygon
 from backend.app.main import app

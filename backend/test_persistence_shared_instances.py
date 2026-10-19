@@ -88,12 +88,33 @@ print("INSTANCE_B_LOAD_FILE_BYTES_SUBMIT_CERTIFY_EXPORT_AND_HEALTH_PASS")
     fail_env.pop("BHUDRISHTI_DB_PATH", None)
     r = subprocess.run([sys.executable, "-c", fail_script], env=fail_env, cwd=ROOT, text=True, capture_output=True)
     assert r.returncode != 0 and "requires managed PostgreSQL on Vercel" in (r.stdout + r.stderr)
-    # A PostgreSQL DSN is accepted as configuration; app import must attempt a real
-    # connection rather than falsely claiming the adapter is connected.
+    # A configured PostgreSQL DSN must select the PostgreSQL adapter without
+    # connecting or running DDL at module import; health then verifies connectivity.
     pg_env = fail_env.copy(); pg_env["DATABASE_URL"] = "postgresql://invalid.invalid:5432/not_a_real_db"
-    pg_env["BHUDRISHTI_AUTH_SECRET"] = "test-secret-for-import-only"
-    r = subprocess.run([sys.executable, "-c", "import backend.app.main"], env=pg_env, cwd=ROOT, text=True, capture_output=True)
-    assert r.returncode != 0 and "does not include a PostgreSQL repository adapter" not in (r.stdout + r.stderr)
+    pg_env["BHUDRISHTI_AUTH_SECRET"] = "test-secret-for-import-only-32-bytes-minimum"
+    # Configured production app import must not run DDL or require an immediate
+    # database connection; the health endpoint must report unavailable storage.
+    probe = """import json, time
+from api.index import app
+from backend.app.main import health
+from fastapi.responses import JSONResponse
+r = health()
+assert isinstance(r, JSONResponse) and r.status_code == 503
+p = json.loads(r.body)
+assert p['persistence']['adapter'] == 'postgresql' and p['persistence']['connected'] is False
+assert 'not_a_real_db' not in r.body.decode()
+from backend.app import auth
+assert auth.DEMO_USERS_ENABLED is False
+t = auth._token({'sub':'demo','email':'admin@bhudrishti.gov.in','role':'ADMIN','exp':int(time.time())+60})
+try:
+    auth.user_from_token(t)
+    raise AssertionError('production demo token accepted')
+except ValueError:
+    pass
+print('VERCEL_ENTRYPOINT_IMPORT_OK_HEALTH_DEGRADED_SCHEMA_NOT_ASSUMED_DEMO_LOGIN_DISABLED')
+"""
+    r = subprocess.run([sys.executable, "-c", probe], env=pg_env, cwd=ROOT, text=True, capture_output=True)
+    assert r.returncode == 0 and "VERCEL_ENTRYPOINT_IMPORT_OK_HEALTH_DEGRADED" in r.stdout, r.stdout + r.stderr
 
     # All HTML pages share the API client; production frontend/backend proxy declarations match.
     api_client = (ROOT / "frontend" / "js" / "api-client.js").read_text(encoding="utf-8")

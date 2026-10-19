@@ -88,34 +88,18 @@ def require_roles(*roles):
         return user
     return dependency
 
-ensure_demo_users()
-
 # ---------------------------------------------------------------------------
-# In-memory "database" for the prototype, seeded with the deterministic demo set.
+# In-memory demo geometry catalog. User-created records remain DB-backed.
 # ---------------------------------------------------------------------------
 PARCELS: dict[str, Parcel] = {p.parcel_id: p for p in build_demo_parcels()}
-from .persistence import DB_PATH, UPLOAD_DIR, PERSISTENCE_MODE, PERSISTENCE_LABEL
-from .database import connect_db, is_postgres, check_database, lock_schema_initialization
+from .persistence import DB_PATH, UPLOAD_DIR, PERSISTENCE_MODE, PERSISTENCE_LABEL, IS_VERCEL
+from .database import connect_db, is_postgres, check_database, initialize_schema
 
-
-with connect_db() as _db:
-    lock_schema_initialization(_db)
-    _db.execute("""CREATE TABLE IF NOT EXISTS datasets (
-        dataset_id TEXT PRIMARY KEY, filename TEXT, file_type TEXT, size_bytes INTEGER,
-        declared_crs TEXT, status TEXT, created_at TEXT, content BYTEA
-    )""" if is_postgres() else """CREATE TABLE IF NOT EXISTS datasets (
-        dataset_id TEXT PRIMARY KEY, filename TEXT, file_type TEXT, size_bytes INTEGER,
-        declared_crs TEXT, status TEXT, created_at TEXT, content BLOB
-    )""")
-    if is_postgres():
-        _db.execute("ALTER TABLE datasets ADD COLUMN IF NOT EXISTS content BYTEA")
-    else:
-        columns = {row[1] for row in _db.execute("PRAGMA table_info(datasets)").fetchall()}
-        if "content" not in columns:
-            _db.execute("ALTER TABLE datasets ADD COLUMN content BLOB")
-    _db.execute("CREATE TABLE IF NOT EXISTS schema_migrations (component TEXT NOT NULL, version INTEGER NOT NULL, applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(component, version))")
-    _db.execute("INSERT INTO schema_migrations(component, version) VALUES ('datasets', 2) ON CONFLICT(component, version) DO NOTHING")
-    _db.commit()
+# Local development may initialize its own SQLite schema. Production uses the
+# explicit, advisory-locked migration command; no PostgreSQL DDL runs at import.
+if not IS_VERCEL:
+    initialize_schema()
+    ensure_demo_users()
 
 
 def _authoritative_parcel(parcel_id: str) -> Parcel:
@@ -1073,24 +1057,26 @@ def export_geojson(user: dict = Depends(require_roles("ADMIN", "PROJECT_OFFICER"
 def system_status():
     db_status = check_database()
     connected = bool(db_status.get("connected"))
+    ready = connected and bool(db_status.get("schema_ready"))
     return {
-        "backend": "online" if connected else "degraded",
+        "backend": "online" if ready else "degraded",
         "project": PROJECT_ID,
         "extraction": {"mode": "opencv_prototype", "is_demo_data": False, "model": "classical_cv"},
         "elevation": {"mode": "synthetic_demo", "is_demo_data": True},
         "shadow_analysis": {"mode": "physics_inspired_prototype", "is_demo_data": True, "authoritative_boundary": False},
         "persistence": {"mode": PERSISTENCE_MODE, "label": PERSISTENCE_LABEL, **db_status},
         "georeferencing": {**_coordinate_system(), "mode": "local_demo_coordinates"},
-        "architecture": {"repository_abstraction": True, "production_storage": "connected" if connected and is_postgres() else ("local_sqlite" if connected else "unavailable")},
+        "architecture": {"repository_abstraction": True, "production_storage": "connected" if ready and is_postgres() else ("local_sqlite" if ready and not is_postgres() else "unavailable")},
     }
 
 
 @app.get("/api/health")
 def health():
     db_status = check_database()
-    payload = {"status": "ok" if db_status["connected"] else "degraded", "project": PROJECT_ID,
+    ready = bool(db_status["connected"] and db_status.get("schema_ready"))
+    payload = {"status": "ok" if ready else "degraded", "project": PROJECT_ID,
                "parcel_count": len(PARCELS), "persistence": db_status}
-    return payload if db_status["connected"] else JSONResponse(status_code=503, content=payload)
+    return payload if ready else JSONResponse(status_code=503, content=payload)
 
 
 @app.get("/")
