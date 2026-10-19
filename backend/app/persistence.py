@@ -24,10 +24,20 @@ if DATABASE_URL and not DATABASE_URL.startswith(("postgresql://", "postgresql+ps
 if DATABASE_URL.startswith("postgresql+psycopg://"):
     DATABASE_URL = "postgresql://" + DATABASE_URL[len("postgresql+psycopg://"):]
 
-DB_PATH = Path(os.environ.get("BHUDRISHTI_DB_PATH", Path(__file__).resolve().parent.parent / "data" / "bhudrishti.db")).expanduser().resolve()
-DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+DB_PATH = Path(
+    os.environ.get(
+        "BHUDRISHTI_DB_PATH",
+        Path(__file__).resolve().parent.parent / "data" / "bhudrishti.db",
+    )
+).expanduser().resolve()
+
 UPLOAD_DIR = DB_PATH.parent / "uploads"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+# Vercel's application filesystem is read-only.
+# Production must use managed PostgreSQL and shared database storage.
+if not IS_VERCEL:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 PERSISTENCE_MODE = "postgresql" if DATABASE_URL else "sqlite_local"
 PERSISTENCE_LABEL = "Managed PostgreSQL/Supabase" if DATABASE_URL else f"Local SQLite file ({DB_PATH})"
 
