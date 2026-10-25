@@ -648,3 +648,10 @@ The prototype keeps the uploaded ORI in browser IndexedDB and the active EXT ext
 ## Managed PostgreSQL / Vercel deployment
 
 Production Vercel deployments require a managed PostgreSQL/Supabase database. Configure `DATABASE_URL` and `BHUDRISHTI_AUTH_SECRET`, set Vercel Root Directory to the repository root, and follow [`POSTGRES_DEPLOYMENT_AND_MIGRATION.md`](POSTGRES_DEPLOYMENT_AND_MIGRATION.md) to import the existing SQLite data without deleting it and verify the live deployment. The source changes and local tests do not by themselves mean production is connected.
+
+
+## Public demo login (Vercel)
+
+The five built-in demo accounts are disabled on Vercel by default. To enable them for a public showcase, set the backend environment variable `BHUDRISHTI_ENABLE_PUBLIC_DEMO_USERS=true`, ensure the PostgreSQL schema migration has completed, and redeploy. On startup, the backend seeds/restores the documented demo accounts in the persistent database.
+
+**Security warning:** these passwords are public and the Administrator account has the `ADMIN` role. Anyone can use it to access all actions permitted to an administrator. Enable this only against a dedicated demo database with synthetic data, never against sensitive/authoritative cadastral records. All visitors share these identities, so their actions cannot be reliably attributed to individual people.

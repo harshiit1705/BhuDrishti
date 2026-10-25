@@ -55,7 +55,7 @@ From the repository root, with `DATABASE_URL` set in your local shell:
 python backend/migrate_postgres_schema.py
 ```
 
-Expected output is `POSTGRES_SCHEMA_MIGRATION: PASS`. The migration is additive and repeatable. It uses a PostgreSQL transaction-scoped advisory lock to serialize concurrent migration runners, adds missing columns without dropping existing rows, backfills `users.user_id` from `id` if that legacy column exists, otherwise derives a stable identifier from email, creates uniqueness indexes only after duplicate checks, and creates/synchronizes `extraction_id_seq`.
+Expected output is `POSTGRES_SCHEMA_MIGRATION: PASS`. The migration is repeatable and preserves existing rows. It uses a PostgreSQL transaction-scoped advisory lock, adds missing columns, backfills `users.user_id` from `id` when possible (otherwise derives a stable identifier from email), checks duplicate identifiers/emails before creating unique indexes, and creates/synchronizes `extraction_id_seq`. For a legacy workspace-based `users` table, auth migration v4 makes `workspace_id` nullable and removes role/status CHECK constraints that conflict with BhuDrishti's role/status values. It preserves the `workspace_id` column, existing values, workspace rows, and foreign keys; it does not drop the table or delete user rows. Take a backup first and review any additional custom constraints before applying it.
 
 If it fails, stop and inspect the schema/error class. Do not drop or recreate tables. Resolve duplicate or incompatible legacy data deliberately, then rerun.
 

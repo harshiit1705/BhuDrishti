@@ -36,7 +36,9 @@ def run():
             ext = db.execute("SELECT extraction_id,dataset_id FROM extractions WHERE extraction_id='EXT-LEGACY-77'").fetchone()
             assert ext == ('EXT-LEGACY-77', None), ext
             versions = db.execute("SELECT COUNT(*) FROM schema_migrations WHERE version=3").fetchone()[0]
-            assert versions == 4, versions
+            assert versions == 3, versions
+            auth_version = db.execute("SELECT COUNT(*) FROM schema_migrations WHERE component='auth_users' AND version=4").fetchone()[0]
+            assert auth_version == 1, auth_version
 
         # Multiple independent workers concurrently initializing a fresh SQLite DB.
         concurrent_db = Path(td) / "concurrent.sqlite3"

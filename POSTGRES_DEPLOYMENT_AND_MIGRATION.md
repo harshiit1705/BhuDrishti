@@ -6,7 +6,7 @@
 - `backend/app/database.py` is the shared DB-API adapter: SQLite is for local development; `psycopg` 3 connects to managed PostgreSQL/Supabase. Startup store initialization performs real database operations, so an unreachable database prevents the API from starting.
 - Authoritative stores moved behind the shared adapter: registered/demo users and RBAC status, extraction records, verification state and audit trail, datasets and uploaded orthophoto bytes. Dataset bytes are in PostgreSQL `BYTEA`, not instance-local `/tmp` or local disk.
 - Extraction geometry is stored as WKT; pixel polygons/candidates/roof footprints and verification audit entries are JSON. Verification state transitions use a transaction and PostgreSQL row locks; the extraction status update is committed in the same transaction.
-- Additive version records are stored in `schema_migrations`; existing extraction schemas get the missing `dataset_id` column and existing dataset schemas get the `content` column without table resets.
+- Version records are stored in `schema_migrations`; existing extraction schemas get the missing `dataset_id` column and existing dataset schemas get the `content` column without table resets. Auth schema v4 also repairs legacy workspace-based `users` tables by making `workspace_id` nullable and removing incompatible role/status CHECK constraints while preserving existing rows and foreign keys.
 - `/api/health` runs `SELECT 1`, reports adapter/configuration/connection truthfully, and returns HTTP 503 when the database cannot be reached. `/api/system/status` reports the same connection state and does not call PostgreSQL connected merely because a URL exists.
 - The root-level `vercel.json` and `api/index.py` are the deployment entrypoint. Configure Vercel Root Directory as the repository root (`.`), not `backend/`.
 
@@ -62,7 +62,7 @@ python backend/migrate_sqlite_to_postgres.py --sqlite backend/data/bhudrishti.db
 
 The importer copies users/password hashes, datasets and file bytes, extractions/geometries, verification records, and serialized audit history. It inserts missing keys only (`ON CONFLICT DO NOTHING`), so it does not overwrite existing destination rows. It reports inserted and skipped counts. Review skipped counts before cutover; if the destination already has conflicting IDs, compare those records deliberately rather than resetting either database. The importer uses one destination transaction and does not modify the SQLite file or upload directory.
 
-The app also runs idempotent additive schema setup on startup. The migration/import command is still needed to copy existing records; schema creation alone does not move data.
+Production schema changes are applied explicitly with `python backend/migrate_postgres_schema.py`; the FastAPI module does not run PostgreSQL DDL at import time. The SQLite importer is separate and is needed only if local records must be copied; schema migration alone does not move data.
 
 ## 4. Deployment verification (required before calling production fixed)
 

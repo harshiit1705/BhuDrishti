@@ -23,7 +23,7 @@ from .demo_data import build_demo_parcels, ELEVATION_DEMO_CONFIG, HISTORICAL_SHI
 from .verification_store import store, InvalidTransitionError
 from . import extraction_engine
 from .extraction_store import extraction_store, ExtractionRecord
-from .auth import (ensure_demo_users, authenticate, issue_token, user_from_token, create_registration, list_users, set_user_status, ROLE_LABELS)
+from .auth import (DEMO_USERS_ENABLED, ensure_demo_users, authenticate, issue_token, user_from_token, create_registration, list_users, set_user_status, ROLE_LABELS)
 from pathlib import Path
 import json, hashlib, logging, uuid
 import numpy as np
@@ -99,6 +99,10 @@ from .database import connect_db, is_postgres, check_database, initialize_schema
 # explicit, advisory-locked migration command; no PostgreSQL DDL runs at import.
 if not IS_VERCEL:
     initialize_schema()
+    ensure_demo_users()
+elif DEMO_USERS_ENABLED:
+    # Production demo mode must use an already-migrated persistent database.
+    # Seeding is idempotent and does not run DDL on Vercel.
     ensure_demo_users()
 
 

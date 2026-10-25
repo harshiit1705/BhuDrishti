@@ -54,7 +54,11 @@ from .database import connect_db
 def _db_path() -> Path:
     return DB_PATH
 
-DEMO_USERS_ENABLED = not IS_VERCEL
+# Public demo accounts are disabled on Vercel by default. For a public showcase
+# deployment using a dedicated demo database, explicitly set
+# BHUDRISHTI_ENABLE_PUBLIC_DEMO_USERS=true in the backend environment.
+_PUBLIC_DEMO_FLAG = os.environ.get("BHUDRISHTI_ENABLE_PUBLIC_DEMO_USERS", "").strip().lower()
+DEMO_USERS_ENABLED = (not IS_VERCEL) or _PUBLIC_DEMO_FLAG in {"1", "true", "yes", "on"}
 
 
 def _connect():
@@ -113,19 +117,21 @@ def _public_user(row: sqlite3.Row | dict) -> dict:
         "name": data["name"],
         "employee_id": data.get("employee_id"),
         "department": data.get("department"),
-        "role": data["role"],
-        "role_label": ROLE_LABELS.get(data["role"], data["role"]),
-        "status": data["status"],
+        "role": str(data["role"]).upper(),
+        "role_label": ROLE_LABELS.get(str(data["role"]).upper(), str(data["role"])),
+        "status": str(data["status"]).upper(),
         "created_at": data.get("created_at"),
         "last_login_at": data.get("last_login_at"),
     }
 
 
 def ensure_demo_users() -> None:
-    """Seed local demo identities once; never reset existing passwords.
+    """Ensure the five built-in demo identities exist with their documented credentials.
 
-    Production demo identities are disabled. Existing demo passwords are never
-    reset by application startup or authentication requests.
+    On Vercel this only runs when BHUDRISHTI_ENABLE_PUBLIC_DEMO_USERS=true.
+    Because these credentials are public, use only with a dedicated demo dataset.
+    The known demo passwords are restored on startup so public demo access stays
+    deterministic across serverless instances.
     """
     if not DEMO_USERS_ENABLED:
         return
@@ -136,7 +142,15 @@ def ensure_demo_users() -> None:
             password_hash, salt = _hash_password(password)
             db.execute(
                 """INSERT INTO users(user_id,email,name,employee_id,department,role,status,password_hash,password_salt,created_at)
-                   VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING""",
+                   VALUES(?,?,?,?,?,?,?,?,?,?)
+                   ON CONFLICT (email) DO UPDATE SET
+                     name=excluded.name,
+                     employee_id=excluded.employee_id,
+                     department=excluded.department,
+                     role=excluded.role,
+                     status='ACTIVE',
+                     password_hash=excluded.password_hash,
+                     password_salt=excluded.password_salt""",
                 (stable_id, email, name, employee_id, "BhuDrishti Demo Department", role, "ACTIVE", password_hash, salt,
                  time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),
             )
@@ -153,7 +167,9 @@ def authenticate(email: str, password: str) -> dict:
     db = _connect()
     try:
         row = db.execute("SELECT * FROM users WHERE lower(email)=lower(?)", (email.strip(),)).fetchone()
-        if not row or row["status"] != "ACTIVE" or not _verify_password(password, row["password_hash"], row["password_salt"]):
+        if (not row or str(row["status"] or "").upper() != "ACTIVE"
+                or not row["password_hash"] or not row["password_salt"]
+                or not _verify_password(password, row["password_hash"], row["password_salt"])):
             raise ValueError("Invalid email/password or inactive account")
         now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         db.execute("UPDATE users SET last_login_at=? WHERE user_id=?", (now, row["user_id"]))
@@ -181,12 +197,12 @@ def issue_token(user: dict) -> str:
 
 def user_from_token(token: str) -> dict:
     payload = _decode_token(token)
-    if IS_VERCEL and str(payload.get("email", "")).strip().lower() in {u[0] for u in DEMO_USERS}:
+    if IS_VERCEL and not DEMO_USERS_ENABLED and str(payload.get("email", "")).strip().lower() in {u[0] for u in DEMO_USERS}:
         raise ValueError("Invalid session token")
     db = _connect()
     try:
         row = db.execute("SELECT * FROM users WHERE user_id=?", (payload.get("sub"),)).fetchone()
-        if row and row["status"] == "ACTIVE":
+        if row and str(row["status"] or "").upper() == "ACTIVE":
             return _public_user(row)
 
         # Vercel serverless instances can have different temporary SQLite

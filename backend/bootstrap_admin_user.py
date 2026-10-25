@@ -63,10 +63,15 @@ def main() -> int:
             if existing:
                 print("ERROR: This email already exists; no account was overwritten.", file=sys.stderr)
                 return 3
-            db.execute("""INSERT INTO users(user_id,email,name,employee_id,department,role,status,password_hash,password_salt,created_at)
-                VALUES(?,?,?,?,?,'ADMIN','ACTIVE',?,?,?)""",
-                (secrets.token_hex(16), email, name, employee_id, department, password_hash, salt,
-                 time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())))
+            # Use BhuDrishti's own auth contract. The migration makes any legacy
+            # workspace_id optional without deleting workspace records or user rows.
+            db.execute(
+                """INSERT INTO users(user_id,email,name,employee_id,department,role,status,password_hash,password_salt,created_at)
+                   VALUES(?,?,?,?,?,'ADMIN','ACTIVE',?,?,?)""",
+                (secrets.token_hex(16), email, name, employee_id, department,
+                 password_hash, salt, time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())),
+            )
+
         print("ADMIN_BOOTSTRAP: PASS (one administrator created; password was not printed)")
         return 0
     except Exception as exc:

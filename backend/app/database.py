@@ -117,6 +117,22 @@ def initialize_schema() -> None:
             "password_hash": "TEXT DEFAULT ''", "password_salt": "TEXT DEFAULT ''",
             "created_at": "TEXT DEFAULT ''", "last_login_at": "TEXT",
         }, pg)
+        if pg:
+            # Older deployments may have an unrelated workspace-based auth schema:
+            # workspace_id NOT NULL plus CHECK constraints that only permit
+            # lowercase ApexOS roles/statuses. BhuDrishti owns its user model and
+            # does not write workspace_id. Preserve legacy columns/rows/FKs, but
+            # remove the incompatible NOT NULL and role/status CHECK constraints.
+            user_columns = _columns(db, "users", True)
+            if "workspace_id" in user_columns:
+                db.execute("ALTER TABLE users ALTER COLUMN workspace_id DROP NOT NULL")
+            checks = db.execute("""SELECT conname, pg_get_constraintdef(oid) AS definition
+                FROM pg_constraint WHERE conrelid = to_regclass('public.users') AND contype = 'c'""").fetchall()
+            for check in checks:
+                definition = str(check["definition"] or "").lower()
+                if "role" in definition or "status" in definition:
+                    constraint_name = str(check["conname"]).replace('"', '""')
+                    db.execute(f'ALTER TABLE users DROP CONSTRAINT "{constraint_name}"')
         # If an older deployment used `id` as its identifier, preserve it where
         # possible before generating a stable fallback for remaining rows.
         if "id" in original_user_columns:
@@ -168,7 +184,7 @@ def initialize_schema() -> None:
             "surveyor_name": "TEXT", "surveyor_license": "TEXT", "statement": "TEXT", "audit_json": "TEXT",
         }, pg)
 
-        for component, version in (("auth_users", 3), ("datasets", 3), ("extractions", 3), ("verifications", 3)):
+        for component, version in (("auth_users", 4), ("datasets", 3), ("extractions", 3), ("verifications", 3)):
             db.execute("INSERT INTO schema_migrations(component, version) VALUES (?, ?) ON CONFLICT(component, version) DO NOTHING", (component, version))
 
         if pg:
@@ -199,7 +215,23 @@ def check_database() -> dict:
                     exists = db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='schema_migrations'").fetchone()
                 if exists:
                     versions = {(r["component"], int(r["version"])) for r in db.execute("SELECT component, version FROM schema_migrations").fetchall()}
-                    schema_ready = all((name, version) in versions for name, version in (("auth_users", 3), ("datasets", 3), ("extractions", 3), ("verifications", 3)))
+                    schema_ready = all((name, version) in versions for name, version in (("auth_users", 4), ("datasets", 3), ("extractions", 3), ("verifications", 3)))
+                    if schema_ready and is_postgres():
+                        required = {r["column_name"] for r in db.execute("""SELECT column_name FROM information_schema.columns
+                            WHERE table_schema=current_schema() AND table_name='users'""").fetchall()}
+                        schema_ready = {"user_id", "email", "name", "role", "status", "password_hash", "password_salt"}.issubset(required)
+                        if schema_ready and "workspace_id" in required:
+                            workspace_nullable = db.execute("""SELECT is_nullable FROM information_schema.columns
+                                WHERE table_schema=current_schema() AND table_name='users' AND column_name='workspace_id'""").fetchone()
+                            schema_ready = bool(workspace_nullable and workspace_nullable["is_nullable"] == "YES")
+                        if schema_ready:
+                            remaining_checks = db.execute("""SELECT pg_get_constraintdef(oid) AS definition
+                                FROM pg_constraint WHERE conrelid = to_regclass('public.users') AND contype = 'c'""").fetchall()
+                            schema_ready = not any(
+                                "role" in str(item["definition"] or "").lower()
+                                or "status" in str(item["definition"] or "").lower()
+                                for item in remaining_checks
+                            )
     except Exception as exc:
         error = type(exc).__name__
     if connected and not schema_ready and error is None:
